@@ -22,6 +22,9 @@ import zipfile
 from source_workbench import safe_overrides, import_resource_pack, MAX_PACK_BYTES
 from voxel_architect import generate_structure, serialize_structure, preview_structure, MAX_STRUCTURES
 from security.request_policy import session_token, trusted_request, authorized_post, content_type_allowed
+from studio_core.graph import AssetGraph
+from studio_core.migrate import from_editor_state, source_schema, to_editor_state, upgrade
+from studio_core.project_schema import SCHEMA, dumps
 
 HOST = '127.0.0.1'
 PORT = 8787
@@ -358,6 +361,9 @@ def _archive(files):
             # Stable timestamps for reproducible output (1980 is ZIP's earliest date).
             info = zipfile.ZipInfo(path, date_time=(2020, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
+            # ZipInfo defaults create_system to 0 on Windows and 3 elsewhere; pin it so
+            # every OS writes the same bytes (and the Unix mode below means what it says).
+            info.create_system = 3
             info.external_attr = 0o644 << 16
             archive.writestr(info, content, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
     return result.getvalue()
@@ -431,7 +437,8 @@ class Handler(BaseHTTPRequestHandler):
             self.response(404, 'text/plain; charset=utf-8', b'Not found')
 
     def do_POST(self):
-        if self.path not in ('/api/export', '/api/hmod', '/api/preview', '/api/source', '/api/structure-preview', '/api/doctor', '/api/resourcepack'):
+        if self.path not in ('/api/export', '/api/hmod', '/api/preview', '/api/source', '/api/structure-preview', '/api/doctor', '/api/resourcepack',
+                             '/api/project/open', '/api/project/save'):
             return self.response(404, 'application/json', b'{"error":"Not found"}')
         if not trusted_request(self.headers, self.server.server_address[1]):
             return self.response(403, 'application/json; charset=utf-8', b'{"error":"Untrusted request origin or host"}')
@@ -455,6 +462,17 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == '/api/doctor':
                 from mod_doctor import audit_project
                 return self.response(200, 'application/json; charset=utf-8', json_bytes(audit_project(payload)))
+            if self.path == '/api/project/open':
+                # Any supported project file -> editor state; older schemas are migrated in memory only.
+                document = upgrade(payload)
+                schema = source_schema(payload)
+                return self.response(200, 'application/json; charset=utf-8', json_bytes({
+                    'state': to_editor_state(document),
+                    'migrated_from': None if schema == SCHEMA else schema,
+                    'diagnostics': AssetGraph(document).diagnostics()}))
+            if self.path == '/api/project/save':
+                return self.response(200, 'application/json; charset=utf-8',
+                                     dumps(from_editor_state(payload)).encode('utf-8'))
             mod_id, _ = create_project_files(payload)
             if self.path == '/api/source':
                 _, files = create_project_files(payload)

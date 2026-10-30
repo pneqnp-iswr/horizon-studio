@@ -74,7 +74,11 @@ python horizon_cli.py doctor examples/workshop_showcase.hstudio.json
 python horizon_cli.py inspect examples/workshop_showcase.hstudio.json
 python horizon_cli.py build examples/workshop_showcase.hstudio.json --output dist/workshop_showcase.hmod
 python horizon_cli.py source examples/workshop_showcase.hstudio.json --output dist/workshop_showcase-source.zip
+python horizon_cli.py migrate examples/ruby_demo.hstudio.json --output my_project.hstudio.json
+python horizon_cli.py graph examples/workshop_showcase.hstudio.json
 ```
+
+Все команды принимают и основной формат `studio.project/1`, и старые файлы `.hstudio.json` (схемы 2–4); подробности — в [docs/PROJECT_FORMAT.md](docs/PROJECT_FORMAT.md). `migrate` записывает проект в новом формате (поверх исходного файла — только с автоматической резервной копией); `graph` показывает, какие рецепты используют какие блоки и предметы, и сообщает о битых ссылках.
 
 ## Тесты
 

@@ -14,47 +14,57 @@ import sys
 from mod_doctor import audit_project
 from studio import hmod_zip, project_zip, inspect_project
 from horizon_compat.official_validator import check_hmod
+from studio_core.graph import AssetGraph
+from studio_core.migrate import source_schema, to_generator_request, upgrade
+from studio_core.project_schema import SCHEMA, dumps
+from studio_core.storage import atomic_write_bytes
 
 MAX_PROJECT_BYTES = 6 * 1024 * 1024
 
 
-def load_project(path: Path) -> dict:
+def _read_json(path: Path):
     if not path.is_file() or path.stat().st_size > MAX_PROJECT_BYTES:
         raise ValueError('Project file missing or larger than 6 MiB')
-    data = json.loads(path.read_text(encoding='utf-8'))
-    if not isinstance(data, dict) or data.get('format') != 'horizon-studio':
-        raise ValueError('Expected a Horizon Studio .hstudio.json project')
-    if data.get('schema') not in (2, 3, 4):
-        raise ValueError('Unsupported Horizon Studio project schema')
-    if not isinstance(data.get('metadata'), dict):
-        raise ValueError('Missing project metadata')
-    mod_id = data['metadata'].get('id')
-    if not isinstance(mod_id, str):
-        raise ValueError('Missing mod ID')
-    result = {**data['metadata']}
-    for group in ('blocks', 'items', 'recipes', 'structures'):
-        entries = data.get(group, [])
-        if not isinstance(entries, list):
-            raise ValueError(f'{group} must be a list')
-        result[group] = entries
-    converted = []
-    for recipe in result['recipes']:
-        if not isinstance(recipe, dict) or not isinstance(recipe.get('grid'), list):
-            raise ValueError('Invalid recipe')
-        def convert(ref):
-            return f'{mod_id}:{ref[1:]}' if isinstance(ref, str) and ref.startswith('@') else ref
-        converted.append({**recipe, 'result': convert(recipe.get('result')),
-                          'grid': [convert(cell) for cell in recipe['grid']]})
-    result['recipes'] = converted
-    return result
+    return json.loads(path.read_text(encoding='utf-8'))
+
+
+def read_document(path: Path) -> dict:
+    """Read any supported project file as a ``studio.project/1`` document."""
+    return upgrade(_read_json(path))
+
+
+def load_project(path: Path) -> dict:
+    """The generator request for a project file (legacy schemas 2-4 or studio.project/1)."""
+    return to_generator_request(read_document(path))
+
+
+def write_migrated(source: Path, output: Path, force: bool) -> str:
+    """Write ``source`` as studio.project/1; a backup is kept when migrating in place."""
+    data = _read_json(source)
+    original = source_schema(data)
+    document = dumps(upgrade(data))
+    if output.exists() and output.resolve() == source.resolve():
+        if original == SCHEMA:
+            return f'{source} is already {SCHEMA}; nothing to do'
+        backup = source.with_name(f'{source.name}.schema{original}.bak')
+        if backup.exists():
+            raise ValueError(f'Backup {backup} already exists; move it away first')
+        atomic_write_bytes(backup, source.read_bytes())
+        atomic_write_bytes(output, document.encode('utf-8'))
+        return f'Migrated {source} from schema {original} to {SCHEMA} (backup: {backup})'
+    if output.exists() and not force:
+        raise ValueError(f'{output} exists; pass --force to replace it')
+    atomic_write_bytes(output, document.encode('utf-8'))
+    return f'Wrote {output} ({SCHEMA}, from schema {original})'
 
 
 def main(argv=None) -> int:
     parser=argparse.ArgumentParser(description='Horizon Studio offline builder and diagnostics (official checking is opt-in)')
-    parser.add_argument('command', choices=('doctor','inspect','build','source','verify'))
-    parser.add_argument('project', type=Path, help='Project .hstudio.json file')
-    parser.add_argument('-o','--output',type=Path,help='Destination for build/source')
-    parser.add_argument('--json',action='store_true',help='Machine-readable diagnostics with doctor/inspect/verify')
+    parser.add_argument('command', choices=('doctor','inspect','build','source','verify','migrate','graph'))
+    parser.add_argument('project', type=Path, help='Project .hstudio.json file (schema 2-4 or studio.project/1)')
+    parser.add_argument('-o','--output',type=Path,help='Destination for build/source/migrate (migrate prints to stdout without it)')
+    parser.add_argument('--force',action='store_true',help='migrate: replace an existing output file')
+    parser.add_argument('--json',action='store_true',help='Machine-readable diagnostics with doctor/inspect/verify/graph')
     parser.add_argument('--validator-bin',default='cargo',help='Trusted cargo or cargo-horizon-mod executable path for verify')
     parser.add_argument('--direct-validator',action='store_true',help='Invoke cargo-horizon-mod directly, without cargo prefix')
     parser.add_argument('--validator-revision',help='Declared pinned validator source revision (40-digit SHA; not independently authenticated)')
@@ -62,6 +72,22 @@ def main(argv=None) -> int:
     parser.add_argument('--evidence',type=Path,help='Write JSON official-check evidence for verify')
     args=parser.parse_args(argv)
     try:
+        if args.command=='migrate':
+            if args.output is None:
+                sys.stdout.write(dumps(read_document(args.project)))
+            else:
+                print(write_migrated(args.project,args.output,args.force))
+            return 0
+        if args.command=='graph':
+            graph=AssetGraph(read_document(args.project))
+            report=graph.to_json()
+            if args.json: print(json.dumps(report,ensure_ascii=False,indent=2))
+            else:
+                for edge in report['edges']:
+                    print(f"{graph.label(edge['from'])} -> {graph.label(edge['to'])} ({edge['role']})")
+                for issue in report['diagnostics']:
+                    print(f"{issue['level'].upper():7s} {issue['code']}: {issue['message']}")
+            return 1 if any(issue['level']=='error' for issue in report['diagnostics']) else 0
         project=load_project(args.project)
         if args.command=='doctor':
             report=audit_project(project)
