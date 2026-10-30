@@ -15,7 +15,7 @@ python -m unittest discover -s tests -p test_pixelchat.py -v
 
 **Limits:** local-only HTTP prototype; no TLS, persistence, server-moderated accounts, recipient mod negotiation, signed Minecraft chat binding, distributed cache, reconnect gap recovery, partial upload streaming, professional GIF decoding certification or frame-level rendering engine. No WebP or remote URLs in this version. The server does not prove that a GIF's LZW data or PNG compression stream fully decodes; visual decoding remains the recipient browser's responsibility. Not for public network exposure or untrusted players. GIF upload size ≤512 KiB; width/height ≤256; frames ≤64; total full-screen frame-pixels ≤4,194,304. Retains at most 16 unique media files (8 MiB) and 200 recent messages; per-token 8 messages/10 s.
 
-**Tests and evidence:** 11 `unittest` cases passed locally (including independent HTTP connections simulating two players, malicious sender fields, rate limits, origin protection and invalid GIFs); inline JavaScript passes `node --check`. **Full Chromium browser E2E was not verified:** Playwright's local Chromium was blocked from loopback by the execution environment's administrator policy. No real-game tests have been run. CI should run Python tests on the PR.
+**Tests and evidence:** 14 `unittest` cases passed locally and in CI (including independent HTTP connections simulating two players, malicious sender fields, rate limits, origin protection and invalid GIFs); inline JavaScript passes `node --check`. **Full Chromium browser E2E was not verified:** Playwright's local Chromium was blocked from loopback by the execution environment's administrator policy. No real-game tests have been run. CI should run Python tests on the PR.
 
 ## Real-game bridge: feasibility gate
 
@@ -34,3 +34,16 @@ At inspected upstream Horizon source, `NATIVE_HOOKS_API` is 21 and there is a `n
 **Future order:** native engine hook feasibility with exact upstream commit pin and 2-client in-game test → server-authoritative asset protocol and identity → inline GUI render with bounded animation/caching and reduced-motion mode → compatibility matrix (Horizon native vs Java/Fabric/Paper adapters) → release. Keep native code gated off until an end-to-end game client/server smoke test exists. Never replace vanilla signed messages with forged payloads or claim a plain client can render arbitrary GIF without a mod.
 
 **Releases:** independently versioned Studio releases must include a tested Windows `.exe`, SHA-256 manifest and release notes. This prototype does **not** change the product version; it is not a release.
+
+
+## 2026-10-31 recovery and reliability update
+
+Release branch for Studio v0.7.0 accidentally dropped the earlier PixelChat directory from the merged tree. This module is now explicitly restored on top of v0.7.0. The prototype remains a **developer preview outside the Studio EXE**.
+
+- PNG uploads now verify per-chunk CRC, IHDR field combinations, unknown critical chunks, duplicate headers and contiguous IDAT chunks (still not a complete compressed-stream decoder).
+- Assets require a valid PixelChat session; the uploading session may see its own unpublished bytes, but other sessions can fetch them only after a message references the digest. Browser uses authenticated fetch and a temporary blob URL rather than a public IMG URL.
+- If a browser falls behind bounded retained message history, the server responds with `409 history_gap` and an earliest retained sequence number; the UI clears stale state and replays retained messages.
+- The join response advertises supported capabilities and advertised limits. Testing now covers the new contracts.
+- No in-game GIF rendering, actual Minecraft identity verification or arbitrary GIF size support is claimed. A future release requires proper native client/server hooks, preferably upstreamed.
+
+**Engineering note:** do not remove this documented experimental module during future Studio version bumps; release notes may explicitly exclude it from the shipped EXE until game integration exists.

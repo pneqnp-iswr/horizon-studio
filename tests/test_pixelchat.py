@@ -5,6 +5,8 @@ import base64
 import http.client
 import json
 import threading
+import struct
+import zlib
 import unittest
 from pathlib import Path
 import sys
@@ -49,6 +51,21 @@ class MediaTests(unittest.TestCase):
     def test_rejects_invalid_png(self):
         with self.assertRaises(MediaError):
             inspect_media(b"\x89PNG\r\n\x1a\n" + b"\0" * 60)
+
+    def test_png_crc_accepts_valid_and_rejects_mutation(self):
+        def chunk(typ: bytes, data: bytes) -> bytes:
+            return struct.pack(">I", len(data)) + typ + data + struct.pack(">I", zlib.crc32(typ + data))
+        png = (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 6, 0, 0, 0))
+               + chunk(b"IDAT", zlib.compress(b"\x00\xff\x00\x00\xff")) + chunk(b"IEND", b""))
+        meta = inspect_media(png)
+        self.assertEqual((meta.mime, meta.width, meta.height), ("image/png", 1, 1))
+        corrupt = bytearray(png)
+        corrupt[44] ^= 1  # mutate compressed IDAT bytes; chunk CRC no longer matches
+        with self.assertRaisesRegex(MediaError, "CRC"):
+            inspect_media(bytes(corrupt))
+        unsupported = png.replace(b"IHDR", b"IHDS", 1)
+        with self.assertRaises(MediaError):
+            inspect_media(unsupported)
 
 
 class ProtocolTests(unittest.TestCase):
@@ -120,7 +137,7 @@ class RelayTests(unittest.TestCase):
         self.assertEqual(message["sha256"], sha)
         self.assertEqual(message["text"], ":heart: Hello")
         self.assertIn("[GIF/image: Dancing cat]", message["fallback"])
-        status, raw = self.request("GET", "/api/assets/" + sha)
+        status, raw = self.request("GET", "/api/assets/" + sha, token=bob)
         self.assertEqual(status, 200)
         self.assertEqual(raw, GIF)
         status, after = self.request("GET", "/api/messages?since=1", token=bob)
@@ -155,6 +172,44 @@ class RelayTests(unittest.TestCase):
             self.assertEqual(status, 201)
         status, _ = self.request("POST", "/api/assets", b"<script>x</script>", alice, "application/octet-stream")
         self.assertEqual(status, 400)
+
+    def test_media_get_requires_session_and_publication(self):
+        alice = self.join("Alice")
+        bob = self.join("Bob")
+        status, r = self.request("POST", "/api/assets", GIF, alice, "application/octet-stream")
+        self.assertEqual(status, 201)
+        sha = r["asset"]["sha256"]
+        self.assertEqual(self.request("GET", "/api/assets/" + sha)[0], 401)
+        self.assertEqual(self.request("GET", "/api/assets/" + sha, token=bob)[0], 404)
+        self.assertEqual(self.request("GET", "/api/assets/" + sha, token=alice)[0], 200)
+        self.request("POST", "/api/messages", {"schema": PROTOCOL, "text": "hello", "sha256": sha, "alt": "hello"}, alice)
+        self.assertEqual(self.request("GET", "/api/assets/" + sha, token=bob)[0], 200)
+
+    def test_history_gap_returns_cursor_and_recovers(self):
+        # Emulate history retention with a bounded deque of three entries.
+        from collections import deque
+        state = DemoState(messages=deque(maxlen=3))
+        new_server = create_server(0, state)
+        thread = threading.Thread(target=new_server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            old_port = self.port
+            self.port = new_server.server_port
+            token = self.join("Reconnector")
+            for n in range(4):
+                status, _ = self.request("POST", "/api/messages", {"schema": PROTOCOL, "text": f"m{n}"}, token)
+                self.assertEqual(status, 201)
+            status, gap = self.request("GET", "/api/messages?since=0", token=token)
+            self.assertEqual(status, 409)
+            self.assertEqual(gap["earliest"], 2)
+            status, body = self.request("GET", "/api/messages?since=1", token=token)
+            self.assertEqual(status, 200)
+            self.assertEqual([m["seq"] for m in body["messages"]], [2, 3, 4])
+        finally:
+            self.port = old_port
+            new_server.shutdown()
+            new_server.server_close()
+            thread.join(timeout=2)
 
 
 if __name__ == "__main__":
