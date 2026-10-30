@@ -55,8 +55,8 @@ Canonical project document, migrations, durable workspace, undo, browser E2E.
 | Milestone | Status | Depends on | Evidence | Notes |
 |---|---|---|---|---|
 | HS-005 Canonical studio.project/1 + migration | Done | — | unit: [PR #7: golden migrations, byte-identical .hmod](https://github.com/pneqnp-iswr/horizon-studio/pull/7)<br>official-static: [Migrated fixtures pass the pinned checker](https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41124192941)<br>docs: [Project format](../docs/PROJECT_FORMAT.md) |  |
-| HS-006 Durable workspace, undo/redo, recovery | Partially verified | HS-005 | unit: [PR #8; CI run 41128196057 (Python + Node)](https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41128196057)<br>docs: [Workspace durability](../docs/WORKSPACE_DURABILITY.md) | Browser E2E evidence for undo/redo, autosave, recovery and conflict UI (HS-007) |
-| HS-007 Browser E2E in CI + UI modules | In progress | HS-006 | — | **Active.** |
+| HS-006 Durable workspace, undo/redo, recovery | Done | HS-005 | browser-e2e: [PR #10: autosave, fresh-browser recovery, 409 conflicts, undo/redo in Chromium](https://github.com/pneqnp-iswr/horizon-studio/pull/10)<br>unit: [PR #8; CI run 41128196057 (Python + Node)](https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41128196057)<br>docs: [Workspace durability](../docs/WORKSPACE_DURABILITY.md) |  |
+| HS-007 Browser E2E in CI + UI modules | In progress | HS-006 | browser-e2e: [PR #10: 13 Chromium scenarios in CI; workspace sync and API client extracted](https://github.com/pneqnp-iswr/horizon-studio/pull/10)<br>docs: [Browser E2E scope and limits](../docs/BROWSER_E2E.md) | **Active.** |
 
 ### F2 — Creative Editor · Planned
 
@@ -129,7 +129,7 @@ _No backlog tickets yet; this phase depends on earlier phases and upstream engin
 |---|---|---|---|
 | Unit/CI | Verified | Python 3.11/3.12 on Ubuntu and Windows, Node history tests | [CI run 41128196057](https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41128196057) |
 | Official check | Verified | Pinned cargo-horizon-mod accepts all example packages | [CI run 41121633085](https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41121633085)<br>[Evidence ledger](../docs/COMPATIBILITY_EVIDENCE.md) |
-| Browser E2E | In progress | Playwright suite being added to CI (HS-007) | — |
+| Browser E2E | Verified | 13 editor scenarios in Chromium on Ubuntu CI; Firefox, WebKit and Windows browsers not covered | [PR #10 CI: Browser E2E (Chromium)](https://github.com/pneqnp-iswr/horizon-studio/pull/10)<br>[Scope and limits](../docs/BROWSER_E2E.md) |
 | Game load | Blocked | No authorized game installation available to CI yet | — |
 | Gameplay | Planned | No in-game behaviour has been asserted | — |
 <!-- roadmap:details:end -->
