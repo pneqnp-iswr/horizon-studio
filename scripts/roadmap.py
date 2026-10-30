@@ -23,6 +23,7 @@ if str(ROOT) not in sys.path:
 from scripts.pixelart import PALETTE as P, Canvas, hex_rgb  # noqa: E402
 
 DATA = ROOT / "docs" / "roadmap" / "roadmap.json"
+RELEASES = ROOT / "docs" / "releases" / "releases.json"
 ASSETS = ROOT / "assets" / "roadmap"
 REPO_URL = "https://github.com/pneqnp-iswr/horizon-studio/"
 SCHEMA = "horizon-studio.roadmap/1"
@@ -542,6 +543,86 @@ def details_section(data: dict) -> str:
     return "\n".join(out)
 
 
+def _pr_numbers(item: dict) -> list[int]:
+    return [int(n) for e in item["evidence"] for n in re.findall(r"/pull/(\d+)", e["url"])]
+
+
+def validate_releases(data: dict, releases: dict, version: str) -> list[str]:
+    """Problems with docs/releases/releases.json (verified, published releases only)."""
+    if not isinstance(releases, dict) or releases.get("schema") != "horizon-studio.releases/1":
+        return ["releases.json must be a horizon-studio.releases/1 document"]
+    problems, seen = [], set()
+    entries = releases.get("releases")
+    if not isinstance(entries, list) or not entries:
+        return ["releases.json needs at least one release"]
+    for entry in entries:
+        v = entry.get("version", "")
+        where = f"release {v!r}"
+        if not re.fullmatch(r"\d+\.\d+\.\d+", v) or v in seen:
+            problems.append(f"{where}: invalid or duplicate version")
+            continue
+        seen.add(v)
+        exe = entry.get("executable", {})
+        if entry.get("tag") != f"v{v}":
+            problems.append(f"{where}: tag must be v{v}")
+        if not re.fullmatch(r"[0-9a-f]{40}", entry.get("commit", "")):
+            problems.append(f"{where}: commit must be a full SHA")
+        if exe.get("name") != f"HorizonStudio-{v}-Windows-x64.exe":
+            problems.append(f"{where}: executable name does not match the version")
+        if not re.fullmatch(r"[0-9a-f]{64}", exe.get("sha256", "")) or not isinstance(exe.get("size"), int):
+            problems.append(f"{where}: executable needs size and SHA-256")
+        if entry.get("channel") not in ("prerelease", "stable"):
+            problems.append(f"{where}: channel must be prerelease or stable")
+        if tuple(map(int, v.split("."))) > tuple(map(int, version.split("."))):
+            problems.append(f"{where}: newer than VERSION {version}")
+        if not isinstance(entry.get("last_pr"), int) or not entry.get("capabilities"):
+            problems.append(f"{where}: needs last_pr and capabilities")
+            continue
+        milestones = {m["id"]: m for m in data["milestones"]}
+        for capability in entry["capabilities"]:
+            mid = capability.get("milestone")
+            if mid is None:
+                continue
+            if mid not in milestones:
+                problems.append(f"{where}: unknown milestone {mid}")
+            elif any(n > entry["last_pr"] for n in _pr_numbers(milestones[mid])):
+                problems.append(f"{where}: claims {mid}, which landed after PR #{entry['last_pr']}")
+    return problems
+
+
+def latest_release(releases: dict) -> dict:
+    return max(releases["releases"], key=lambda e: tuple(map(int, e["version"].split("."))))
+
+
+def release_section(data: dict, releases: dict, lang: str) -> str:
+    rel = latest_release(releases)
+    base = REPO_URL.rstrip("/")
+    page, exe = f"{base}/releases/tag/{rel['tag']}", rel["executable"]
+    download = f"{base}/releases/download/{rel['tag']}/{exe['name']}"
+    sums = f"{base}/releases/download/{rel['tag']}/SHA256SUMS.txt"
+    size = f"{exe['size'] / 1048576:.1f} MB" if lang == "en" else f"{exe['size'] / 1048576:.1f} МБ".replace(".", ",")
+    channel = {"prerelease": ("alpha prerelease", "альфа-предрелиз"), "stable": ("stable", "стабильный")}[rel["channel"]]
+    newer = [m for m in data["milestones"] if m["status"] == "done" and _pr_numbers(m)
+             and max(_pr_numbers(m)) > rel["last_pr"]]
+    if lang == "en":
+        lines = [f"**[Horizon Studio {rel['tag']} — {rel['name']}]({page})** · {channel[0]} · published {rel['published']}  ",
+                 f"⬇ **[{exe['name']}]({download})** · {size} · [SHA256SUMS.txt]({sums})  ",
+                 f"SHA-256 `{exe['sha256']}` · built from [`{rel['commit'][:7]}`]({base}/commit/{rel['commit']}) · unsigned",
+                 "", f"**In this build** ({rel['verified_by']}):", ""]
+        lines += [f"- {c['en']}" for c in rel["capabilities"]]
+        if newer:
+            lines += ["", f"**On `master` but not in this executable:** " + "; ".join(f"{m['id']} {m['title']}" for m in newer) + "."]
+    else:
+        lines = [f"**[Horizon Studio {rel['tag']} — {rel['name']}]({page})** · {channel[1]} · опубликован {rel['published']}  ",
+                 f"⬇ **[{exe['name']}]({download})** · {size} · [SHA256SUMS.txt]({sums})  ",
+                 f"SHA-256 `{exe['sha256']}` · собран из [`{rel['commit'][:7]}`]({base}/commit/{rel['commit']}) · без подписи",
+                 "", f"**В этой сборке** ({rel['verified_by_ru']}):", ""]
+        lines += [f"- {c['ru']}" for c in rel["capabilities"]]
+        if newer:
+            lines += ["", f"**Есть в `master`, но не в этом EXE:** " + "; ".join(f"{m['id']} {m['title_ru']}" for m in newer) + "."]
+    return "\n".join(lines)
+
+
 def replace_section(text: str, name: str, body: str) -> str:
     start, end = f"<!-- roadmap:{name}:start -->", f"<!-- roadmap:{name}:end -->"
     if text.count(start) != 1 or text.count(end) != 1:
@@ -561,9 +642,14 @@ def outputs(data: dict) -> dict[Path, str]:
             4, "Horizon Studio current phase",
             f"Current phase {data['current_phase']} with its milestones and their verified status."),
     }
+    releases = json.loads(RELEASES.read_text(encoding="utf-8"))
+    version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    problems = validate_releases(data, releases, version)
+    if problems:
+        raise RoadmapError("; ".join(problems))
     pages = {
-        ROOT / "README.md": [("status", readme_section(data, "en"))],
-        ROOT / "README.ru.md": [("status", readme_section(data, "ru"))],
+        ROOT / "README.md": [("status", readme_section(data, "en")), ("release", release_section(data, releases, "en"))],
+        ROOT / "README.ru.md": [("status", readme_section(data, "ru")), ("release", release_section(data, releases, "ru"))],
         ROOT / "docs" / "ROADMAP_VISUAL.md": [("details", details_section(data))],
     }
     for path, sections in pages.items():

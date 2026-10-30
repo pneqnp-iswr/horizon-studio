@@ -1,0 +1,27 @@
+{
+  "schema": "horizon-studio.releases/1",
+  "releases": [
+    {
+      "version": "0.6.0",
+      "name": "Source Workbench",
+      "tag": "v0.6.0",
+      "commit": "63a313f50b08ddccf55e331c99a6e25b7f72d8ad",
+      "channel": "prerelease",
+      "published": "2026-10-30",
+      "last_pr": 0,
+      "executable": {
+        "name": "HorizonStudio-0.6.0-Windows-x64.exe",
+        "size": 12029802,
+        "sha256": "67d70703aa2180369c26cb212ce9277601cc3c7befd715e3e3b57d09d7bcc793"
+      },
+      "verified_by": "Python unit tests and the frozen-executable smoke test of the v0.6.0 workflow; verified through the GitHub API on 2026-10-31",
+      "verified_by_ru": "Модульные тесты Python и smoke-тест собранного EXE в workflow v0.6.0; проверено через GitHub API 2026-10-31",
+      "capabilities": [
+        {"en": "Blocks, items, shaped and shapeless recipes, PNG textures, EN/RU names", "ru": "Блоки, предметы, рецепты с формой и без, PNG-текстуры, имена EN/RU"},
+        {"en": "Voxel Architect: six seeded structure generators with rotation and mirroring", "ru": "Voxel Architect: шесть генераторов структур с seed, поворотом и отражением"},
+        {"en": "Source Workbench JSON overrides and cuboid 3D preview", "ru": "Source Workbench: JSON-правки и 3D-превью кубоидов"},
+        {"en": "Mod Doctor static checks, source ZIP and experimental .hmod export", "ru": "Проверки Mod Doctor, ZIP исходников и экспериментальный экспорт .hmod"}
+      ]
+    }
+  ]
+}

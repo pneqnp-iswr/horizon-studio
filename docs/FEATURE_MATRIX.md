@@ -1,10 +1,12 @@
-# Capability matrix — Horizon Studio 0.6
+# Capability matrix — Horizon Studio 0.7
 
 A Rust game engine does not make an algorithm impossible in Java. **Do not label a feature "Rust-only" without a comparable implementation study and proof.** "Rust engine integration" means the feature is specifically integrated with Horizon's Rust internals.
 
 | Feature | Local code | Real Horizon game | Scope |
 |---|---|---|---|
-| Blocks, items, custom PNGs, recipes | Implemented, tested | Not verified | `.hmod` API 0.2 |
+| Blocks, items, custom PNGs, recipes | Implemented, tested; official static check passes for the examples | Not verified | `.hmod` API 0.2 |
+| Canonical `studio.project/1`, stable IDs, migration of schemas 2–4 | Implemented, tested (golden files, byte-identical builds) | Not applicable | project files |
+| Disk workspace, crash recovery, revision conflicts, Undo/Redo | Implemented, tested (Python, Node, browser E2E) | Not applicable | local editor |
 | `en_us`/`ru_ru` game names | Implemented, tested | Not verified | content mod resources |
 | Mining tool + minimum-tier tags | Implemented, tested | Not verified | content mod data tags |
 | Six procedural building generators | Implemented, tested | Not verified | vanilla-format NBT |

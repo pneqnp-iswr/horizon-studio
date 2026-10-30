@@ -3,7 +3,7 @@
   'use strict';
   const catalog = {
   "en": {
-    "pageTitle": "Horizon Studio 0.5 — Recipe Lab",
+    "pageTitle": "Horizon Studio 0.7 — Project Core",
     "tagline": "Build blocks, items, recipes and procedural 3D structures for Horizon — without writing code.",
     "searchPlaceholder": "Search entries...",
     "searchNothing": "No matching entries.",
@@ -183,7 +183,7 @@
     "doctor_GAME_CHECK_REQUIRED": "Run official cargo horizon-mod check and test the mod in Horizon."
   },
   "ru": {
-    "pageTitle": "Horizon Studio 0.4 — Мастерская модов",
+    "pageTitle": "Horizon Studio 0.7 — Ядро проекта",
     "tagline": "Создавай собственные блоки, предметы и рецепты для Horizon — без программирования.",
     "searchPlaceholder": "Поиск по элементам...",
     "searchNothing": "Совпадений не найдено.",

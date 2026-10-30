@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="version" src="https://img.shields.io/badge/version-0.6.0-blue" />
+  <img alt="version" src="https://img.shields.io/badge/version-0.7.0-blue" />
   <img alt="status" src="https://img.shields.io/badge/status-alpha-orange" />
   <img alt="tests" src="https://github.com/pneqnp-iswr/horizon-studio/actions/workflows/tests.yml/badge.svg" />
   <img alt="official check" src="https://github.com/pneqnp-iswr/horizon-studio/actions/workflows/official-content-check.yml/badge.svg" />
@@ -22,13 +22,32 @@
 
 > **Unofficial project.** Not affiliated with Mojang, Microsoft or the Horizon developers. No game binaries, account bypasses or game assets are included.
 
+## Latest Windows release
+
+<!-- roadmap:release:start -->
+**[Horizon Studio v0.6.0 — Source Workbench](https://github.com/pneqnp-iswr/horizon-studio/releases/tag/v0.6.0)** · alpha prerelease · published 2026-10-30  
+⬇ **[HorizonStudio-0.6.0-Windows-x64.exe](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.6.0/HorizonStudio-0.6.0-Windows-x64.exe)** · 11.5 MB · [SHA256SUMS.txt](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.6.0/SHA256SUMS.txt)  
+SHA-256 `67d70703aa2180369c26cb212ce9277601cc3c7befd715e3e3b57d09d7bcc793` · built from [`63a313f`](https://github.com/pneqnp-iswr/horizon-studio/commit/63a313f50b08ddccf55e331c99a6e25b7f72d8ad) · unsigned
+
+**In this build** (Python unit tests and the frozen-executable smoke test of the v0.6.0 workflow; verified through the GitHub API on 2026-10-31):
+
+- Blocks, items, shaped and shapeless recipes, PNG textures, EN/RU names
+- Voxel Architect: six seeded structure generators with rotation and mirroring
+- Source Workbench JSON overrides and cuboid 3D preview
+- Mod Doctor static checks, source ZIP and experimental .hmod export
+
+**On `master` but not in this executable:** HS-003 Local API threat hardening; HS-004 Release metadata consistency; HS-005 Canonical studio.project/1 + migration; HS-006 Durable workspace, undo/redo, recovery; HS-007 Browser E2E in CI + UI modules.
+<!-- roadmap:release:end -->
+
+Release rules and verification: [docs/RELEASING.md](docs/RELEASING.md). Every release carries `SHA256SUMS.txt`; releases from 0.7.0 on also carry `build-manifest.json`.
+
 ## Where we are now
 
 <p align="center">
   <img src="assets/roadmap/current-phase.svg" alt="Current phase: F3 Visual Scripting. HS-008 engine capability registry in progress; HS-010 and HS-012 planned." width="100%" />
 </p>
 
-- **Released:** Version **0.6 — Source Workbench** (Windows EXE prerelease). `master` is ahead of that release with the canonical project format, disk workspaces and Undo/Redo, which have not been packaged yet.
+- **In development:** Version **0.7 — Project Core** (`VERSION` on `master`). The panel above shows the newest release whose executable has been verified through the GitHub API; a version counts as released only after that.
 - **Proven:** the example mods pass the official `cargo-horizon-mod check` built from a pinned Horizon revision, in CI and locally.
 - **Proven in a browser:** 13 editor workflows run in Chromium on every pull request (Ubuntu CI), including autosave, recovery, revision conflicts and the exported package bytes.
 - **Not yet proven:** loading a Studio mod in the running game, and any gameplay behaviour.
