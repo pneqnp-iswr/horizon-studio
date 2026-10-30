@@ -382,7 +382,8 @@ def inspect_project(request: dict):
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
-        print('[studio]', fmt % args)
+        if sys.stdout is not None:
+            print('[studio]', fmt % args)
 
     def response(self, code, mime, content: bytes, filename=None):
         self.send_response(code)

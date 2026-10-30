@@ -223,3 +223,19 @@ MIT License.
 - screenshots and official branding assets for the repository
 
 If you continue the repo manually, this README is already structured to be easy to extend with banners, screenshots, badges, release downloads, and roadmap sections.
+
+
+## Windows executable downloads — GitHub Releases
+
+**No Python installation is needed on Windows.** Download each version as its own standalone portable application from [GitHub Releases](https://github.com/pneqnp-iswr/horizon-studio/releases).
+
+1. Choose the version you need (for example `v0.5.0` or `v0.5.1`).
+2. Download `HorizonStudio-<version>-Windows-x64.exe` from its Assets.
+3. Optionally compare the file SHA-256 with the attached `SHA256SUMS.txt`.
+4. Double-click the executable, open the browser editor, and use **Stop & Exit** when finished.
+
+The app is **portable, not an installer**. It runs a loopback-only local server at `127.0.0.1:8787`; keeping a stable port preserves browser-local projects and language settings. It is currently **unsigned** and might trigger Windows SmartScreen warnings.
+
+### Release engineering
+
+`VERSION` is the canonical numeric version. Changing it on `master` triggers a GitHub Actions Windows build, tests the actual frozen `.exe`, publishes SHA-256, and creates a versioned GitHub prerelease. Existing versions are not overwritten. Run it manually from **Actions → Windows EXE / versioned Release → Run workflow** when needed. For each new version, update `VERSION`, release notes, changelog and README badge together.

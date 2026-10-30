@@ -2,8 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
+    branches: [master]
 
 permissions:
   contents: read
@@ -16,12 +17,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.11", "3.12"]
+        python-version: ['3.11', '3.12']
     steps:
       - uses: actions/checkout@v4
       - name: Install Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Run unit, API and translation tests
+      - name: Run unit, API, launcher and translation tests
         run: python -m unittest discover -s tests -v
