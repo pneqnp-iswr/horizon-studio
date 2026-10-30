@@ -389,9 +389,13 @@ def render_overview(data: dict) -> Canvas:
         points.append(slot)
         if index == 4:
             points += [(374, ROW_A), (374, ROW_B)]
-    reached = SLOTS[max(i for i, s in enumerate(states) if s != "planned")]
-    lit = True
+    # A road segment is lit only between two started phases, so a later phase that started
+    # early (F3 before F2) is not drawn as if the phases in between were passed.
+    started = {SLOTS[i] for i, s in enumerate(states) if s != "planned"}
     for (x0, y0), (x1, y1) in zip(points, points[1:]):
+        lit = (x0, y0) in started and ((x1, y1) in started or (x1, y1) not in SLOTS)
+        if (x0, y0) not in SLOTS:  # the corner points of the turn inherit the previous segment
+            lit = previous
         color = P["gold1"] if lit else P["stone1"]
         for offset in (-1, 0, 1):
             if y0 == y1:
@@ -400,8 +404,7 @@ def render_overview(data: dict) -> Canvas:
                 c.line(x0 + offset, y0, x1 + offset, y1, color, dash=0 if lit else 3)
         if lit:
             c.line(x0, y0, x1, y1, P["gold2"], dash=2)
-        if (x1, y1) == reached:
-            lit = False
+        previous = lit
     for phase, state, (cx, cy) in zip(phases, states, SLOTS):
         _tile(c, cx, cy, phase["icon"], state)
         if state == "in_progress":

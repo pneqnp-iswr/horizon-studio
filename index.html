@@ -248,6 +248,8 @@ body.sidebar-collapsed .workspace{grid-column:2}
 <script src="/i18n.js"></script>
 <script src="/model_viewer.js"></script>
 <script src="/editor_history.js"></script>
+<script src="/editor_model.js"></script>
+<script src="/editor_render.js"></script>
 <script src="/editor_api.js"></script>
 <script src="/editor_workspace.js"></script>
 <script>
@@ -260,12 +262,12 @@ const ING={...B,...I,'minecraft:glowstone_dust':'Glowstone Dust','minecraft:gold
 const META=['modId','modName','version','author','description'];
 const state={blocks:[],items:[],recipes:[],structures:[],source_overrides:{},tab:'recipe',editing:-1};
 const VALID=/^[a-z][a-z0-9_]{0,63}$/;
-function esc(s){return String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));}
+function esc(s){return HorizonStudioRender.escapeHtml(s);}
 function status(message,error=false){$('status').textContent=message;$('status').classList.toggle('error',error);}
 function meta(){return {id:$('modId').value.trim(),name:$('modName').value.trim(),version:$('version').value.trim(),author:$('author').value.trim(),description:$('description').value};}
-function localId(ref){return ref&&ref.startsWith('@')?`${meta().id}:${ref.slice(1)}`:ref;}
-function payload(){return {...meta(),blocks:state.blocks,items:state.items,structures:state.structures,source_overrides:state.source_overrides||{},recipes:state.recipes.map(r=>({...r,grid:r.grid.map(localId),result:localId(r.result)}))};}
-function editorState(){return {metadata:meta(),blocks:state.blocks,items:state.items,recipes:state.recipes,structures:state.structures,source_overrides:state.source_overrides||{},carry:state.carry||{}};}
+function localId(ref){return HorizonStudioModel.localRef(ref,meta().id);}
+function payload(){return HorizonStudioModel.generatorPayload(meta(),state);}
+function editorState(){return HorizonStudioModel.editorSnapshot(meta(),state);}
 function newUid(){return globalThis.crypto?.randomUUID?.();}
 const editJournal=new window.HorizonStudioHistory.Journal();
 const studioPost=window.HorizonStudioApi.post;
@@ -309,54 +311,15 @@ function chooseTab(tab){state.tab=tab;state.editing=-1;for(const kind of ['block
 function resetObject(){state.editing=-1;$('editorTitle').textContent=t(state.tab==='block'?'newBlock':'newItem');$('addObject').textContent=t('add');$('cancelObject').hidden=true;$('entryId').value=state.tab==='block'?'ruby_block':'ruby';$('entryName').value=state.tab==='block'?'Ruby Block':'Ruby';$('entryNameRu').value='';$('miningTool').value='none';$('toolTier').value='none';fillOptions($('template'),state.tab==='block'?B:I);fillOptions($('sounds'),{'':t('fromTemplate'),...B});$('hardness').value=5;$('light').value=0;$('explosion').value='';$('friction').value='';$('mapColor').value='';$('requiresTool').checked=false;$('rarity').value='common';$('maxStack').value=64;$('texture').value='';$('textureHint').textContent=t('textureTemplate');}
 function resetRecipe(){state.editing=-1;$('recipeEditorTitle').textContent=t('newRecipe');$('addRecipe').textContent=t('addRecipe');$('cancelRecipe').hidden=true;$('recipeId').value='new_recipe';$('recipeType').value='shaped';$('recipeCount').value=1;fillOptions($('recipeResult'),Object.fromEntries(allEntries().map(e=>['@'+e.id,e.name])));renderGrid();}
 function renderGrid(values=Array(9).fill('')){const options={'':t('emptyIngredient'),...ingredientChoices()};$('recipeGrid').innerHTML='';for(let i=0;i<9;i++){let sel=document.createElement('select');sel.id='slot'+i;sel.setAttribute('aria-label',t('ingredient',{num:i+1}));fillOptions(sel,options,values[i]||'');$('recipeGrid').appendChild(sel);}}
-function displayName(ref){return ref?.startsWith('@')?allEntries().find(e=>e.id===ref.slice(1))?.name||ref:ref;}
+function displayName(ref){return HorizonStudioModel.displayName(ref,allEntries());}
 
 function currentSearch(){return $('entrySearch') ? $('entrySearch').value.trim().toLowerCase() : '';}
-function stationForRecipe(recipe){return recipe.station||'crafting_table';}
-function matchesSearch(entry){const q=currentSearch();if(!q)return true;const hay=state.tab==='recipe'?[entry.id,displayName(entry.result),entry.type,stationForRecipe(entry)].join(' ').toLowerCase():[entry.id,entry.name,entry.name_ru||'',entry.template||''].join(' ').toLowerCase();return hay.includes(q);}
-function spriteKeyForReference(ref){
-  let key=ref||'';
-  if(key.startsWith('@')){const obj=allEntries().find(e=>e.id===key.slice(1));key=obj?.template||obj?.id||key.slice(1);}
-  key=String(key).toLowerCase();
-  if(key.includes('diamond'))return 'diamond';
-  if(key.includes('emerald'))return 'emerald';
-  if(key.includes('amethyst'))return 'amethyst';
-  if(key.includes('gold'))return 'gold';
-  if(key.includes('iron'))return 'iron';
-  if(key.includes('copper'))return 'copper';
-  if(key.includes('prismarine'))return 'prismarine';
-  if(key.includes('redstone'))return 'redstone';
-  if(key.includes('coal'))return 'coal';
-  if(key.includes('glowstone'))return 'glowstone';
-  if(key.includes('stick'))return 'stick';
-  if(key.includes('furnace'))return 'furnace';
-  if(key.includes('crafting'))return 'crafting';
-  if(key.includes('block'))return 'block';
-  return 'generic';
-}
-function slotMarkup(ref){
-  if(!ref)return '<div class="recipe-slot empty"></div>';
-  const pack=window.HorizonPackTextures?.[ref];
-  if(pack)return `<div class="recipe-slot custom"><img src="${esc(pack)}" alt="${esc(ref)}"></div>`;
-  if(ref.startsWith('@')){
-    const obj=allEntries().find(e=>e.id===ref.slice(1));
-    if(obj?.texture?.startsWith('data:image/png;base64,'))return `<div class="recipe-slot custom"><img src="${esc(obj.texture)}" alt="${esc(obj.name||ref)}"></div>`;
-  }
-  const cls=spriteKeyForReference(ref);const title=displayName(ref)||ref;
-  return `<div class="recipe-slot"><span class="sprite ${cls}" title="${esc(title)}" aria-label="${esc(title)}"></span></div>`;
-}
-function recipeCardMarkup(e,i){
-  const grid=(e.grid||Array(9).fill('')).map(slotMarkup).join('');
-  const result=slotMarkup(e.result); const station=t('craftingTable');
-  return `<article class="recipe-card"><div class="recipe-visual"><div class="recipe-grid-card">${grid}</div><div class="recipe-arrow">→</div><div class="recipe-output">${result}${e.count>1?`<span class="count-badge">${e.count}</span>`:''}</div></div><div class="recipe-card-footer"><div class="recipe-text"><b>${esc(displayName(e.result))}</b><small>${esc(station)} · ${esc(e.type)}</small></div><button class="config-button" data-edit="${i}">${esc(t('configure'))}</button><button class="danger ghost" data-remove="${i}" aria-label="${esc(t('remove'))}">✕</button></div></article>`;
-}
-function entryCardMarkup(e,i){
-  const custom=e.texture?.startsWith('data:image/png;base64,');
-  const cls=spriteKeyForReference(e.template||e.id);
-  const visual=custom?`<img src="${esc(e.texture)}" class="preview-image large" alt="${esc(t('textureAlt'))}">`:`<span class="preview-image large symbol"><span class="sprite ${cls}"></span></span>`;
-  const meta=state.tab==='block' ? `${esc(e.template)} · ${esc(t('light'))}: ${e.light??0}` : `${esc(e.template)} · ${esc(t('rarity'))}: ${esc(e.rarity||'common')}`;
-  return `<article class="entry-card"><div class="entry-visual">${visual}</div><div class="entry-copy"><b>${esc(e.name)}</b><small>${esc(e.id)}</small><small>${meta}</small></div><div class="entry-actions"><button data-edit="${i}">${esc(t('configure'))}</button><button class="danger ghost" data-remove="${i}">${esc(t('remove'))}</button></div></article>`;
-}
+
+function matchesSearch(entry){return HorizonStudioModel.matchesSearch(entry,currentSearch(),state.tab,allEntries());}
+function renderContext(){return {entries:allEntries(),packTextures:window.HorizonPackTextures,t};}
+
+function recipeCardMarkup(e,i){return HorizonStudioRender.recipeCardMarkup(e,i,renderContext());}
+function entryCardMarkup(e,i){return HorizonStudioRender.entryCardMarkup(e,i,state.tab,renderContext());}
 function updateWorkspaceMeta(){
   const modeMap={recipe:t('recipes'),block:t('blocks'),item:t('items'),structure:t('structures')};
   const titleMap={recipe:'ALL',block:t('blocks').toUpperCase(),item:t('items').toUpperCase(),structure:t('structures').toUpperCase()};
@@ -368,11 +331,11 @@ function updateWorkspaceMeta(){
 
 function render(){if(state.tab==='structure'){renderStructures();updateWorkspaceMeta();return;}const group=state[state.tab==='block'?'blocks':state.tab==='item'?'items':'recipes'];const visible=group.map((e,i)=>[e,i]).filter(([e])=>matchesSearch(e));$('counter').textContent=String(group.length);updateWorkspaceMeta();$('entries').className=state.tab==='recipe'?'entries recipe-gallery':'entries card-gallery';$('entries').innerHTML=visible.length?visible.map(([e,i])=>state.tab==='recipe'?recipeCardMarkup(e,i):entryCardMarkup(e,i)).join(''):`<p class="empty-hint">${esc(t('searchNothing'))}</p>`;for(const b of $('entries').querySelectorAll('[data-edit]'))b.onclick=()=>editEntry(Number(b.dataset.edit));for(const b of $('entries').querySelectorAll('[data-remove]'))b.onclick=()=>removeEntry(Number(b.dataset.remove));}
 function editEntry(i){state.editing=i;const e=state[state.tab==='block'?'blocks':state.tab==='item'?'items':'recipes'][i];if(state.tab==='recipe'){$('recipeEditorTitle').textContent=t('editRecipe');$('recipeId').value=e.id;$('recipeType').value=e.type;$('recipeCount').value=e.count;fillOptions($('recipeResult'),Object.fromEntries(allEntries().map(x=>['@'+x.id,x.name])),e.result);renderGrid(e.grid);$('addRecipe').textContent=t('saveChanges');$('cancelRecipe').hidden=false;}else{$('editorTitle').textContent=t(state.tab==='block'?'editBlock':'editItem');$('entryId').value=e.id;$('entryName').value=e.name;$('entryNameRu').value=e.name_ru||'';$('template').value=e.template;$('miningTool').value=e.mining_tool||(e.requires_tool?'pickaxe':'none');$('toolTier').value=e.tool_tier||'none';$('hardness').value=e.hardness??5;$('light').value=e.light??0;$('explosion').value=e.explosion_resistance??'';$('friction').value=e.friction??'';$('mapColor').value=e.map_color??'';$('sounds').value=e.sounds||'';$('requiresTool').checked=!!e.requires_tool;$('rarity').value=e.rarity||'common';$('maxStack').value=e.max_stack_size||64;$('texture').value='';$('textureHint').textContent=t(e.texture?'textureKeep':'textureTemplate');$('addObject').textContent=t('saveChanges');$('cancelObject').hidden=false;}}
-function removeEntry(i){const collection=state[state.tab==='block'?'blocks':state.tab==='item'?'items':'recipes'];const entry=collection[i];if(state.tab!=='recipe'){const ref='@'+entry.id;const affected=state.recipes.filter(r=>r.result===ref||r.grid.includes(ref));if(affected.length&&!confirm(t('deleteReferences',{count:affected.length})))return;state.recipes=state.recipes.filter(r=>!affected.includes(r));}collection.splice(i,1);if(state.tab==='recipe')resetRecipe();else resetObject();persist();render();}
+function removeEntry(i){const collection=state[state.tab==='block'?'blocks':state.tab==='item'?'items':'recipes'];const entry=collection[i];if(state.tab!=='recipe'){const affected=HorizonStudioModel.recipesUsing(state.recipes,entry.id);if(affected.length&&!confirm(t('deleteReferences',{count:affected.length})))return;state.recipes=state.recipes.filter(r=>!affected.includes(r));}collection.splice(i,1);if(state.tab==='recipe')resetRecipe();else resetObject();persist();render();}
 async function addObject(){const id=$('entryId').value.trim(),name=$('entryName').value.trim(),collection=state[state.tab==='block'?'blocks':'items'];if(!VALID.test(id)||!name){status(t('invalidEntry'),true);return;}if(allEntries().some(e=>e.id===id&&e!==collection[state.editing])){status(t('duplicateId'),true);return;}if(state.editing<0&&collection.length>=32){status(t('entryLimit'),true);return;}
 const e={id,name,template:$('template').value};if($('entryNameRu').value.trim())e.name_ru=$('entryNameRu').value.trim();if(state.tab==='block'){e.hardness=Number($('hardness').value);e.light=Number($('light').value);if($('explosion').value!=='')e.explosion_resistance=Number($('explosion').value);if($('friction').value!=='')e.friction=Number($('friction').value);if($('mapColor').value!=='')e.map_color=Number($('mapColor').value);if($('sounds').value)e.sounds=$('sounds').value;if($('requiresTool').checked)e.requires_tool=true;e.mining_tool=$('miningTool').value==='none'&&e.requires_tool?'pickaxe':$('miningTool').value;e.tool_tier=$('toolTier').value;}else{e.rarity=$('rarity').value;e.max_stack_size=Number($('maxStack').value);}
 const file=$('texture').files[0];if(file){if(file.size>1024*1024||file.type!=='image/png'){status(t('invalidTexture'),true);return;}try{e.texture=await new Promise((resolve,reject)=>{const reader=new FileReader;reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file);});}catch(_){status(t('readTexture'),true);return;}}else if(state.editing>=0&&collection[state.editing].texture){e.texture=collection[state.editing].texture;}
-e.uid=state.editing>=0?collection[state.editing].uid:newUid();if(state.editing<0)collection.push(e);else{const old=collection[state.editing];collection[state.editing]=e;if(old.id!==id){for(const r of state.recipes){r.result=r.result==='@'+old.id?'@'+id:r.result;r.grid=r.grid.map(x=>x==='@'+old.id?'@'+id:x);}}}resetObject();persist();render();status(t('savedEntry'));}
+e.uid=state.editing>=0?collection[state.editing].uid:newUid();if(state.editing<0)collection.push(e);else{const old=collection[state.editing];collection[state.editing]=e;if(old.id!==id)HorizonStudioModel.renameReferences(state.recipes,old.id,id);}resetObject();persist();render();status(t('savedEntry'));}
 function addRecipe(){const e={id:$('recipeId').value.trim(),type:$('recipeType').value,result:$('recipeResult').value,count:Number($('recipeCount').value),grid:Array.from({length:9},(_,i)=>$('slot'+i).value)};if(!VALID.test(e.id)||!e.result||!Number.isInteger(e.count)||e.count<1||e.count>64||!e.grid.some(Boolean)){status(t('invalidRecipe'),true);return;}if(state.recipes.some((x,i)=>x.id===e.id&&i!==state.editing)){status(t('duplicateRecipe'),true);return;}if(state.editing<0&&state.recipes.length>=64){status(t('recipeLimit'),true);return;}e.uid=state.editing>=0?state.recipes[state.editing].uid:newUid();if(state.editing<0)state.recipes.push(e);else state.recipes[state.editing]=e;resetRecipe();render();persist();status(t('savedRecipe'));}
 function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
 
@@ -380,7 +343,7 @@ async function api(path){const response=await studioPost(path,JSON.stringify(pay
 async function exportFile(path,extension){const b=$(extension==='hmod'?'exportHmod':'exportSource');b.disabled=true;try{status(t('exporting'));const result=await api(path);download(await result.blob(),meta().id+(extension==='hmod'?'.hmod':'-source.zip'));status(extension==='hmod'?t('hmodExported'):t('zipExported'));}catch(e){status(e.message,true);}finally{b.disabled=false;}}
 async function inspect(){try{const result=await (await api('/api/preview')).json();$('inspectPanel').hidden=false;$('manifestPreview').textContent=result.manifest;$('filePreview').textContent=result.files.join('\n');status(t('inspectSuccess',{count:result.file_count,bytes:result.bytes_raw}));}catch(e){status(e.message,true);}}
 async function saveProject(){try{const response=await studioPost('/api/project/save',JSON.stringify(editorState()));if(!response.ok){const data=await response.json();throw new Error(data.error||t('apiError'));}download(await response.blob(),(meta().id||'project')+'.hstudio.json');status(t('projectSaved'));}catch(e){status(e.message,true);}}
-function applyProject(data,{preserveHistory=false,skipWorkspaceCheck=false}={}){if(typeof data!=='object'||!data||!data.metadata||!Array.isArray(data.blocks)||!Array.isArray(data.items)||!Array.isArray(data.recipes))throw new Error(t('badProject'));if(data.blocks.length>32||data.items.length>32||data.recipes.length>64||(data.structures||[]).length>8)throw new Error(t('projectLimit'));if(data.structures!==undefined&&!Array.isArray(data.structures))throw new Error(t('badProject'));for(const e of [...data.blocks,...data.items,...data.recipes,...(data.structures||[])])if(typeof e!=='object'||!e||!VALID.test(e.id))throw new Error(t('badId'));const m=data.metadata;for(const [target,key] of [['modId','id'],['modName','name'],['version','version'],['author','author'],['description','description']])$(target).value=m[key]??'';state.blocks=data.blocks;state.items=data.items;state.recipes=data.recipes;state.structures=data.structures||[];state.source_overrides=data.source_overrides||{};state.carry=data.carry||{};for(const e of [...state.blocks,...state.items,...state.recipes,...state.structures])if(!e.uid){const uid=newUid();if(uid)e.uid=uid;}chooseTab(preserveHistory?state.tab:'block');persist({record:false,disk:false});if(!preserveHistory)editJournal.reset(editorState());historyButtons();render();if(!skipWorkspaceCheck)beginWorkspaceSession();document.dispatchEvent(new Event('studio:state-changed'));}
+function applyProject(data,{preserveHistory=false,skipWorkspaceCheck=false}={}){const problem=HorizonStudioModel.projectProblem(data);if(problem)throw new Error(t(problem));const m=data.metadata;for(const [target,key] of [['modId','id'],['modName','name'],['version','version'],['author','author'],['description','description']])$(target).value=m[key]??'';state.blocks=data.blocks;state.items=data.items;state.recipes=data.recipes;state.structures=data.structures||[];state.source_overrides=data.source_overrides||{};state.carry=data.carry||{};HorizonStudioModel.assignMissingUids(state,newUid);chooseTab(preserveHistory?state.tab:'block');persist({record:false,disk:false});if(!preserveHistory)editJournal.reset(editorState());historyButtons();render();if(!skipWorkspaceCheck)beginWorkspaceSession();document.dispatchEvent(new Event('studio:state-changed'));}
 function example(){const d={metadata:{id:'ruby_demo',name:'Ruby Demo',version:'0.1.0',author:'Creator',description:'Example with two recipes, a block and a gem'},blocks:[{id:'ruby_block',name:'Block of Ruby',template:'minecraft:iron_block',hardness:4,light:3}],items:[{id:'ruby',name:'Ruby',template:'minecraft:diamond',rarity:'rare',max_stack_size:64}],recipes:[{id:'ruby_block',type:'shaped',result:'@ruby_block',count:1,grid:Array(9).fill('@ruby')},{id:'ruby_from_block',type:'shapeless',result:'@ruby',count:9,grid:['@ruby_block',...Array(8).fill('')]}]};applyProject(d);status(t('demoLoaded'));}
 function refreshLanguage(){
   if(state.tab==='structure'){$('structureEditorTitle').textContent=t(state.editing>=0?'editStructure':'newStructure');$('addStructure').textContent=t(state.editing>=0?'saveChanges':'addStructure');}
