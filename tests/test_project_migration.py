@@ -224,6 +224,8 @@ class DocumentValidationTests(unittest.TestCase):
             "bad kind": lambda d: d["objects"][0].update(kind="Block"),
             "props not object": lambda d: d["objects"][0].update(props=[]),
             "bad object id": lambda d: d["objects"][0].update(id="Ruby Block"),
+            "id shadowed in props": lambda d: d["objects"][0]["props"].update(id="other_block"),
+            "uid shadowed in props": lambda d: d["objects"][1]["props"].update(uid=new_uid()),
             "grid too long": lambda d: d["objects"][2]["props"].update(grid=[None] * 10),
             "bad ref": lambda d: d["objects"][2]["props"].update(result={"ref": "nope"}),
             "overrides not text": lambda d: d.update(source_overrides={"a.json": {}}),

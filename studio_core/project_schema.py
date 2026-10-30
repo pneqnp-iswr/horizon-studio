@@ -110,6 +110,8 @@ def validate_document(doc) -> dict:
             _fail(f"objects[{index}].id must be text")
         if not isinstance(obj.get("props"), dict):
             _fail(f"objects[{index}].props must be an object")
+        if "id" in obj["props"] or "uid" in obj["props"]:
+            _fail(f"objects[{index}].props must not contain id or uid")
         if kind in KINDS:
             if not OBJECT_ID_RE.fullmatch(object_id):
                 _fail(f"{kind} {object_id!r}: use 1-64 lowercase letters, numbers, underscores; start with a letter")
