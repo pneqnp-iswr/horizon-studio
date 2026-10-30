@@ -106,6 +106,7 @@
   $('resourcePackInput').onchange=loadPack;
   $('sourceFileSearch').oninput=renderFileList;
   $('sourceCode').oninput=()=>{stat(text('pending'));showModel();};
+  document.addEventListener('studio:state-changed',()=>{if(!$('sourceWorkbench').hidden)reloadFiles();});
   window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('sourceWorkbench').hidden)close();if((e.ctrlKey||e.metaKey)&&e.key==='s'&&!$('sourceWorkbench').hidden){e.preventDefault();applyCode();}});
   updateLabels();
   const oldRefresh=window.HorizonStudioRefreshLanguage;

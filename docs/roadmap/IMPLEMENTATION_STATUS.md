@@ -60,5 +60,5 @@ Do not treat a CI-only pass as real Horizon game compatibility.
 ## Current development branch — HS-006
 
 - Initial implementation: optimistic-revision workspace store, canonical disk snapshots with one previous-known-good copy, crash recovery, request-scoped security and HTTP tests.
-- This is a **backend vertical slice**. Editor-facing autosave and Undo/Redo remain to be integrated and are not marked complete.
+- Current HS-006 branch adds browser Undo/Redo and a debounced local-disk autosave client. It requires an explicit conflict decision instead of overwriting another workspace version. Verify CI and browser interactions before marking complete.
 - Conflict is explicit (HTTP 409). Files are confined to `~/.horizon-studio/workspaces/` using hashed project IDs; no arbitrary client path is used.

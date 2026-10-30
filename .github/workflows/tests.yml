@@ -26,3 +26,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Run unit, API, launcher and translation tests
         run: python -m unittest discover -s tests -v
+
+  history-js:
+    name: Editor history (Node 22)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Execute undo/redo journal tests
+        run: node --test tests/test_editor_history.cjs
