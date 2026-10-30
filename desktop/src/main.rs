@@ -147,7 +147,11 @@ fn desktop_ready(app: AppHandle, info: Value) -> Value {
     if timeline.editor_ready_ms.is_none() {
         timeline.editor_ready_ms = Some(shell.elapsed());
         timeline.page = Some(info);
-        if shell.options.smoke() {
+        if let Some(report) = &shell.options.smoke_report {
+            // `<report>.ready` tells an external probe the window is ready for a screenshot.
+            let mut ready = report.clone().into_os_string();
+            ready.push(".ready");
+            let _ = std::fs::write(ready, format!("{{\"editor_ready_ms\": {}}}\n", shell.elapsed()));
             let hold = shell.options.smoke_hold;
             let handle = app.clone();
             thread::spawn(move || {

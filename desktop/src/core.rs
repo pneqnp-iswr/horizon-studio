@@ -26,6 +26,7 @@ pub enum Launch {
     /// The frozen core shipped next to the shell in `core/`.
     Frozen(PathBuf),
     /// Development builds only: the repository's `launcher.py` with a system Python.
+    #[cfg_attr(not(debug_assertions), allow(dead_code))]
     Script { python: String, script: PathBuf },
 }
 
@@ -209,7 +210,7 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("hs-core-{}", std::process::id()));
         std::fs::create_dir_all(dir.join("core")).unwrap();
         std::fs::write(dir.join("core").join(CORE_NAME), b"").unwrap();
-        assert_eq!(locate(&[dir.clone()]).unwrap(), Launch::Frozen(dir.join("core").join(CORE_NAME)));
+        assert_eq!(locate(std::slice::from_ref(&dir)).unwrap(), Launch::Frozen(dir.join("core").join(CORE_NAME)));
         std::fs::remove_dir_all(dir).unwrap();
     }
 }

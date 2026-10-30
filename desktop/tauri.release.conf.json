@@ -1,0 +1,7 @@
+{
+  "bundle": {
+    "resources": {
+      "../build/desktop-core/horizon-studio-core/": "core/"
+    }
+  }
+}
