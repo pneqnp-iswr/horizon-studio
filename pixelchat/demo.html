@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PixelChat — network prototype</title>
+<style>
+:root{color-scheme:dark;--bg:#0e1321;--panel:#192338;--border:#384b65;--accent:#69e7be;--text:#eaf3ff;--muted:#9cb2c8}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% -10%,#243d5e,transparent 55%),var(--bg);font-family:ui-monospace,Consolas,monospace;color:var(--text)}button,input{font:inherit}button{color:var(--text);background:#2d455b;border:2px solid #5b7792;padding:9px 12px;cursor:pointer;border-radius:5px}button:hover{background:#3c566e}button:focus-visible,input:focus-visible{outline:2px solid var(--accent)}input{background:#111b2c;color:var(--text);border:2px solid var(--border);padding:11px;border-radius:5px;min-width:0}main{max-width:920px;margin:5vh auto;padding:16px}.top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}.brand{font-size:28px;letter-spacing:2px;font-weight:900;text-shadow:3px 3px #10151b}.brand span{color:var(--accent)}.tag{font-size:11px;padding:7px 10px;border:1px solid #6a8666;color:#b3f3be;background:#213f34}.note{font-size:12px;color:var(--muted);line-height:1.6}.shell{background:var(--panel);border:3px solid #4a6785;box-shadow:9px 9px #070c15;margin-top:16px}.bar{background:#253953;padding:12px 16px;display:flex;justify-content:space-between;gap:8px;align-items:center}.feed{height:400px;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:14px}.bubble{max-width:78%;background:#273750;border:1px solid #52677a;padding:10px 13px;overflow-wrap:anywhere;border-radius:5px}.speaker{font-size:11px;color:var(--accent);margin-bottom:7px}.content{line-height:1.6;white-space:pre-wrap}.bubble img{max-width:200px;max-height:160px;object-fit:contain;image-rendering:pixelated;display:block;margin-top:7px;border:1px solid #62758f;background:#111}.caption{font-size:11px;color:var(--muted);margin-top:5px}.controls{border-top:2px solid var(--border);padding:12px}.picker{display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap}.picker button{padding:5px 7px;display:flex;align-items:center;gap:6px}.picker canvas{width:22px;height:22px;image-rendering:pixelated}.row{display:flex;gap:8px}.row input{flex:1}.upload{position:relative}.upload input{position:absolute;opacity:0;width:1px;height:1px}.upload label{display:inline-block;background:#2d455b;border:2px solid #5b7792;padding:9px 11px;border-radius:5px;cursor:pointer}.extras{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;flex-wrap:wrap}.preview{color:var(--accent);font-size:11px}label{font-size:12px}.entry{display:flex;gap:8px;align-items:center;margin-top:18px}.entry input{flex:1}#status{font-size:12px;color:#ffbd7a}.hidden{display:none}@media(max-width:560px){.feed{height:55vh}.bubble{max-width:95%}main{margin:0;padding:10px}.brand{font-size:22px}}
+</style>
+</head>
+<body>
+<main>
+<div class="top"><div class="brand">▦ HORIZON <span>PIXELCHAT</span></div><div class="tag">NETWORK PROTOTYPE · NOT AN IN-GAME MOD</div></div>
+<p class="note">Open this page in two browser tabs. Both participants see real animated GIFs and original pixel emojis, synchronized through a local server. This is a technical prototype, not an installed Horizon mod.</p>
+<div id="entry" class="entry"><input id="name" maxlength="24" placeholder="Player name" value="Player" aria-label="Player name"><button id="join">Join room</button></div>
+<div id="shell" class="shell hidden">
+<div class="bar"><strong>☷ GLOBAL CHAT</strong><span id="connection">Connecting…</span></div>
+<div id="feed" class="feed" role="log" aria-live="polite" aria-label="Chat messages"></div>
+<div class="controls">
+<div id="picker" class="picker" aria-label="Pixel emoji picker"></div>
+<form id="composer" class="row"><input id="text" maxlength="512" placeholder="Message or :heart: :star: :smile:" aria-label="Chat message"><div class="upload"><input id="file" type="file" accept="image/gif,image/png" aria-label="GIF or PNG attachment"><label for="file">GIF+</label></div><button type="submit">SEND</button></form>
+<div class="extras"><span id="preview" class="preview">No attachment</span><label><input id="reduce" type="checkbox"> Reduce motion</label><button id="clear" type="button">Clear attachment</button></div>
+</div></div><p id="status" role="status"></p>
+<p class="note">Limits: GIF/PNG, 512 KiB, 256×256 px, up to 64 GIF frames. All data stays in the local demo server's memory. No URLs are fetched. Player names are demo nicknames, not verified Minecraft identities.</p>
+</main>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const shapes = {
+  heart:["01010","11111","11111","01110","00100"],
+  star:["00100","10101","01110","11111","10101"],
+  smile:["00000","01010","00000","10001","01110"],
+  spark:["00100","01110","11111","01110","00100"]
+};
+const colors={heart:'#ff729c',star:'#ffe381',smile:'#80e7c0',spark:'#8dbbff'};
+function pixel(name){const c=document.createElement('canvas');c.width=c.height=5;const ctx=c.getContext('2d');ctx.fillStyle=colors[name];shapes[name].forEach((r,y)=>[...r].forEach((p,x)=>{if(p==='1')ctx.fillRect(x,y,1,1)}));return c;}
+let token=null,cursor=0,attachment=null,polling=false;
+function status(t){$('status').textContent=t;}
+async function api(path,body,type='application/json'){
+ const headers={'Content-Type':type};if(token)headers['X-PixelChat-Session']=token;
+ const res=await fetch(path,{method:'POST',headers,body:type==='application/json'?JSON.stringify(body):body});
+ const result=await res.json();if(!res.ok)throw new Error(result.error||('HTTP '+res.status));return result;
+}
+function mediaRow(message){const bubble=document.createElement('div');bubble.className='bubble';
+ const speaker=document.createElement('div');speaker.className='speaker';speaker.textContent=message.sender;bubble.append(speaker);
+ const content=document.createElement('div');content.className='content';
+ for(const chunk of message.text.split(/(:[a-z0-9_+-]{1,32}:)/g)){const name=chunk.slice(1,-1);if(chunk.startsWith(':')&&shapes[name]){const c=pixel(name);c.style.cssText='width:20px;height:20px;image-rendering:pixelated;vertical-align:middle;margin:0 3px';c.title=chunk;content.append(c);}else content.append(document.createTextNode(chunk));}
+ bubble.append(content);
+ if(message.sha256){if(!$('reduce').checked){const img=document.createElement('img');img.src='/api/assets/'+message.sha256;img.alt=message.alt||'Shared image';img.loading='lazy';bubble.append(img);}else {const fallback=document.createElement('div');fallback.className='caption';fallback.textContent='[image paused: '+(message.alt||'attachment')+']';bubble.append(fallback);}
+ const cap=document.createElement('div');cap.className='caption';cap.textContent=message.alt||'Shared attachment';bubble.append(cap);}
+ $('feed').append(bubble);$('feed').scrollTop=$('feed').scrollHeight;
+}
+async function poll(){if(polling||!token)return;polling=true;try{const r=await fetch('/api/messages?since='+cursor,{headers:{'X-PixelChat-Session':token}});if(!r.ok)throw Error('Polling failed');const data=await r.json();for(const msg of data.messages){mediaRow(msg);cursor=Math.max(cursor,msg.seq);}$('connection').textContent='● CONNECTED';}catch(e){$('connection').textContent='○ RETRYING';status(e.message);}finally{polling=false;}}
+$('join').onclick=async()=>{try{const r=await api('/api/join',{name:$('name').value.trim()});token=r.token;$('entry').classList.add('hidden');$('shell').classList.remove('hidden');await poll();setInterval(poll,1000);$('text').focus();}catch(e){status(e.message)}};
+for(const name of Object.keys(shapes)){const b=document.createElement('button');b.type='button';b.append(pixel(name),document.createTextNode(':'+name+':'));b.onclick=()=>{$('text').value+=(':'+name+':');$('text').focus()};$('picker').append(b);}
+$('file').addEventListener('change',async()=>{const file=$('file').files[0];if(!file)return;try{if(file.size>512*1024)throw Error('File exceeds 512 KiB');const data=await api('/api/assets',await file.arrayBuffer(),'application/octet-stream');attachment=data.asset;$('preview').textContent=file.name+' · '+attachment.frames+' frame(s)';status('Attachment verified. Click SEND.');}catch(e){attachment=null;status(e.message)}});
+$('clear').onclick=()=>{attachment=null;$('file').value='';$('preview').textContent='No attachment';};
+$('composer').onsubmit=async e=>{e.preventDefault();try{const text=$('text').value;await api('/api/messages',{schema:'pixelchat/1',text,sha256:attachment?.sha256||null,alt:attachment?'Shared GIF/image':''});$('text').value='';$('clear').click();status('Sent to the local relay.');await poll();}catch(err){status(err.message)}};
+$('reduce').onchange=()=>{const cache=$('feed');cache.replaceChildren();cursor=0;poll();};
+</script>
+</body>
+</html>
