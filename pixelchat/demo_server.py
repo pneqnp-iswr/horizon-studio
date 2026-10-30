@@ -30,6 +30,7 @@ class DemoState:
     messages: deque[Message] = field(default_factory=lambda: deque(maxlen=MAX_MESSAGES))
     recent: dict[str, deque[float]] = field(default_factory=dict)
     seq: int = 0
+    owners: dict[str, set[str]] = field(default_factory=dict)
 
     def join(self, name: str) -> str:
         if not isinstance(name, str) or not (1 <= len(name.strip()) <= 24):
@@ -58,6 +59,7 @@ class DemoState:
                 if len(self.assets) >= MAX_ASSETS or sum(m.size for m, _ in self.assets.values()) + media.size > 8 * 1024 * 1024:
                     raise MediaError("Demo asset quota exceeded")
                 self.assets[media.digest] = media, data
+            self.owners.setdefault(media.digest, set()).add(token)
         return media
 
     def send(self, token: str, payload: object) -> Message:
@@ -78,7 +80,18 @@ class DemoState:
 
     def after(self, seq: int) -> list[dict]:
         with self.lock:
+            earliest = self.messages[0].seq if self.messages else self.seq + 1
+            if seq < earliest - 1 or seq > self.seq:
+                raise ProtocolError(f"Cursor expired; retained messages start at {earliest}")
             return [m.public() for m in self.messages if m.seq > seq]
+
+    def can_read_asset(self, token: str, sha: str) -> bool:
+        self.name_for(token)
+        with self.lock:
+            return sha in self.assets and (
+                token in self.owners.get(sha, ())
+                or any(m.sha256 == sha for m in self.messages)
+            )
 
 
 def make_handler(state: DemoState):
@@ -137,11 +150,26 @@ def make_handler(state: DemoState):
                 except (ValueError, PermissionError):
                     self.respond(400, {"error": "Invalid session or cursor"})
                     return
-                self.respond(200, {"schema": PROTOCOL, "messages": state.after(since)})
+                try:
+                    messages = state.after(since)
+                except ProtocolError:
+                    with state.lock:
+                        earliest = state.messages[0].seq if state.messages else state.seq + 1
+                    self.respond(409, {"error": "history_gap", "earliest": earliest})
+                    return
+                self.respond(200, {"schema": PROTOCOL, "messages": messages})
                 return
             prefix = "/api/assets/"
             if parsed.path.startswith(prefix) and parsed.query == "":
                 sha = parsed.path[len(prefix):]
+                try:
+                    allowed = state.can_read_asset(self.token(), sha)
+                except PermissionError:
+                    self.respond(401, {"error": "Join to load attachments"})
+                    return
+                if not allowed:
+                    self.respond(404, {"error": "Attachment not found or not shared"})
+                    return
                 with state.lock:
                     stored = state.assets.get(sha)
                 if stored is None:
@@ -150,7 +178,7 @@ def make_handler(state: DemoState):
                 media, data = stored
                 self.send_response(200)
                 self.send_header("Content-Type", media.mime)
-                self.send_header("Cache-Control", "private, max-age=3600")
+                self.send_header("Cache-Control", "private, no-store")
                 self.send_header("X-Content-Type-Options", "nosniff")
                 self.send_header("Content-Security-Policy", "default-src 'none'; sandbox")
                 self.send_header("Content-Length", str(len(data)))
@@ -191,7 +219,9 @@ def make_handler(state: DemoState):
                     if not isinstance(payload, dict) or set(payload) != {"name"}:
                         raise ProtocolError("Join requires exactly name")
                     token = state.join(payload["name"])
-                    self.respond(201, {"schema": PROTOCOL, "token": token})
+                    self.respond(201, {"schema": PROTOCOL, "token": token,
+                                       "capabilities": ["gif", "png", "pixel-emoji", "history-gap"],
+                                       "limits": {"max_bytes": MAX_BYTES, "max_messages": MAX_MESSAGES}})
                 else:
                     message = state.send(self.token(), payload)
                     self.respond(201, {"message": message.public()})

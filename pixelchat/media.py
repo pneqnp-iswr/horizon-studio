@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import struct
+import zlib
 from dataclasses import dataclass
 
 MAX_BYTES = 512 * 1024
@@ -50,6 +51,8 @@ def _png(data: bytes) -> tuple[int, int, int]:
     # Image data must have a final IEND; reject truncated/extra data and APNG.
     pos = 8
     seen_idat = False
+    seen_ihdr = False
+    ended_idat = False
     while pos < len(data):
         if len(data) - pos < 12:
             raise MediaError("Truncated PNG chunk")
@@ -57,10 +60,30 @@ def _png(data: bytes) -> tuple[int, int, int]:
         if n > len(data) - pos - 12:
             raise MediaError("Truncated PNG payload")
         typ = data[pos + 4:pos + 8]
+        payload = data[pos + 8:pos + 8 + n]
+        expected_crc, = struct.unpack_from(">I", data, pos + 8 + n)
+        if zlib.crc32(typ + payload) != expected_crc:
+            raise MediaError("PNG chunk CRC mismatch")
+        if not seen_ihdr:
+            if typ != b"IHDR" or n != 13:
+                raise MediaError("Invalid first PNG chunk")
+            depth, color, compression, filtering, interlace = payload[8:13]
+            legal = {0: (1, 2, 4, 8, 16), 2: (8, 16), 3: (1, 2, 4, 8), 4: (8, 16), 6: (8, 16)}
+            if depth not in legal.get(color, ()) or compression or filtering or interlace not in (0, 1):
+                raise MediaError("Unsupported or invalid PNG IHDR")
+            seen_ihdr = True
+        elif typ == b"IHDR":
+            raise MediaError("Duplicate PNG IHDR")
+        if (typ[0] & 0x20) == 0 and typ not in (b"IHDR", b"PLTE", b"IDAT", b"IEND"):
+            raise MediaError("Unknown critical PNG chunk")
         if typ == b"acTL":
             raise MediaError("APNG is not supported by PixelChat v1")
         if typ == b"IDAT":
+            if ended_idat:
+                raise MediaError("Non-contiguous PNG IDAT")
             seen_idat = True
+        elif seen_idat:
+            ended_idat = True
         if typ == b"IEND":
             if n != 0 or pos + 12 != len(data) or not seen_idat:
                 raise MediaError("Invalid final PNG chunk")

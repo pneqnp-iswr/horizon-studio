@@ -35,28 +35,45 @@ const shapes = {
 const colors={heart:'#ff729c',star:'#ffe381',smile:'#80e7c0',spark:'#8dbbff'};
 function pixel(name){const c=document.createElement('canvas');c.width=c.height=5;const ctx=c.getContext('2d');ctx.fillStyle=colors[name];shapes[name].forEach((r,y)=>[...r].forEach((p,x)=>{if(p==='1')ctx.fillRect(x,y,1,1)}));return c;}
 let token=null,cursor=0,attachment=null,polling=false;
+const assetUrls=new Map();
 function status(t){$('status').textContent=t;}
 async function api(path,body,type='application/json'){
  const headers={'Content-Type':type};if(token)headers['X-PixelChat-Session']=token;
  const res=await fetch(path,{method:'POST',headers,body:type==='application/json'?JSON.stringify(body):body});
  const result=await res.json();if(!res.ok)throw new Error(result.error||('HTTP '+res.status));return result;
 }
+async function loadAttachment(img, sha){
+ try{
+  if(!assetUrls.has(sha)){
+   const response=await fetch('/api/assets/'+sha,{headers:{'X-PixelChat-Session':token}});
+   if(!response.ok)throw Error('Attachment unavailable ('+response.status+')');
+   const blob=await response.blob();
+   assetUrls.set(sha,URL.createObjectURL(blob));
+  }
+  img.src=assetUrls.get(sha);
+ }catch(error){img.replaceWith(document.createTextNode('[attachment unavailable]'));status(error.message);}
+}
+function clearMediaCache(){for(const url of assetUrls.values())URL.revokeObjectURL(url);assetUrls.clear();}
 function mediaRow(message){const bubble=document.createElement('div');bubble.className='bubble';
  const speaker=document.createElement('div');speaker.className='speaker';speaker.textContent=message.sender;bubble.append(speaker);
  const content=document.createElement('div');content.className='content';
  for(const chunk of message.text.split(/(:[a-z0-9_+-]{1,32}:)/g)){const name=chunk.slice(1,-1);if(chunk.startsWith(':')&&shapes[name]){const c=pixel(name);c.style.cssText='width:20px;height:20px;image-rendering:pixelated;vertical-align:middle;margin:0 3px';c.title=chunk;content.append(c);}else content.append(document.createTextNode(chunk));}
  bubble.append(content);
- if(message.sha256){if(!$('reduce').checked){const img=document.createElement('img');img.src='/api/assets/'+message.sha256;img.alt=message.alt||'Shared image';img.loading='lazy';bubble.append(img);}else {const fallback=document.createElement('div');fallback.className='caption';fallback.textContent='[image paused: '+(message.alt||'attachment')+']';bubble.append(fallback);}
+ if(message.sha256){if(!$('reduce').checked){const img=document.createElement('img');img.alt=message.alt||'Shared image';img.loading='lazy';bubble.append(img);void loadAttachment(img,message.sha256);}else {const fallback=document.createElement('div');fallback.className='caption';fallback.textContent='[image paused: '+(message.alt||'attachment')+']';bubble.append(fallback);}
  const cap=document.createElement('div');cap.className='caption';cap.textContent=message.alt||'Shared attachment';bubble.append(cap);}
  $('feed').append(bubble);$('feed').scrollTop=$('feed').scrollHeight;
 }
-async function poll(){if(polling||!token)return;polling=true;try{const r=await fetch('/api/messages?since='+cursor,{headers:{'X-PixelChat-Session':token}});if(!r.ok)throw Error('Polling failed');const data=await r.json();for(const msg of data.messages){mediaRow(msg);cursor=Math.max(cursor,msg.seq);}$('connection').textContent='● CONNECTED';}catch(e){$('connection').textContent='○ RETRYING';status(e.message);}finally{polling=false;}}
+async function poll(){if(polling||!token)return;polling=true;try{const r=await fetch('/api/messages?since='+cursor,{headers:{'X-PixelChat-Session':token}});if(r.status===409){const detail=await r.json();if(detail.error==='history_gap'){
+ cursor=detail.earliest-1;$('feed').replaceChildren();clearMediaCache();
+ status('Message history was truncated; displaying the latest retained messages.');return;}}
+ if(!r.ok)throw Error('Polling failed ('+r.status+')');const data=await r.json();for(const msg of data.messages){mediaRow(msg);cursor=Math.max(cursor,msg.seq);}$('connection').textContent='● CONNECTED';}catch(e){$('connection').textContent='○ RETRYING';status(e.message);}finally{polling=false;}}
 $('join').onclick=async()=>{try{const r=await api('/api/join',{name:$('name').value.trim()});token=r.token;$('entry').classList.add('hidden');$('shell').classList.remove('hidden');await poll();setInterval(poll,1000);$('text').focus();}catch(e){status(e.message)}};
 for(const name of Object.keys(shapes)){const b=document.createElement('button');b.type='button';b.append(pixel(name),document.createTextNode(':'+name+':'));b.onclick=()=>{$('text').value+=(':'+name+':');$('text').focus()};$('picker').append(b);}
 $('file').addEventListener('change',async()=>{const file=$('file').files[0];if(!file)return;try{if(file.size>512*1024)throw Error('File exceeds 512 KiB');const data=await api('/api/assets',await file.arrayBuffer(),'application/octet-stream');attachment=data.asset;$('preview').textContent=file.name+' · '+attachment.frames+' frame(s)';status('Attachment verified. Click SEND.');}catch(e){attachment=null;status(e.message)}});
 $('clear').onclick=()=>{attachment=null;$('file').value='';$('preview').textContent='No attachment';};
 $('composer').onsubmit=async e=>{e.preventDefault();try{const text=$('text').value;await api('/api/messages',{schema:'pixelchat/1',text,sha256:attachment?.sha256||null,alt:attachment?'Shared GIF/image':''});$('text').value='';$('clear').click();status('Sent to the local relay.');await poll();}catch(err){status(err.message)}};
-$('reduce').onchange=()=>{const cache=$('feed');cache.replaceChildren();cursor=0;poll();};
+$('reduce').onchange=()=>{clearMediaCache();$('feed').replaceChildren();cursor=0;void poll();};
+window.addEventListener('pagehide',clearMediaCache);
 </script>
 </body>
 </html>
