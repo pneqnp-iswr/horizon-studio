@@ -13,6 +13,7 @@ import sys
 
 from mod_doctor import audit_project
 from studio import hmod_zip, project_zip, inspect_project
+from horizon_compat.official_validator import check_hmod
 
 MAX_PROJECT_BYTES = 6 * 1024 * 1024
 
@@ -49,11 +50,16 @@ def load_project(path: Path) -> dict:
 
 
 def main(argv=None) -> int:
-    parser=argparse.ArgumentParser(description='Horizon Studio offline builder and diagnostics (not official Horizon validation)')
-    parser.add_argument('command', choices=('doctor','inspect','build','source'))
+    parser=argparse.ArgumentParser(description='Horizon Studio offline builder and diagnostics (official checking is opt-in)')
+    parser.add_argument('command', choices=('doctor','inspect','build','source','verify'))
     parser.add_argument('project', type=Path, help='Project .hstudio.json file')
     parser.add_argument('-o','--output',type=Path,help='Destination for build/source')
-    parser.add_argument('--json',action='store_true',help='Machine-readable diagnostics with doctor/inspect')
+    parser.add_argument('--json',action='store_true',help='Machine-readable diagnostics with doctor/inspect/verify')
+    parser.add_argument('--validator-bin',default='cargo',help='Trusted cargo or cargo-horizon-mod executable path for verify')
+    parser.add_argument('--direct-validator',action='store_true',help='Invoke cargo-horizon-mod directly, without cargo prefix')
+    parser.add_argument('--validator-revision',help='Declared pinned validator source revision (40-digit SHA; not independently authenticated)')
+    parser.add_argument('--timeout',type=float,default=120,help='Official checker timeout in seconds (verify only)')
+    parser.add_argument('--evidence',type=Path,help='Write JSON official-check evidence for verify')
     args=parser.parse_args(argv)
     try:
         project=load_project(args.project)
@@ -72,6 +78,16 @@ def main(argv=None) -> int:
                 print(report['manifest'])
                 print('\n'.join(report['files']))
             return 0
+        if args.command=='verify':
+            result=check_hmod(hmod_zip(project),cargo_binary=args.validator_bin,direct_binary=args.direct_validator,
+                              timeout=args.timeout,declared_validator_revision=args.validator_revision)
+            if args.evidence:
+                args.evidence.parent.mkdir(parents=True,exist_ok=True)
+                args.evidence.write_text(json.dumps(result.to_json(),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+            if args.json: print(json.dumps(result.to_json(),ensure_ascii=False,indent=2))
+            else: print(f"Official .hmod check: {'PASS' if result.ok else 'FAIL'} (sha256 {result.sha256})"+
+                        (f" — {result.error}" if result.error else ''))
+            return 0 if result.ok else 1
         artifact = hmod_zip(project) if args.command=='build' else project_zip(project)
         filename = f"{project['id']}.hmod" if args.command=='build' else f"{project['id']}-source.zip"
         output=args.output or (Path('dist')/filename)
