@@ -46,10 +46,14 @@ class RoadmapValidationTests(unittest.TestCase):
         self.assert_rejected(lambda d: d.update(next_milestones=["HS-001"]), "must be a planned milestone")
 
     def test_rejects_contradictory_states(self):
-        self.assert_rejected(lambda d: milestone(d, "HS-010").update(
-            status="done", evidence=[{"level": "unit", "ref": "x", "url": "docs/PROJECT_FORMAT.md"}]),
-            "dependency HS-008 is planned")
-        self.assert_rejected(lambda d: milestone(d, "HS-012").update(status="in_progress"), "has not started")
+        def done_on_planned(d):
+            milestone(d, "HS-017").update(status="planned")
+            milestone(d, "HS-018").update(status="done", evidence=[{"level": "unit", "ref": "x", "url": "docs/PROJECT_FORMAT.md"}])
+        self.assert_rejected(done_on_planned, "dependency HS-017 is planned")
+        def started_on_planned(d):
+            milestone(d, "HS-017").update(status="planned")
+            milestone(d, "HS-018").update(status="in_progress")
+        self.assert_rejected(started_on_planned, "has not started")
         self.assert_rejected(lambda d: d.update(active_milestone="HS-005"), "is not in_progress")
         self.assert_rejected(lambda d: milestone(d, "HS-009").update(status="in_progress"),
                              "in progress outside the current phase")

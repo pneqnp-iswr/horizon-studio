@@ -47,7 +47,7 @@ Official validator, secure local API, release metadata, real-game smoke harness.
 | HS-003 Local API threat hardening | Done | — | unit: [PR #1, API security tests](https://github.com/pneqnp-iswr/horizon-studio/pull/1) |  |
 | HS-004 Release metadata consistency | Done | — | unit: [PR #2, release metadata check](https://github.com/pneqnp-iswr/horizon-studio/pull/2) |  |
 
-### F1 — Project Core · In progress
+### F1 — Project Core · Done
 
 Canonical project document, migrations, durable workspace, undo, browser E2E.  
 **Gate:** Import old project, edit, crash, recover, identical output.
@@ -56,7 +56,7 @@ Canonical project document, migrations, durable workspace, undo, browser E2E.
 |---|---|---|---|---|
 | HS-005 Canonical studio.project/1 + migration | Done | — | unit: [PR #7: golden migrations, byte-identical .hmod](https://github.com/pneqnp-iswr/horizon-studio/pull/7)<br>official-static: [Migrated fixtures pass the pinned checker](https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41124192941)<br>docs: [Project format](../docs/PROJECT_FORMAT.md) |  |
 | HS-006 Durable workspace, undo/redo, recovery | Done | HS-005 | browser-e2e: [PR #10: autosave, fresh-browser recovery, 409 conflicts, undo/redo in Chromium](https://github.com/pneqnp-iswr/horizon-studio/pull/10)<br>unit: [PR #8; CI run 41128196057 (Python + Node)](https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41128196057)<br>docs: [Workspace durability](../docs/WORKSPACE_DURABILITY.md) |  |
-| HS-007 Browser E2E in CI + UI modules | In progress | HS-006 | browser-e2e: [PR #10: 13 Chromium scenarios in CI; workspace sync and API client extracted](https://github.com/pneqnp-iswr/horizon-studio/pull/10)<br>docs: [Browser E2E scope and limits](../docs/BROWSER_E2E.md) | **Active.** |
+| HS-007 Browser E2E in CI + UI modules | Done | HS-006 | browser-e2e: [PR #10: 13 Chromium scenarios in CI; workspace sync and API client extracted](https://github.com/pneqnp-iswr/horizon-studio/pull/10)<br>unit: [PR #13: editor_model.js and editor_render.js extracted with Node tests; inline script reduced to DOM wiring](https://github.com/pneqnp-iswr/horizon-studio/pull/13)<br>docs: [Browser E2E scope and limits](../docs/BROWSER_E2E.md) |  |
 
 ### F2 — Creative Editor · Planned
 
@@ -68,14 +68,14 @@ Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bri
 | HS-009 Blockbench adapter with loss reports | Planned | HS-005 | — |  |
 | HS-011 Monaco + rust-analyzer + Cargo | Planned | HS-007 | — |  |
 
-### F3 — Visual Scripting · Planned
+### F3 — Visual Scripting · In progress
 
 Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (HS-010).  
 **Gate:** One graph builds a native mod only on a supported hook contract.
 
 | Milestone | Status | Depends on | Evidence | Notes |
 |---|---|---|---|---|
-| HS-008 Engine capability registry per SHA | Planned | HS-005 | — |  |
+| HS-008 Engine capability registry per SHA | In progress | HS-005 | — | **Active.** |
 | HS-010 Trusted native .hnmod build | Planned | HS-008 | — |  |
 | HS-012 Gameplay IR v1 + event graph | Planned | HS-008 | — |  |
 

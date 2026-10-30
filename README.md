@@ -25,7 +25,7 @@
 ## Where we are now
 
 <p align="center">
-  <img src="assets/roadmap/current-phase.svg" alt="Current phase: F1 Project Core. HS-005 and HS-006 done, HS-007 in progress." width="100%" />
+  <img src="assets/roadmap/current-phase.svg" alt="Current phase: F3 Visual Scripting. HS-008 engine capability registry in progress; HS-010 and HS-012 planned." width="100%" />
 </p>
 
 - **Released:** Version **0.6 — Source Workbench** (Windows EXE prerelease). `master` is ahead of that release with the canonical project format, disk workspaces and Undo/Redo, which have not been packaged yet.
@@ -36,16 +36,16 @@
 ## Roadmap
 
 <p align="center">
-  <img src="assets/roadmap/roadmap-overview.svg" alt="Development journey from F0 Foundation to F8 Creative Platform. F0 partially verified, F1 in progress, later phases planned. Verification levels: unit and CI verified, official check verified, browser E2E verified, game load blocked, gameplay planned." width="100%" />
+  <img src="assets/roadmap/roadmap-overview.svg" alt="Development journey from F0 Foundation to F8 Creative Platform. F0 partially verified, F1 done, F3 in progress, other phases planned. Verification levels: unit and CI verified, official check verified, browser E2E verified, game load blocked, gameplay planned." width="100%" />
 </p>
 
 <!-- roadmap:status:start -->
 | Phase | Focus | Status | Milestones done |
 |---|---|---|---|
 | F0 Foundation | Official validator, secure local API, release metadata, real-game smoke harness | Partially verified | 3 / 4 |
-| F1 Project Core | Canonical project document, migrations, durable workspace, undo, browser E2E | **In progress** | 2 / 3 |
+| F1 Project Core | Canonical project document, migrations, durable workspace, undo, browser E2E | Done | 3 / 3 |
 | F2 Creative Editor | Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bridge (HS-011) | Planned | 0 / 2 |
-| F3 Visual Scripting | Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (HS-010) | Planned | 0 / 3 |
+| F3 Visual Scripting | Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (HS-010) | **In progress** | 0 / 3 |
 | F4 Gameplay Systems | Entities, components, AI behaviour trees, events, RPG and automation | Planned | 0 / 1 |
 | F5 World & VFX | Shader graph over .hshader, particles, physics sandbox, dimensions | Planned | 0 / 3 |
 | F6 Engine Bridge | Upstream-accepted engine capabilities: entities, server events, worldgen, physics, rendering | Planned | — |

@@ -36,6 +36,8 @@ WEB_SCRIPTS = {
     'i18n.js': b'HorizonI18n',
     'model_viewer.js': b'HorizonModelViewer',
     'editor_history.js': b'HorizonStudioHistory',
+    'editor_model.js': b'HorizonStudioModel',
+    'editor_render.js': b'HorizonStudioRender',
     'editor_api.js': b'HorizonStudioApi',
     'editor_workspace.js': b'createWorkspaceSync',
     'source_workbench_ui.js': b'source_overrides',

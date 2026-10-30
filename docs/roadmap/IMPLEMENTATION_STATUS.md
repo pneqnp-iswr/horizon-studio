@@ -1,11 +1,13 @@
 # Horizon Studio — Implementation Status
 
-Last updated: 2026-10-31. Master before this update: `366be4cf76cb79ac5d3c76305314f5350966e298` (PR #9). Roadmap data: [`roadmap.json`](roadmap.json) → [visual roadmap](../ROADMAP_VISUAL.md).
+Last updated: 2026-10-31. Master before this update: `957eec0b8956933b6805444354446cef46ccd634` (PR #12). Roadmap data: [`roadmap.json`](roadmap.json) → [visual roadmap](../ROADMAP_VISUAL.md).
 
 ## Roadmap position
 
 - **F0 — Foundation:** code complete; gate still lacks a real-game load record (HS-002 blocked on an authorized Horizon installation).
-- **F1 — Project Core (current):** HS-005 and HS-006 done; **HS-007 in progress** — browser E2E delivered in PR #10, splitting the rest of the inline editor script remains.
+- **F1 — Project Core:** done — HS-005, HS-006, HS-007.
+- **F3 — Visual Scripting (current):** **HS-008 engine capability registry in progress** (F2 has not started; HS-008 unblocks F3 and later F5).
+- **Release engineering (PR #12):** gated, idempotent Windows release pipeline with build manifest; v0.6.0 notes repaired. Next release: 0.7.0 ([RELEASING.md](../RELEASING.md)).
 
 | ID | State | Evidence |
 |---|---|---|
@@ -15,7 +17,8 @@ Last updated: 2026-10-31. Master before this update: `366be4cf76cb79ac5d3c763053
 | HS-004 release metadata | **done** | PR #2 |
 | HS-005 project document + migration | **done** | PR #7; migrated fixtures pass the pinned checker (run `41124192941`) |
 | HS-006 durable workspace + undo | **done** | PR #8 (Python fault injection, Node journal); PR #10 browser E2E: autosave, fresh-browser recovery, 409 conflicts, undo/redo |
-| HS-007 browser E2E + UI modules | **in progress** | PR #10: 13 Chromium scenarios in CI; `editor_workspace.js` and `editor_api.js` extracted with Node tests |
+| HS-007 browser E2E + UI modules | **done** | PR #10: 13 Chromium scenarios in CI; PR #13: `editor_model.js` and `editor_render.js` (state logic and card markup) join `editor_api.js`/`editor_workspace.js`, 22 Node tests; the inline script only wires the DOM |
+| HS-008 engine capability registry | **in progress** | — |
 
 ## Compatibility status (by level)
 
@@ -41,7 +44,7 @@ Last updated: 2026-10-31. Master before this update: `366be4cf76cb79ac5d3c763053
 
 ## Known open issues
 
-- The editor's inline script (`index.html`) still holds rendering, forms and recipe logic (~250 lines); continue the split under HS-007.
+- The inline script still wires forms to the DOM (~170 lines); further UI work belongs to F2.
 - Undo/Redo history is in memory only; one previous-good disk snapshot is kept.
 - Windows EXE is unsigned and older than the features above; no release since 0.6.0.
 
@@ -55,7 +58,7 @@ Last updated: 2026-10-31. Master before this update: `366be4cf76cb79ac5d3c763053
 
 ## Next recommended tasks
 
-1. HS-007 (finish): move recipe/entry rendering and form handling out of the inline script into modules with Node tests; keep the E2E suite green.
+1. Release 0.7.0 through the new pipeline and verify it through the API.
 2. HS-008: engine capability registry per engine SHA, recorded in the project document (unblocks F3).
 3. HS-009: Blockbench interchange with loss reports (F2).
 4. HS-002: run the content-load harness on an authorized installation and record the result.
