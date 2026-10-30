@@ -1,38 +1,117 @@
-# Horizon Studio
+<p align="center">
+  <img src="docs/banner.svg" alt="Horizon Studio banner" width="100%" />
+</p>
 
-**Visual mod authoring and reproducible content-mod builds for Horizon — offline and open source.**
+<h1 align="center">Horizon Studio</h1>
+<p align="center"><strong>Visual mod authoring toolkit for Horizon</strong><br/>Offline-first editor, experimental <code>.hmod</code> packaging, procedural structures, diagnostics, and a developer CLI.</p>
 
-[Русская документация](README.ru.md) · [Feature matrix](docs/FEATURE_MATRIX.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
+<p align="center">
+  <a href="README.ru.md">Русская версия</a> ·
+  <a href="CHANGELOG.md">Changelog</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a> ·
+  <a href="SECURITY.md">Security</a>
+</p>
 
-Horizon Studio creates editable `.hstudio.json` projects, experimental `.hmod` packages and source ZIPs. Version **0.4 (Mod Workshop)** includes a visual editor, a procedural structure engine, a static diagnostics tool and a CLI for automated workflows.
+<p align="center">
+  <img alt="version" src="https://img.shields.io/badge/version-0.5.0-blue" />
+  <img alt="status" src="https://img.shields.io/badge/status-alpha-orange" />
+  <img alt="ui" src="https://img.shields.io/badge/ui-English%20default%20%2B%20Russian-111827" />
+  <img alt="tests" src="https://img.shields.io/badge/tests-59%20passed-success" />
+  <img alt="license" src="https://img.shields.io/badge/license-MIT-16a34a" />
+</p>
 
-> **Alpha / not game-verified.** Python unit tests, a local HTTP integration test and Chromium UI smoke tests have passed. The project's `.hmod` files have **not** been validated with the official `cargo horizon-mod check` tool or loaded into an actual Horizon game. Horizon currently documents content mods for single-player use. Treat exported mods as experimental until tested against a matching game build.
+> **Important:** Horizon Studio is an **unofficial** open-source tool. It is **not affiliated** with Mojang, Microsoft, or the Horizon developers. No proprietary game binaries, authentication bypasses, or bundled game assets are included.
 
-![Real screenshot of Horizon Studio 0.4](docs/editor-en.png)
+## What is Horizon Studio?
 
-## What's inside 0.4
+Horizon Studio is a local toolchain for creating and packaging content-style Horizon mods without forcing the user to write Rust or manually build JSON/NBT archives by hand.
 
-- **Blocks and items:** editable vanilla templates, hardness, luminance, sounds, friction, rarity, stack size and optional PNG textures.
-- **Mining gameplay:** pickaxe/axe/shovel/hoe tags and optional minimum stone/iron/diamond tool tiers. Generated tags are additive; all tags and block behavior still need game verification.
-- **Bilingual game content:** English `en_us` and Russian `ru_ru` item/block names, with explicit English fallback.
-- **Recipe creator:** shaped 3×3 and shapeless crafting with modded ingredients.
-- **Voxel Architect:** 6 generators — sky dome, spiral tower, labyrinth, floating island, crystal grove and battle arena. Six vanilla block palettes, reproducible random seeds, 0°/90°/180°/270° model rotation and X/Z mirroring.
-- **Viewer:** isometric block preview, independently rotatable camera, 2D layers and structure statistics.
-- **NBT export:** gzip-compressed vanilla structure templates with tested palette and coordinate encoding. Packaged under `data/<modid>/structure/*.nbt`.
-- **Mod Doctor:** identifies export errors, duplicate recipe shapes, and possible craft-only bootstrapping dead-ends; provides file/entry statistics. Its static checks are **not** an official game validation.
-- **Offline CLI:** reproducible `.hmod`/ZIP builds, diagnostics and inspection for scripting and CI.
-- **Languages:** English is the default UI; 🇬🇧 EN / 🇷🇺 RU switches the interface without losing current edits and saves the setting locally.
+Version **0.5 — Recipe Lab** focuses on a redesigned UI inspired by modern recipe-browser tools while preserving the existing build pipeline and offline workflow.
 
-## Run the visual editor
+### Core goals
 
-Requires Python **3.11+**, no third-party Python packages.
+- **Visual authoring** for blocks, items, recipes, and procedural structures.
+- **Offline-first workflow** with no cloud requirement.
+- **Developer tooling** for repeatable builds and validation.
+- **EN default / RU optional** localization for the editor and exported names.
+- **Honest scope**: content workflows now, deeper engine/native integration later.
 
-- Windows: double-click `start_windows.bat`
-- Linux/macOS: `./start_linux_macos.sh` or `python3 studio.py`
+---
 
-Open `http://127.0.0.1:8787`. The development server binds only to loopback and does not send files to a cloud service. Save projects regularly, particularly before updating the application or clearing browser storage.
+## Highlights in 0.5 — Recipe Lab
 
-## Developer CLI
+### New UI direction
+- Large **recipe gallery** presentation inspired by your target design language.
+- New **left rail + explorer + workspace** layout.
+- Better project presentation for GitHub/open-source publishing.
+- English UI by default, Russian switch preserved.
+
+### Preserved functionality from earlier releases
+- Custom **blocks** and **items** with vanilla templates.
+- **Shaped** and **shapeless** crafting recipes.
+- Optional custom **PNG textures**.
+- **Bilingual names** for `en_us` and `ru_ru`.
+- **Mining tool** and **minimum tier** tag generation.
+- **Voxel Architect** with six deterministic structure generators:
+  - Sky Dome
+  - Spiral Tower
+  - Seeded Labyrinth
+  - Floating Island
+  - Crystal Grove
+  - Battle Arena
+- Structure export transforms:
+  - rotation `0° / 90° / 180° / 270°`
+  - mirroring on `X / Z`
+- **Mod Doctor** static diagnostics.
+- **CLI** for inspection, validation and build automation.
+
+---
+
+## Current capability map
+
+| Area | Status |
+|---|---|
+| Visual editor | Implemented |
+| Recipe authoring | Implemented |
+| Block/item authoring | Implemented |
+| Procedural structure generation | Implemented |
+| Local `.hmod` packaging | Implemented (experimental) |
+| Static diagnostics | Implemented |
+| CLI automation | Implemented |
+| In-game verification | Not yet confirmed |
+| Official `cargo horizon-mod check` verification | Not yet run in this repo |
+| Native engine/server behavior editing | Not implemented yet |
+
+---
+
+## Quick start
+
+Requires **Python 3.11+**.
+
+### Run the editor
+
+**Windows**
+```bat
+start_windows.bat
+```
+
+**Linux / macOS**
+```sh
+./start_linux_macos.sh
+# or
+python3 studio.py
+```
+
+Then open:
+```text
+http://127.0.0.1:8787
+```
+
+The local server binds only to loopback.
+
+---
+
+## CLI
 
 ```sh
 python horizon_cli.py doctor examples/workshop_showcase.hstudio.json
@@ -42,43 +121,105 @@ python horizon_cli.py build examples/workshop_showcase.hstudio.json --output dis
 python horizon_cli.py source examples/workshop_showcase.hstudio.json --output dist/workshop_showcase-source.zip
 ```
 
-`doctor` returns exit code 1 for an export error, 0 for a successful local check. Warnings alone do not fail the build. `build` packs content-only mods, not Rust native mods. For the official format validator:
+### Intended use cases
+- CI validation
+- scripted build/export pipelines
+- regression testing for sample projects
+- quick packaging without opening the browser UI
+
+---
+
+## Testing
 
 ```sh
-cargo install --git https://github.com/horizon-rust/horizon cargo-horizon-mod
-cargo horizon-mod check dist/workshop_showcase.hmod
+python -m pytest -q
 ```
 
-For development, the official documentation also describes the `--dev-mod` launcher argument and `cargo horizon-mod run` workflows. See [content mods](https://playhorizon.dev/docs/content-mods) for the current instructions.
+Current local result:
+- **59 tests passed**
+- **105 subtests passed**
 
-## Tests
+Coverage includes:
+- packaging
+- recipes
+- languages
+- mining tags
+- structure generation
+- geometry transforms
+- doctor checks
+- HTTP endpoints
+- CLI behavior
 
-```sh
-python -m unittest discover -s tests -v
+---
+
+## Project layout
+
+```text
+index.html           Frontend UI
+studio.py            Local editor server + export API
+i18n.js              EN/RU localization
+voxel_architect.py   Deterministic procedural structure engine
+mod_doctor.py        Static diagnostics
+horizon_cli.py       Headless build / inspect / doctor CLI
+examples/            Demo projects and generated examples
+tests/               Regression suite
 ```
 
-The suite covers NBT decoding, geometry transforms, deterministic output, mineable tags, languages, recipes, static diagnostics, HTTP endpoints and packaging. GitHub Actions tests Python 3.11/3.12 on Windows and Linux. A local Chromium smoke test was also run; its mocked API responses are not a substitute for game integration.
+---
 
-## Boundaries
+## Examples
 
-- Structure NBT files do **not** cause automatic world generation. Placing structures needs compatible worldgen data or in-game commands.
-- The content-mod API cannot implement new arbitrary gameplay behavior without Horizon's native mod/server interfaces or modifications to the engine.
-- This project makes **no claim** that Java cannot implement the same algorithms. `Rust engine integration` describes a requirement of the **Horizon architecture**, not a Java impossibility.
-- No game binaries, assets, or authentication bypass are included.
+- `examples/ruby_demo.hstudio.json` — minimal starter sample
+- `examples/voxel_showcase.hstudio.json` — structure showcase
+- `examples/workshop_showcase.hstudio.json` — broad sample using multiple features
+- `examples/workshop_showcase.hmod` — locally built sample package
 
-See [the feature matrix](docs/FEATURE_MATRIX.md) for implemented, experimental and proposed functionality.
+---
 
-## Examples and source layout
+## Boundaries and honesty
 
-- `examples/workshop_showcase.hstudio.json`: six generators, bilingual names, tool tags and crafting recipes.
-- `examples/workshop_showcase.hmod`: locally generated sample content package (not officially verified).
-- `studio.py`: local editor HTTP API and content packager.
-- `voxel_architect.py`: deterministic voxel geometry and NBT encoding.
-- `mod_doctor.py`: static project diagnostics.
-- `horizon_cli.py`: scripting/CI interface.
-- `index.html` + `i18n.js`: visual editor and translations.
-- `tests/`: offline regression suite.
+Horizon Studio is meant to stay technically honest.
 
-## Licensing and security
+### What it does **not** claim
+- It does **not** claim that Java can never implement similar tooling.
+- It does **not** claim official compatibility until real in-game validation is done.
+- It does **not** bundle default Minecraft/Horizon assets.
+- It does **not** provide new arbitrary gameplay behavior through content-only packaging alone.
 
-MIT-licensed. Unofficial independent project, not endorsed by Horizon, Mojang or Microsoft. No proprietary game assets are bundled. Review [Security](SECURITY.md) and [Contributing](CONTRIBUTING.md) before submitting changes.
+### What likely requires deeper Rust / engine work later
+- native hooks
+- live server-side behavior systems
+- gameplay scripting runtime
+- event graph execution inside Horizon
+- “MCreator-like” high-level gameplay logic authoring beyond content packs
+
+---
+
+## Contributing
+
+This project is intended to grow into a serious open-source toolkit.
+
+If you contribute, please read:
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- [SECURITY.md](SECURITY.md)
+
+---
+
+## License
+
+MIT License.
+
+---
+
+## Roadmap ideas
+
+- richer recipe workstation support
+- visual icon/texture browser
+- better asset import pipeline
+- node/event logic editor for future native extensions
+- schema/version migration helpers
+- polished GitHub Releases packaging
+- screenshots and official branding assets for the repository
+
+If you continue the repo manually, this README is already structured to be easy to extend with banners, screenshots, badges, release downloads, and roadmap sections.

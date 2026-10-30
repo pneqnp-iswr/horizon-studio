@@ -398,10 +398,26 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(content)
 
     def do_GET(self):
+        root = Path(__file__).parent
         if self.path in ('/', '/index.html'):
-            self.response(200, 'text/html; charset=utf-8', (Path(__file__).parent / 'index.html').read_bytes())
+            self.response(200, 'text/html; charset=utf-8', (root / 'index.html').read_bytes())
         elif self.path == '/i18n.js':
-            self.response(200, 'text/javascript; charset=utf-8', (Path(__file__).parent / 'i18n.js').read_bytes())
+            self.response(200, 'text/javascript; charset=utf-8', (root / 'i18n.js').read_bytes())
+        elif self.path.startswith('/assets/'):
+            target = (root / self.path.lstrip('/')).resolve()
+            try:
+                target.relative_to(root.resolve())
+            except Exception:
+                return self.response(403, 'text/plain; charset=utf-8', b'Forbidden')
+            if target.is_file():
+                ctype = 'application/octet-stream'
+                if target.suffix == '.png': ctype = 'image/png'
+                elif target.suffix == '.svg': ctype = 'image/svg+xml; charset=utf-8'
+                elif target.suffix in {'.jpg', '.jpeg'}: ctype = 'image/jpeg'
+                elif target.suffix == '.webp': ctype = 'image/webp'
+                elif target.suffix == '.css': ctype = 'text/css; charset=utf-8'
+                return self.response(200, ctype, target.read_bytes())
+            return self.response(404, 'text/plain; charset=utf-8', b'Not found')
         else:
             self.response(404, 'text/plain; charset=utf-8', b'Not found')
 
