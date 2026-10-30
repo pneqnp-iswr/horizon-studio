@@ -1,0 +1,2658 @@
+<!DOCTYPE html>
+
+<html lang="" xml:lang="" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8"/>
+<meta content="pandoc" name="generator"/>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=yes" name="viewport"/>
+<title>HORIZON_STUDIO_MASTER_ENGINEERING_ROADMAP_2026-10-30</title>
+<style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+<style>
+@page { size: A4 landscape; margin: 14mm 14mm 15mm; @bottom-right { content: counter(page); font-family: "DejaVu Sans"; font-size: 9px; color:#6d7782; } }
+@page:first { margin-top: 19mm; }
+html {font-family:"DejaVu Sans",sans-serif; color:#192330; font-size:10px; line-height:1.46;}
+body {margin:0 !important; padding:0 !important; max-width:none !important; width:100% !important;}
+h1{font-size:22px; color:#142e4a; line-height:1.2; border-bottom:3px solid #4e85ad; padding-bottom:8px; margin:0 0 11px;}
+h2{font-size:15px; line-height:1.25; color:#173c5b; border-bottom:1px solid #b5c9d7; padding:0 0 5px;margin:23px 0 9px; break-after:avoid;}
+h3{font-size:12px;line-height:1.28; color:#215578; margin:17px 0 6px;break-after:avoid;}
+p{margin: 5px 0 8px;text-align:left;} b,strong {font-weight:700;color:#142e4a;}
+ul,ol{padding-left:19px; margin:5px 0 8px;} li{margin:2px 0;}
+table{width:100% !important; max-width:none !important;border-collapse:collapse;margin:9px 0 15px; font-size:8.4px; table-layout: auto; line-height:1.28;}
+tr{break-inside:avoid;}thead{display:table-header-group;}th{background:#e7eef4;color:#153a58;text-align:left;}
+th,td{padding:4px 5px;vertical-align:top;border-bottom:1px solid #d2dce4;overflow-wrap:anywhere;}
+tr:nth-child(2n) td{background:#f5f8fb;}
+table.matrix {table-layout:fixed;font-size:8.5px;} table.matrix th:nth-child(1),table.matrix td:nth-child(1){width:4%;} table.matrix th:nth-child(2),table.matrix td:nth-child(2){width:29%;} table.matrix th:nth-child(n+3),table.matrix td:nth-child(n+3){width:8.375%;text-align:center;}
+table.wide-issue{table-layout:fixed;} table.wide-issue th:nth-child(1){width:6%;} table.wide-issue th:nth-child(2){width:8%;}table.wide-issue th:nth-child(3){width:28%;}table.wide-issue th:nth-child(4){width:29%;}table.wide-issue th:nth-child(5){width:29%;}
+code{font-family:"DejaVu Sans Mono",monospace; font-size:.88em; color:#334f6a; overflow-wrap:anywhere;}
+pre{font-size:9px;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:5px;padding:9px 12px;background:#f1f5f8;border:1px solid #d9e3ea;margin:10px 0;break-inside:avoid;}
+pre code{font-size:8.5px;}
+a{color:#155f8b;text-decoration:none;}blockquote{border-left:3px solid #93b2c9;margin:10px 0;padding:6px 12px;background:#f7fafb;}
+nav#TOC {font-size:10px;columns:2; column-gap:26px; margin:15px 0 22px;} nav#TOC ul{list-style:none;margin:0;padding-left:10px;} nav#TOC li{break-inside:avoid;margin:2px 0;}nav#TOC a{color:#246082;}
+h1:first-of-type{font-size:22px;}
+</style></head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#horizon-studio-master-engineering-roadmap-platform-architecture" id="toc-horizon-studio-master-engineering-roadmap-platform-architecture">HORIZON
+STUDIO — MASTER ENGINEERING ROADMAP &amp; PLATFORM ARCHITECTURE</a>
+<ul>
+<li><a href="#executive-vision" id="toc-executive-vision">1. Executive
+Vision</a></li>
+<li><a href="#verified-current-state-exact-baseline" id="toc-verified-current-state-exact-baseline">2. Verified Current State
+— exact baseline</a></li>
+<li><a href="#critical-problems-in-existing-code" id="toc-critical-problems-in-existing-code">3. Critical Problems in
+Existing Code</a></li>
+<li><a href="#competitive-benchmark-30-uxengineering-criteria" id="toc-competitive-benchmark-30-uxengineering-criteria">4. Competitive
+Benchmark — 30 UX/engineering criteria</a></li>
+<li><a href="#product-philosophy" id="toc-product-philosophy">5. Product
+Philosophy</a></li>
+<li><a href="#ultimate-feature-taxonomy" id="toc-ultimate-feature-taxonomy">6. Ultimate Feature Taxonomy</a></li>
+<li><a href="#technology-stack-recommendations" id="toc-technology-stack-recommendations">7. Technology Stack
+Recommendations</a></li>
+<li><a href="#architecture-overview" id="toc-architecture-overview">8.
+Architecture Overview</a></li>
+<li><a href="#component-and-plugin-architecture" id="toc-component-and-plugin-architecture">9. Component and Plugin
+Architecture</a></li>
+<li><a href="#rendering-physics-and-ai-architecture" id="toc-rendering-physics-and-ai-architecture">10. Rendering, Physics
+and AI Architecture</a></li>
+<li><a href="#visual-programming-code-generation" id="toc-visual-programming-code-generation">11. Visual Programming &amp;
+Code Generation</a></li>
+<li><a href="#horizon-integration-strategy" id="toc-horizon-integration-strategy">12. Horizon Integration
+Strategy</a></li>
+<li><a href="#uxui-design-system" id="toc-uxui-design-system">13. UX/UI
+Design System</a></li>
+<li><a href="#security-asset-licensing" id="toc-security-asset-licensing">14. Security &amp; Asset
+Licensing</a></li>
+<li><a href="#testing-and-release-engineering" id="toc-testing-and-release-engineering">15. Testing and Release
+Engineering</a></li>
+<li><a href="#detailed-phased-roadmap" id="toc-detailed-phased-roadmap">16. Detailed Phased Roadmap</a></li>
+<li><a href="#dependencies-and-critical-path" id="toc-dependencies-and-critical-path">17. Dependencies and Critical
+Path</a></li>
+<li><a href="#prioritized-engineering-backlog" id="toc-prioritized-engineering-backlog">18. Prioritized Engineering
+Backlog</a></li>
+<li><a href="#eight-end-to-end-demo-projects" id="toc-eight-end-to-end-demo-projects">19. Eight End-to-End Demo
+Projects</a></li>
+<li><a href="#performance-and-quality-targets-proposals-not-measurements" id="toc-performance-and-quality-targets-proposals-not-measurements">20.
+Performance and Quality Targets — proposals, NOT measurements</a></li>
+<li><a href="#risks-and-alternative-strategies" id="toc-risks-and-alternative-strategies">21. Risks and Alternative
+Strategies</a></li>
+<li><a href="#first-three-concrete-development-iterations-directly-actionable" id="toc-first-three-concrete-development-iterations-directly-actionable">22.
+First Three Concrete Development Iterations — directly
+actionable</a></li>
+<li><a href="#long-term-extensibility-strategy-adr-register" id="toc-long-term-extensibility-strategy-adr-register">23. Long-Term
+Extensibility Strategy + ADR Register</a></li>
+<li><a href="#final-technical-assessment" id="toc-final-technical-assessment">24. Final Technical
+Assessment</a></li>
+<li><a href="#primary-evidence-research-links" id="toc-primary-evidence-research-links">Primary evidence &amp; research
+links</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="horizon-studio-master-engineering-roadmap-platform-architecture">HORIZON
+STUDIO — MASTER ENGINEERING ROADMAP &amp; PLATFORM ARCHITECTURE</h1>
+<p><strong>Edition:</strong> 2026-10-30 · Research baseline 1.0 ·
+Language: Russian (technical interfaces named in English)<br/>
+<strong>Scope:</strong> engineering research, architecture, product
+strategy, executable backlog. <strong>No repository files were
+changed.</strong><br/>
+<strong>Evidence class:</strong> <strong>V</strong> = verified by
+reading repository/source/official API; <strong>CI</strong> = reported
+successful by GitHub Actions (tests not locally rerun);
+<strong>I</strong> = engineering inference; <strong>P</strong> =
+proposal; <strong>U</strong> = not verified in running game.<br/>
+<strong>Important restriction:</strong> this report is a read-only
+static/source audit, <strong>not</strong> an end-to-end runtime or
+Windows GUI test. A local clone of the repositories and the Horizon game
+could not be executed in this environment. Benchmark and UX targets
+below are goals, not empirical results.</p>
+<h2 id="executive-vision">1. Executive Vision</h2>
+<p><strong>Vision:</strong> make Horizon Studio a modular, extensible
+creative development environment for Horizon, serving <strong>No-Code /
+Low-Code / Full-Code</strong> users from one project representation and
+one reproducible build pipeline. The key architectural principle is
+<em>capabilities, not promises</em>: a user can author assets and
+mechanics independently of whether today’s selected engine build already
+supports them, but Studio must report their actual exportability. No
+claim of universal game-feature support without working engine
+hooks.</p>
+<p><strong>Platform kernels (the smallest coherent set of
+general-purpose systems):</strong> 1. <strong>Versioned Project
+Graph</strong> — canonical assets, dependencies, identifiers,
+migrations, and provenance. 2. <strong>Capability Registry + Target
+Adapters</strong> — content <code>.hmod</code>, native
+<code>.hnmod</code>, shader <code>.hshader</code>, test/preview and
+future server integrations. 3. <strong>Typed Gameplay IR + Graph
+Runtime</strong> — expressions, state, events, components, schedules and
+determinism; multiple codegen backends. 4. <strong>Asset Pipeline +
+Scene Representation</strong> — importing textures, models, animation,
+audio, voxel data, with adapters and provenance. 5.
+<strong>Authoring/Preview Workbench</strong> — inspectors, commands,
+property panels, 3D viewport, animation, shader/VFX editing, nodes. 6.
+<strong>Build/Test/Debug Orchestrator</strong> — cargo, upstream
+validators, game smoke tests, log capture, deterministic outputs. 7.
+<strong>Safe Plugin SDK</strong> — dynamically registered editor types,
+graph nodes, importers, validators and exporters, strongly
+permissioned.</p>
+<p><strong>Outcome:</strong> combinations of those systems enable
+diverse content, not thousands of hardcoded forms. Prioritize an
+end-to-end loop <em>create → edit → preview → validate → play →
+diagnose</em> before adding a second advanced editor.</p>
+<h2 id="verified-current-state-exact-baseline">2. Verified Current State
+— exact baseline</h2>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Repository</th>
+<th>Commit SHA (HEAD checked 2026-10-30)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Studio</td>
+<td><a href="https://github.com/pneqnp-iswr/horizon-studio/commit/63a313f50b08ddccf55e331c99a6e25b7f72d8ad"><code>63a313f50b08ddccf55e331c99a6e25b7f72d8ad</code></a></td>
+<td><code>master</code>; version <code>0.6.0</code>; release
+<code>v0.6.0</code> published 2026-10-30 13:11 UTC</td>
+</tr>
+<tr class="even">
+<td>Companion fork</td>
+<td><a href="https://github.com/pneqnp-iswr/unlicensed-horizon/commit/186ea2900ca698a61625d691e8f9a63702f99936"><code>186ea2900ca698a61625d691e8f9a63702f99936</code></a></td>
+<td><code>main</code>; comparison with upstream: 3 fork commits ahead,
+32 upstream commits behind, diverged</td>
+</tr>
+<tr class="odd">
+<td>Upstream engine</td>
+<td><a href="https://github.com/horizon-rust/horizon/commit/d2186eb9aa022a64a8b26e6989a04e44fba99ee7"><code>d2186eb9aa022a64a8b26e6989a04e44fba99ee7</code></a></td>
+<td><code>main</code>, nightly-driven, Minecraft Java 26.3</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Studio repository tree:</strong> 49 entries, nontruncated
+recursive Git tree. Primary files: <code>studio.py</code> (21,954
+bytes), <code>index.html</code> (58,862 bytes in Git tree),
+<code>i18n.js</code>, <code>model_viewer.js</code>,
+<code>source_workbench.py</code>, <code>source_workbench_ui.js</code>,
+<code>voxel_architect.py</code>, <code>mod_doctor.py</code>,
+<code>horizon_cli.py</code>, <code>launcher.py</code>,
+<code>scripts/</code>, <code>tests/</code>,
+<code>.github/workflows/</code>, <code>docs/</code>,
+<code>examples/</code>. Code was inspected directly, rather than
+trusting README. License MIT. No requirements manifest/toolchain lock
+for its Python implementation because it largely uses stdlib; Windows
+release pins PyInstaller and Pillow in its workflow, though the
+executable is not signed.</p>
+<p><strong>Source-confirmed core behavior:</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature / subsystem</th>
+<th>Finding</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Content blocks/items from vanilla templates</td>
+<td><code>create_project_files()</code> writes
+<code>horizon-mod.toml</code>, per-block/item data and game assets, sets
+<code>api="0.2"</code>, <code>registries</code>; 32 block + 32 item
+limits</td>
+<td>Implemented but insufficiently tested <strong>in game</strong></td>
+</tr>
+<tr class="even">
+<td>Recipes / loot / mining tags</td>
+<td>shaped/shapeless data; tags, loot, translations, deterministic
+ZIP</td>
+<td>Implemented but insufficiently tested <strong>in game</strong></td>
+</tr>
+<tr class="odd">
+<td>Voxel Architect</td>
+<td>6 deterministic procedural NBT structures; rotations/mirror;
+12,000-block max, 8 structures</td>
+<td>Implemented + unit tested; game placement unverified</td>
+</tr>
+<tr class="even">
+<td>NBT structure placement</td>
+<td>NBT content emitted, no placement system</td>
+<td>Incomplete</td>
+</tr>
+<tr class="odd">
+<td>Source Workbench</td>
+<td>JSON overrides only for existing generated paths in own mod;
+size/file quotas; model element validation</td>
+<td>Implemented + unit tested; <strong>not</strong> a Rust IDE</td>
+</tr>
+<tr class="even">
+<td>3D Viewer</td>
+<td>hand-written browser WebGL cuboid mesh with orbit/zoom and 2D
+fallback</td>
+<td>Implemented, interactive functionality unverified with automated
+browser E2E</td>
+</tr>
+<tr class="odd">
+<td>Resource pack import</td>
+<td>fixed allowlist of 18 Minecraft textures from user-supplied ZIP/JAR,
+local memory, no game assets bundled</td>
+<td>Implemented + limited unit test</td>
+</tr>
+<tr class="even">
+<td>Mod Doctor</td>
+<td>deterministic static diagnosis: invalid exports, recipe
+bootstrap/conflict, RU fallbacks, unplaced structures</td>
+<td>Implemented + unit tested; not official validation</td>
+</tr>
+<tr class="odd">
+<td>Local server</td>
+<td><code>ThreadingHTTPServer</code> at <code>127.0.0.1:8787</code>, 7
+POST routes</td>
+<td>Implemented + HTTP tests; security hardening needed</td>
+</tr>
+<tr class="even">
+<td>EN/RU</td>
+<td>independent translation catalog and UI toggle; tests check key
+parity</td>
+<td>Implemented + test coverage</td>
+</tr>
+<tr class="odd">
+<td>CLI</td>
+<td><code>horizon_cli.py</code> build/export, inspect, doctor; input
+<code>.hstudio.json</code> schema 3</td>
+<td>Implemented + unit tested; no actual game launch</td>
+</tr>
+<tr class="even">
+<td>Windows EXE</td>
+<td>Tk launcher + PyInstaller + CI frozen smoke test</td>
+<td>CI success; manual desktop acceptance not checked</td>
+</tr>
+<tr class="odd">
+<td>Official Horizon validator integration</td>
+<td>output recommends <code>cargo horizon-mod check</code>, never
+invokes it</td>
+<td><strong>Planned / missing</strong></td>
+</tr>
+<tr class="even">
+<td>Native <code>.hnmod</code> Rust building</td>
+<td>absent</td>
+<td><strong>Planned</strong></td>
+</tr>
+<tr class="odd">
+<td>Typed graph, AI, VFX, custom dimensions, advanced physics</td>
+<td>absent</td>
+<td><strong>Planned / may require engine changes</strong></td>
+</tr>
+<tr class="even">
+<td>Fully integrated Rust editing/debugging</td>
+<td>absent</td>
+<td><strong>Planned</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tests:</strong> six <code>tests/test_*.py</code> files; 69
+test methods found in HEAD (<code>3+26+9+22+7+2</code>). CI runs Python
+3.11/3.12 on Ubuntu and Windows (4 matrix combinations); a release job
+tests and smoke-tests the frozen EXE on Windows. At checked HEAD, GitHub
+Actions reported <strong>success</strong> for CI and release. Exact
+subtest counts at v0.6.0 were not independently established. The old
+changelog’s “59 tests / 105 subtests” refers to v0.5.0, not this HEAD.
+No browser E2E, official <code>cargo horizon-mod check</code>, or real
+Horizon game-load test found.</p>
+<p><strong>Versioned API reality — essential:</strong> - Upstream
+<code>docs/mods.md</code> and
+<code>crates/horizon-mods/src/content.rs</code>,
+<code>manifest.rs</code>,
+<code>crates/cargo-horizon-mod/src/check.rs</code> establish content
+<code>.hmod</code> <strong>API 0.2</strong>, with assets/data,
+<code>registries</code>, source/folder validation, and no executable
+code. - Upstream <code>docs/native-mods.md</code>,
+<code>crates/horizon-client/src/game/native_hooks.rs</code>,
+<code>native-hooks.json</code>, and launcher <code>native_mods.rs</code>
+describe <strong><code>.hnmod</code></strong> native Rust/horizon-mixins
+bundles, pinned or stable named hook contracts. The code runs with the
+player’s OS permissions; it is <strong>not sandboxed</strong>.
+<code>native_hooks.rs</code> documents hook API versions through
+<strong>7</strong> (including block and neighbor changes);
+<code>native-hooks.json</code> is still described as a <em>draft
+mapping</em>, not an unrestricted stable plugin ABI. - Some historical
+pages describe Wasmtime/WIT component mods with 0.1/0.3 contracts.
+Relevant crate structures survive in HEAD, but
+<code>docs/api/stability.md</code> labels WebAssembly mod API levels as
+<strong>removed</strong>, while the native mod route is the practical
+priority. Treat WebAssembly as <strong>legacy/conditional</strong>, not
+the primary architecture. Avoid assuming all pages describe the same
+runtime status. - Horizon already implements an <strong>experimental
+native WGSL shader-pack API</strong>, including
+<code>horizon-shader new/check/pack</code>, <code>.hshader</code>,
+sky/material/post stages, and live file re-check in
+<code>crates/horizon-client/src/game/native_shaders.rs</code>; this may
+support a first shader graph before new renderer patches. - Data-pack
+world generation is partially supported. New
+dimensions/entities/behavior code must not be promised as content-only
+mods. - Minecraft Java JAR mods (Fabric/Forge/NeoForge), GeckoLib
+runtime code, Java Mixins are <strong>not directly executable</strong>
+in Horizon. - The companion <code>unlicensed-horizon</code> fork
+explicitly documents original-content Go/PowerShell tools and <em>no
+verified standalone playable alternative</em>. Studio should use the
+same Engine Adapter on both upstream and fork; its fork status is a
+separate compatibility profile. No auth bypass or proprietary asset
+redistribution.</p>
+<p><strong>Divergence and source-of-truth:</strong> resolve
+contradictions using (1) code pinned to commit; (2) executable
+unit/integration tests; (3) current repo docs; (4) public site; (5)
+older design notes. Every generated compatibility claim must record
+engine SHA, mod API, validator SHA, platform, date, and evidence
+artifact.</p>
+<h2 id="critical-problems-in-existing-code">3. Critical Problems in
+Existing Code</h2>
+<table class="wide-issue">
+<colgroup>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>ID</th>
+<th>Severity</th>
+<th>Evidence / affected code</th>
+<th>Why it matters</th>
+<th>Repair / verification</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>C-01</td>
+<td>P0</td>
+<td><code>studio.py</code> <code>do_POST</code> lines ~427–459</td>
+<td>POST routes lack explicit
+<code>Origin</code>/<code>Host</code>/session-token checks; localhost
+bind alone is insufficient against all browser cross-origin or
+DNS-rebinding patterns</td>
+<td>enforce loopback/Host allowlist, generated bearer/session token or
+desktop IPC, Origin/Sec-Fetch-Site policy, JSON content type, automated
+adversarial HTTP tests</td>
+</tr>
+<tr class="even">
+<td>C-02</td>
+<td>P0</td>
+<td><code>studio.py</code> <code>.hmod</code> archive lines
+~370–375</td>
+<td>local schema validation <strong>not</strong> equal to
+engine/registry acceptance</td>
+<td>official version-pinned <code>cargo horizon-mod check --json</code>
+plus real game load fixture</td>
+</tr>
+<tr class="odd">
+<td>C-03</td>
+<td>P1</td>
+<td><code>index.html</code> JS state + browser
+<code>localStorage</code>, <code>schema:3</code></td>
+<td>projects saved as a single large browser storage object; no
+transaction durability or crash-resilient filesystem writes</td>
+<td>filesystem workspace + atomic writes + migration/importer; retain
+legacy import</td>
+</tr>
+<tr class="even">
+<td>C-04</td>
+<td>P1</td>
+<td><code>index.html</code> ~58 KB one-file UI; numerous global
+functions</td>
+<td>coupling, difficult unit tests, rendering state coupling, fragmented
+undo</td>
+<td>ES modules/types, state store, component registry, command
+actions</td>
+</tr>
+<tr class="odd">
+<td>C-05</td>
+<td>P1</td>
+<td><code>studio.py</code> limits 32/32/64/8</td>
+<td>unsuitable for large projects; limits may be sensible per starter
+mod but not one Studio workspace</td>
+<td>multiple packages/projects; streaming index, pagination, spec-driven
+quotas</td>
+</tr>
+<tr class="even">
+<td>C-06</td>
+<td>P1</td>
+<td><code>source_workbench.py</code> overlays generated JSON only</td>
+<td>not a code editor, no Rust source round-trip, generated-file edits
+vulnerable to re-generation conflicts</td>
+<td>ownership boundaries + source map; protected generated outputs</td>
+</tr>
+<tr class="odd">
+<td>C-07</td>
+<td>P1</td>
+<td><code>model_viewer.js</code> WebGL1 cuboid-only</td>
+<td>not yet a general 3D modeling or animating tool</td>
+<td>import-first, documented format compatibility; add scene
+graph/viewport in stages</td>
+</tr>
+<tr class="even">
+<td>C-08</td>
+<td>P1</td>
+<td><code>RELEASE_NOTES.md</code> describes 0.5.0 in v0.6.0 release</td>
+<td>release communication is stale and objectively incorrect</td>
+<td>generate release notes from version and changelog, release metadata
+contract test</td>
+</tr>
+<tr class="odd">
+<td>C-09</td>
+<td>P1</td>
+<td><code>.github/workflows/tests.yml</code> Python-only</td>
+<td>test pyramid misses real browser, generated <code>.hmod</code>
+compatibility and engine startup</td>
+<td>Playwright + official validator + game E2E on controlled
+runners</td>
+</tr>
+<tr class="even">
+<td>C-10</td>
+<td>P1</td>
+<td><code>horizon_cli.py</code> JSON project only</td>
+<td>CLI/build pipeline does not preserve a multi-mod Cargo workspace or
+independent source editing</td>
+<td>standard workspace tree + <code>manifest.json</code> and backend
+adapters</td>
+</tr>
+<tr class="odd">
+<td>C-11</td>
+<td>P2</td>
+<td><code>studio.py</code> CSP includes
+<code>'unsafe-inline'</code></td>
+<td>expanded third-party/plugin UI would elevate XSS impact</td>
+<td>move JS/CSS out, nonce/hashes, tight CSP, plugin isolated
+origin/process</td>
+</tr>
+<tr class="even">
+<td>C-12</td>
+<td>P2</td>
+<td><code>/api/resourcepack</code> takes large ZIP</td>
+<td>per-file texture limits are present but resource-exhaustion/fuzz
+cases deserve testing</td>
+<td>cap entries, central-directory work, compression ratios, processing
+time; fuzz ZIP/PNG</td>
+</tr>
+<tr class="odd">
+<td>C-13</td>
+<td>P2</td>
+<td>GUI/theme and fonts in <code>index.html</code> CSS</td>
+<td>aesthetic and scale/readability lack measurable design system</td>
+<td>design tokens, visual QA, user study, tested accessible font
+choices</td>
+</tr>
+<tr class="even">
+<td>C-14</td>
+<td>P2</td>
+<td><code>docs/FEATURE_MATRIX.md</code> title still “0.4”</td>
+<td>documentation drift</td>
+<td>docs generated/linked from capability snapshots</td>
+</tr>
+</tbody>
+</table>
+<p>None of C-01 through C-14 was exploited or empirically measured here:
+they are source-backed risks, not reports of successful attacks or
+confirmed runtime defects.</p>
+<h2 id="competitive-benchmark-30-uxengineering-criteria">4. Competitive
+Benchmark — 30 UX/engineering criteria</h2>
+<p><strong>Evidence base:</strong> official product/manual docs and
+architecture patterns, not a controlled user study. Legend:
+<strong>S</strong> strong canonical feature; <strong>P</strong>
+partial/specialized; <strong>—</strong> not primary product purpose;
+<strong>?</strong> not established. Product columns represent
+<em>archetypes</em>, not equal-feature products: - <strong>MC</strong>
+MCreator + datapack editors, <strong>BB</strong> Blockbench + GeckoLib
+pipeline, <strong>BL</strong> Blender, <strong>ID</strong> VS Code +
+IntelliJ/Visual Studio, <strong>GE</strong> Godot + Unity,
+<strong>UE</strong> Unreal Engine, <strong>RB</strong> Roblox Studio +
+Figura, <strong>HS</strong> Horizon Studio 0.6.0.</p>
+<table class="matrix" style="width:100%;">
+<colgroup>
+<col style="width: 10%"/>
+<col style="width: 10%"/>
+<col style="width: 10%"/>
+<col style="width: 10%"/>
+<col style="width: 10%"/>
+<col style="width: 10%"/>
+<col style="width: 10%"/>
+<col style="width: 10%"/>
+<col style="width: 10%"/>
+<col style="width: 10%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Capability</th>
+<th>MC</th>
+<th>BB</th>
+<th>BL</th>
+<th>ID</th>
+<th>GE</th>
+<th>UE</th>
+<th>RB</th>
+<th>HS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>01</td>
+<td>Quick non-coder creation</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>—</td>
+<td>P</td>
+<td>P</td>
+<td>S</td>
+<td>P</td>
+</tr>
+<tr class="even">
+<td>02</td>
+<td>Minecraft-specific content forms</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>P</td>
+<td>—</td>
+<td>—</td>
+<td>P</td>
+<td>P</td>
+</tr>
+<tr class="odd">
+<td>03</td>
+<td>Text/code editing</td>
+<td>P</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+</tr>
+<tr class="even">
+<td>04</td>
+<td>Rust refactor / LSP</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>S</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>05</td>
+<td>Reproducible build command</td>
+<td>P</td>
+<td>P</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>P</td>
+</tr>
+<tr class="even">
+<td>06</td>
+<td>Node gameplay scripting</td>
+<td>S</td>
+<td>—</td>
+<td>P</td>
+<td>—</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>07</td>
+<td>Strong type diagnostics</td>
+<td>P</td>
+<td>P</td>
+<td>P</td>
+<td>S</td>
+<td>P</td>
+<td>S</td>
+<td>P</td>
+<td>P</td>
+</tr>
+<tr class="even">
+<td>08</td>
+<td>Debug/watch/breakpoints</td>
+<td>P</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>09</td>
+<td>Scene hierarchy/outliner</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td>Viewport model selection/gizmos</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>—</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+</tr>
+<tr class="odd">
+<td>11</td>
+<td>UV editing</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>—</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>12</td>
+<td>Rigging/bones</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>—</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>13</td>
+<td>Keyframe animation</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>—</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>14</td>
+<td>Mesh interoperability</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>15</td>
+<td>Asset import pipeline</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+</tr>
+<tr class="even">
+<td>16</td>
+<td>Shader/material graphs</td>
+<td>—</td>
+<td>P</td>
+<td>S</td>
+<td>—</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>17</td>
+<td>Particle/VFX authoring</td>
+<td>P</td>
+<td>P</td>
+<td>S</td>
+<td>—</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>18</td>
+<td>Physics scene editing</td>
+<td>P</td>
+<td>—</td>
+<td>S</td>
+<td>—</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>19</td>
+<td>AI behavior composition</td>
+<td>P</td>
+<td>—</td>
+<td>—</td>
+<td>P</td>
+<td>P</td>
+<td>S</td>
+<td>P</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>20</td>
+<td>World/terrain tooling</td>
+<td>P</td>
+<td>—</td>
+<td>P</td>
+<td>—</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+</tr>
+<tr class="odd">
+<td>21</td>
+<td>Docking/workspace layouts</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+</tr>
+<tr class="even">
+<td>22</td>
+<td>Command palette/navigation</td>
+<td>P</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>23</td>
+<td>Undo/Redo transactions</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+</tr>
+<tr class="even">
+<td>24</td>
+<td>Plugin extension API</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>25</td>
+<td>Source/version control integration</td>
+<td>P</td>
+<td>P</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>26</td>
+<td>Multi-user collaboration</td>
+<td>—</td>
+<td>P</td>
+<td>P</td>
+<td>S</td>
+<td>P</td>
+<td>P</td>
+<td>S</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>27</td>
+<td>Asset dependency graph</td>
+<td>P</td>
+<td>P</td>
+<td>S</td>
+<td>P</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>28</td>
+<td>Accessible learning onboarding</td>
+<td>S</td>
+<td>S</td>
+<td>P</td>
+<td>P</td>
+<td>P</td>
+<td>P</td>
+<td>S</td>
+<td>P</td>
+</tr>
+<tr class="odd">
+<td>29</td>
+<td>Security / permissions boundaries</td>
+<td>P</td>
+<td>P</td>
+<td>P</td>
+<td>P</td>
+<td>P</td>
+<td>P</td>
+<td>P</td>
+<td>P</td>
+</tr>
+<tr class="even">
+<td>30</td>
+<td>Horizon <code>.hmod</code> target adapter</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>P</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interpretation warning:</strong> <code>S/P/—</code> expresses
+broad product orientation inferred from public documentation; it is
+<strong>not</strong> a quality ranking or tested feature inventory. It
+groups unlike products, so use this matrix only to identify workflows
+worth studying, never to assert all members of a column implement the
+same capability.</p>
+<p><strong>Distinct competitive lessons:</strong> -
+<strong>MCreator:</strong> mod-element wizards and understandable visual
+procedures; avoid locking users into opaque generated code. -
+<strong>Blockbench:</strong> compact, texture-conscious 3D workflows,
+outliner, UV, animation and plugin-defined codecs; <strong>integrate
+first</strong>, don’t duplicate full modeling UX. <code>.bbmodel</code>
+is a versioned internal project format and the vendor recommends
+dedicated format codecs for reliable exchange. -
+<strong>Blender:</strong> mature modeling, UV, compositing, rigging,
+animation and Geometry Nodes; use it as an external authoring source via
+glTF/custom converters. - <strong>VS Code:</strong> discoverability and
+command palette; <strong>Monaco is not VS Code</strong> and cannot run
+arbitrary VS Code extensions. - <strong>IntelliJ IDEA / Visual
+Studio:</strong> refactoring/navigation/test/toolchain depth; provide
+integration/open-in-external-IDE rather than replicate every IDE
+capability. - <strong>Godot:</strong> scene tree, inspector driven by
+selection, plugin docks, resource type schemas, small cohesive editor
+interactions. - <strong>Unity:</strong> typed components/prefabs,
+serialized asset metadata and profiling; preserve references and
+inspector schemas. - <strong>Unreal:</strong> Blueprint graph
+validation, executing-wire debug, context menus, gameplay/asset split,
+VFX/material graph discipline. - <strong>Roblox Studio:</strong> easy
+test-in-editor and content sharing; caution around trust boundaries. -
+<strong>Figura:</strong> expressive avatar customization and scripting,
+but its runtime assumptions are not Horizon’s. -
+<strong>GeckoLib:</strong> animation workflows for Java mod ecosystems;
+do not promise runtime compatibility without a port. - <strong>Datapack
+editors:</strong> fast schema-backed JSON/data editing; preserve
+transparent file exports. - <strong>Shader/VFX node editors:</strong>
+subgraphs, caches, parameters, preview contexts, profile-driven
+quality.</p>
+<p><strong>Differentiation:</strong> Horizon Studio is <strong>not
+Blender + Unreal + IDE in one binary</strong>. It is a
+<em>Horizon-native content+behavior authoring platform</em> that makes
+engine capability and compatibility obvious while reusing mature
+external DCC and IDE tools.</p>
+<h2 id="product-philosophy">5. Product Philosophy</h2>
+<ol type="1">
+<li><strong>One project, many workflows</strong> — Beginner settings,
+Creator nodes, Professional code share identifiers and build graph.</li>
+<li><strong>Truthful capability</strong> — unavailable hooks appear as
+“requires Horizon API extension,” never as silently nonfunctional
+checkboxes.</li>
+<li><strong>Local-first</strong> — no mandatory account or cloud
+services; explain when original game files/license are required.</li>
+<li><strong>Non-destructive edits</strong> — stable IDs, transactional
+undo, migration backups, lossless source where possible, explicit lossy
+conversion warnings.</li>
+<li><strong>Fast feedback</strong> — preview as soon as possible;
+distinguish Studio-only preview from real running-game preview.</li>
+<li><strong>Import, don’t reinvent</strong> — external
+Blockbench/Blender, rust-analyzer, Cargo, mature render/physics
+libraries.</li>
+<li><strong>Correct boundaries</strong> — no unsafe plugins in the
+editor core; native <code>.hnmod</code> builds only after explicit
+trust.</li>
+</ol>
+<h2 id="ultimate-feature-taxonomy">6. Ultimate Feature Taxonomy</h2>
+<p><strong>Authorable object classes:</strong> project/mod/package,
+asset/material, model/rig/animation, sound, block/item/recipe/loot,
+entity/prefab/component, behavior graph, event/quest/UI,
+worldgen/dimension/portal, physics object/vehicle/rocket,
+VFX/shader/post-process, automation network, testing fixtures,
+deployment artifacts, plugins. Each object has a globally unique stable
+ID, named schema version, dependency references and target-capability
+declarations.</p>
+<p><strong>Subsystem boundaries and engine dependencies:</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>System</th>
+<th>Editor deliverable</th>
+<th>Engine-side status / gate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Blocks/items/loot</td>
+<td>template editor, component patches, rules, tags</td>
+<td>content <code>.hmod</code> possible now within verified templates;
+official checks needed</td>
+</tr>
+<tr class="even">
+<td>Model/animation</td>
+<td>Blockbench/glTF adapters, viewport, rig timeline</td>
+<td>arbitrary animated custom entity requires verified
+model-loader/render hooks</td>
+</tr>
+<tr class="odd">
+<td>Entity/animal/boss</td>
+<td>prefab + components + state/AI graphs</td>
+<td>requires hooks for spawn, serialization, animation, targeting,
+combat, server sync</td>
+</tr>
+<tr class="even">
+<td>AI</td>
+<td>BT/GOAP/Utility + pathfinding diagnostic</td>
+<td>runtime adapter needed; support simulation mode first</td>
+</tr>
+<tr class="odd">
+<td>Vehicles/rockets</td>
+<td>constraints/engines as abstract <em>game parameters</em>, sandbox
+trajectories</td>
+<td>needs authoritative entity physics, networking and collision
+extension; no real weapon engineering</td>
+</tr>
+<tr class="even">
+<td>VFX</td>
+<td>emitter graph → shader/texture/audio/camera; quality levels</td>
+<td>WGSL shader pack available experimentally; advanced
+particles/volumetrics may need renderer APIs</td>
+</tr>
+<tr class="odd">
+<td>Custom dimensions</td>
+<td>noise editor, sky, biomes, portal/world presets</td>
+<td>full registration/generation/storage/network API not yet verified;
+prototype preview only</td>
+</tr>
+<tr class="even">
+<td>Automation/RPG</td>
+<td>typed event/logic/component graphs</td>
+<td>content-only mods insufficient; native hooks or engine PRs</td>
+</tr>
+<tr class="odd">
+<td>Professional Rust</td>
+<td>Cargo workspace editor and diagnostics</td>
+<td><code>.hnmod</code> target, pinned hooks, user-trusted build</td>
+</tr>
+<tr class="even">
+<td>Publication</td>
+<td>metadata, signing, hashes, registry submission checks</td>
+<td>external registry accepts reviewed submissions; automate package
+verification, not automatic acceptance</td>
+</tr>
+</tbody>
+</table>
+<h2 id="technology-stack-recommendations">7. Technology Stack
+Recommendations</h2>
+<table>
+<colgroup>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Area</th>
+<th>Near-term choice</th>
+<th>Future option</th>
+<th>Decision rule</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Backend</td>
+<td>retain Python modules, extract pure contracts into packages</td>
+<td>incremental Rust services where CPU/I/O demands justify it</td>
+<td>migrate by measured bottleneck, not fashion</td>
+</tr>
+<tr class="even">
+<td>Desktop shell</td>
+<td>existing local web/Tk launcher</td>
+<td><strong>Tauri 2 spike</strong> with Python sidecar, limited IPC</td>
+<td>adopt only after equivalent Windows/macOS/Linux test and security
+parity</td>
+</tr>
+<tr class="odd">
+<td>UI</td>
+<td>split current vanilla JS into tested ES/TS modules; design
+tokens</td>
+<td>React/Svelte only if team complexity justifies</td>
+<td>preserve onboarding and keep browser testability</td>
+</tr>
+<tr class="even">
+<td>Rust editor</td>
+<td>Monaco + custom JSON-RPC bridge to rust-analyzer</td>
+<td>external VS Code/IntelliJ mode</td>
+<td>editor is not a VS Code-extension host</td>
+</tr>
+<tr class="odd">
+<td>3D</td>
+<td>evolve WebGL viewer + Blockbench external exchange</td>
+<td>choose maintained renderer (e.g. Three.js) after prototype</td>
+<td>avoid writing general model renderer/shader engine from scratch</td>
+</tr>
+<tr class="even">
+<td>Render in game</td>
+<td>use Horizon <code>.hshader</code> checked WGSL stages</td>
+<td>propose narrowly scoped renderer/VFX hooks</td>
+<td>every capability proven on pinned engine SHA</td>
+</tr>
+<tr class="odd">
+<td>Gameplay logic</td>
+<td>typed IR + simple interpreter for Studio preview</td>
+<td>Rust codegen <code>.hnmod</code> (restricted supported hooks)</td>
+<td>compile to engine-compatible, deterministic output</td>
+</tr>
+<tr class="even">
+<td>Packaging</td>
+<td>reproducible <code>.hmod</code>; external official validator</td>
+<td><code>.hnmod</code> source bundle, <code>.hshader</code>
+packaging</td>
+<td>separate trust and security gates per backend</td>
+</tr>
+<tr class="odd">
+<td>Storage</td>
+<td>workspace directories + JSON schema versions + SQLite optional asset
+index</td>
+<td>content-addressed blob cache</td>
+<td>no DB as only authoritative format</td>
+</tr>
+<tr class="even">
+<td>Tests</td>
+<td>Python unittest + Playwright + official CLI + game smoke</td>
+<td>engine differential fixtures</td>
+<td>report separate unit/validation/game statuses</td>
+</tr>
+</tbody>
+</table>
+<p><strong>No immediate wholesale Python → Rust migration.</strong> A
+thin Rust/Tauri desktop host can later wrap existing Python validators
+and an LSP/packager sidecar; a second whole-app rewrite would slow the
+most important compatibility work.</p>
+<h2 id="architecture-overview">8. Architecture Overview</h2>
+<pre class="mermaid"><code>flowchart TD
+  UI[Workspace UI: Inspector / Scene / Graph / Code / VFX] --&gt; CMD[Command Bus + Undo Journal]
+  CMD --&gt; PG[Canonical Project Graph + Schemas + Dependencies]
+  PG --&gt; AS[Asset Import / Transform / Cache]
+  PG --&gt; IR[Typed Gameplay IR]
+  PG --&gt; CR[Engine Capability Registry]
+  CR --&gt; HMOD[Content .hmod Backend]
+  CR --&gt; HNMOD[Native .hnmod Backend]
+  CR --&gt; SHADER[Shader .hshader Backend]
+  IR --&gt; HNMOD
+  AS --&gt; HMOD
+  AS --&gt; SHADER
+  HMOD --&gt; VALID[Validator / Build Orchestrator]
+  HNMOD --&gt; VALID
+  SHADER --&gt; VALID
+  VALID --&gt; GAME[Version-pinned Horizon Smoke/Preview]
+  GAME --&gt; LOG[Diagnostics + Source Mapping]
+  LOG --&gt; UI
+  PL[Permissioned Plugin Host] --&gt; UI
+  PL --&gt; AS
+  PL --&gt; CR</code></pre>
+<p><strong>Strongly versioned contracts:</strong>
+<code>ProjectSchema</code>, <code>AssetRef</code>,
+<code>ObjectIR</code>, <code>EditorContribution</code>,
+<code>GeneratorContribution</code>, <code>TargetProfile</code>,
+<code>CapabilityEvidence</code>, <code>BuildJob</code>,
+<code>Diagnostic</code>, <code>SourceMap</code>, <code>Migration</code>,
+<code>UndoCommand</code>. All are serializable with explicit version and
+provenance.</p>
+<p><strong>Illustrative schema (proposal, not implemented):</strong></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a aria-hidden="true" href="#cb2-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb2-2"><a aria-hidden="true" href="#cb2-2" tabindex="-1"></a>  <span class="dt">"schema"</span><span class="fu">:</span> <span class="st">"studio.project/1"</span><span class="fu">,</span></span>
+<span id="cb2-3"><a aria-hidden="true" href="#cb2-3" tabindex="-1"></a>  <span class="dt">"id"</span><span class="fu">:</span> <span class="st">"example"</span><span class="fu">,</span></span>
+<span id="cb2-4"><a aria-hidden="true" href="#cb2-4" tabindex="-1"></a>  <span class="dt">"name"</span><span class="fu">:</span> <span class="st">"Example World"</span><span class="fu">,</span></span>
+<span id="cb2-5"><a aria-hidden="true" href="#cb2-5" tabindex="-1"></a>  <span class="dt">"targets"</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span><span class="dt">"engine"</span><span class="fu">:</span> <span class="st">"horizon"</span><span class="fu">,</span> <span class="dt">"revision"</span><span class="fu">:</span> <span class="st">"&lt;pinned-SHA&gt;"</span><span class="fu">,</span> <span class="dt">"mod_api"</span><span class="fu">:</span> <span class="st">"0.2"</span><span class="fu">}</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb2-6"><a aria-hidden="true" href="#cb2-6" tabindex="-1"></a>  <span class="dt">"packages"</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span><span class="dt">"id"</span><span class="fu">:</span> <span class="st">"example.content"</span><span class="fu">,</span> <span class="dt">"path"</span><span class="fu">:</span> <span class="st">"packages/content"</span><span class="fu">}</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb2-7"><a aria-hidden="true" href="#cb2-7" tabindex="-1"></a>  <span class="dt">"assets"</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span><span class="dt">"id"</span><span class="fu">:</span> <span class="st">"urn:studio:asset:lamp"</span><span class="fu">,</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"block"</span><span class="fu">,</span> <span class="dt">"source"</span><span class="fu">:</span> <span class="st">"assets/lamp.block.json"</span><span class="fu">}</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb2-8"><a aria-hidden="true" href="#cb2-8" tabindex="-1"></a>  <span class="dt">"plugins"</span><span class="fu">:</span> <span class="ot">[]</span><span class="fu">,</span></span>
+<span id="cb2-9"><a aria-hidden="true" href="#cb2-9" tabindex="-1"></a>  <span class="dt">"capability_policy"</span><span class="fu">:</span> <span class="st">"fail-unsupported"</span></span>
+<span id="cb2-10"><a aria-hidden="true" href="#cb2-10" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Separation of state:</strong> UI state (selection/layout),
+project source state (files), derived state (indexes/caches),
+running-game state (read-only snapshots) must never become one giant
+mutable JavaScript object. Undo commands operate on project edits, not
+renderer camera motion.</p>
+<h2 id="component-and-plugin-architecture">9. Component and Plugin
+Architecture</h2>
+<p><strong>Canonical entity schema:</strong> entity = prefab ID +
+transform + render/animation + collider + health/attributes +
+interaction + logic graph references + networking/serialization
+strategy. This is an <strong>editor-side model</strong> initially;
+execution is conditional on a target adapter. ECS may be used internally
+but cannot be assumed to be Horizon’s public modding ABI.</p>
+<p><strong>Plugin manifest (proposal):</strong>
+<code>studio-plugin.json</code> with semantic API range, unique ID,
+declared contributions, permissions <code>asset.read</code>,
+<code>asset.write</code>, <code>project.inspect</code>,
+<code>generator.execute</code>, <code>native.build</code> (the last
+never silently granted); signed optional, reviewed/known publisher
+optional. Run untrusted importers/scripts as subprocesses or Web Workers
+with tight resource quotas; avoid granting native filesystem/process
+access to remote web plugins.</p>
+<p><strong>Contribution points:</strong>
+<code>registerAssetType()</code>, <code>registerInspector()</code>,
+<code>registerEditorPanel()</code>, <code>registerImporter()</code>,
+<code>registerExporter()</code>, <code>registerGraphNode()</code>,
+<code>registerValidator()</code>, <code>registerTargetAdapter()</code>,
+<code>registerTemplate()</code>, <code>registerPreviewProvider()</code>.
+Each uses versioned message schemas and cancellation handles; plugin
+crashes must not crash the workspace.</p>
+<p><strong>Migration:</strong> store a durable migration log and backup,
+never silently discard unknown plugin data; absent plugins show opaque
+placeholders with linked evidence rather than deleting nodes. Enforce
+round-trip and forward-compatibility tests.</p>
+<h2 id="rendering-physics-and-ai-architecture">10. Rendering, Physics
+and AI Architecture</h2>
+<h3 id="three-dimensional-authoring">10.1 Three-dimensional
+authoring</h3>
+<p><strong>Stage 1:</strong> zoom/orbit/pan, grid, scene selection,
+ray-picking, transform gizmos, editable cuboids, hierarchy, materials;
+retain WebGL fallback. <strong>Stage 2:</strong> UV atlas, model
+importing, reusable prefabs, animation/keyframes/timeline, bones,
+emissive/normal maps, glTF converter, reliable Blockbench export.
+<strong>Stage 3:</strong> GPU instancing, LOD, selection of thousands of
+nodes, render graphs and tooling. Don’t claim <code>.bbmodel</code>
+directly equivalent to Minecraft Java JSON: conversions can lose custom
+metadata, armatures and animations.</p>
+<p><strong>3D interchange matrix:</strong> Java block/item JSON → native
+current content path (restricted, verified by Studio local tests);
+custom <code>.bbmodel</code> → external Blockbench or Studio adapter
+proposal; glTF → interchange preview and geometry pipeline proposal; OBJ
+→ offline geometry exchange, weak animation semantics; GeckoLib
+animations → import for editing, but Horizon runtime needs separate
+implementation; NBT → existing voxel exporter, not a full editable
+world.</p>
+<h3 id="ai-and-navigation">10.2 AI and navigation</h3>
+<p>AI graph has layered controller: perception
+(<code>sight/hearing/nearby</code>), memory/blackboard, decision (FSM /
+BT / utility / GOAP), action queue, movement/voxel navigation,
+scheduling, network replication. Define per-agent
+<code>budget_us</code>, tick interval, group LOD, path search node
+limits and server-authoritative ownership. Prioritize deterministic
+finite-state/BT authoring; LLM NPCs are <strong>optional noncritical
+adapters</strong> with timeout, moderation, offline fallback and
+explicit external-data access permission.</p>
+<h3 id="physics-authoring">10.3 Physics authoring</h3>
+<p><code>Arcade</code>, <code>Balanced</code>, <code>Simulation</code>
+should be parameter presets for <strong>game physics</strong>, not
+claims of real aerospace fidelity. Authoring components: rigid body,
+drag, gravity scale, buoyancy approximation, collision shapes,
+hinge/constraint, energy flow, propulsion, assembly joints, material
+damage/structural integrity. Physics Sandbox shows
+velocity/forces/collisions/traces and an explicit approximation banner.
+Studio-side trajectory simulator first; authoritative runtime adaptation
+only after capability discovery and network/storage tests. Safety scope:
+fictional game vehicles/rockets and visual effects, not weapon
+construction instructions.</p>
+<h3 id="vfx">10.4 VFX</h3>
+<p><strong>Typed graph:</strong>
+<code>Event → Spawn/EnergyBudget → Emitter → Simulation → Material/WGSL → Lighting → Audio → Camera</code>.
+Distinguish <em>game state</em> (damage, persistent terrain edits) from
+<em>client visual state</em> (particles, post-processing, camera
+movement). Provide quality profiles, culling, particle quotas, frame
+times, CPU/GPU paths, slow-motion replay, seeded determinism. A
+cinematic mushroom-shaped explosion demo can include bloom, shock-ring,
+procedural clouds, debris, camera and sound using game-only parameters;
+server impact must remain independent from visuals. Existing Horizon
+<code>.hshader</code> support is the first adapter; rendering arbitrary
+GPU particles/volumetrics will likely need additional shader/renderer
+hooks, to be confirmed by implementation spikes.</p>
+<h2 id="visual-programming-code-generation">11. Visual Programming &amp;
+Code Generation</h2>
+<p><strong>Typed Gameplay IR:</strong> a versioned directed graph with
+typed input/output ports, effects (<code>Pure</code>,
+<code>ReadWorld</code>, <code>ServerMutation</code>,
+<code>RenderOnly</code>, <code>UnsafeNative</code>), event/tick
+lifecycle, bounded loops, state variables, explicit
+ownership/client-server authority, timers and cancellation. Validate
+graph acyclicity where appropriate, event contract availability,
+type/effect mismatches, recursion limits and resource budgets. Graph
+nodes contain stable IDs and target capability requirements.</p>
+<p><strong>Code synchronization choice:</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Cost / strength</th>
+<th>Decision</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>One-way generated code</td>
+<td>simplest and deterministic; manual changes overwritten</td>
+<td>initial default for machine-owned output only</td>
+</tr>
+<tr class="even">
+<td>Full bidirectional source ↔︎ graphs</td>
+<td>notoriously ambiguous Rust patterns, hard to preserve user
+intent</td>
+<td><strong>do not promise</strong></td>
+</tr>
+<tr class="odd">
+<td>AST patching arbitrary Rust</td>
+<td>parse useful but unreliable on unknown macros/semantics</td>
+<td>scoped opt-in transformation only</td>
+</tr>
+<tr class="even">
+<td>Stable generated sections</td>
+<td>workable when only Studio owns regions, diffable</td>
+<td>initial native backend</td>
+</tr>
+<tr class="odd">
+<td>Canonical IR + separate user extension modules</td>
+<td>stable IDs, clear ownership; manageable compilation boundary</td>
+<td><strong>main strategy</strong></td>
+</tr>
+<tr class="even">
+<td>Plugin-specific custom generation</td>
+<td>extends backends with tests and capabilities</td>
+<td>after core schema stabilizes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>File ownership boundary:</strong> <code>generated/</code> is
+a build product, <code>src/user/</code> is never overwritten,
+<code>src/lib.rs</code> bridge uses imported generated module when
+contract supports it. Studio does not claim edits inside arbitrary Rust
+functions round-trip to the graph. <code>codegen-manifest.json</code>
+stores hashes + source spans. When code is manually changed within
+generated regions, detect drift and offer <strong>adopt as custom code /
+restore generation / inspect diff</strong>, never silently erase.</p>
+<p><strong>Demonstration chain:</strong>
+<code>Entity takes damage</code> graph node (editor authoring) →
+<code>on_damage</code> IR → target hook lookup → native backend emits
+Rust wrapper only if that event exists at the pinned Horizon revision →
+<code>cargo check</code> + mod check → provenance and game smoke test.
+Missing hook yields actionable <code>ENGINE_CAPABILITY_MISSING</code>,
+not an output file that does nothing.</p>
+<h2 id="horizon-integration-strategy">12. Horizon Integration
+Strategy</h2>
+<table>
+<colgroup>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Adapter</th>
+<th>Compatibility basis</th>
+<th>Toolchain</th>
+<th>Runtime limitations</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Content</td>
+<td><code>api="0.2"</code>, <code>registries</code>,
+namespaces/assets/data</td>
+<td>official <code>cargo horizon-mod build/check/run</code></td>
+<td>static content only</td>
+</tr>
+<tr class="even">
+<td>Native</td>
+<td><code>.hnmod</code> <code>horizon-mixin.toml</code> + source, pinned
+<code>horizon_revision</code> or named hooks API</td>
+<td><code>horizon-native-mods</code>/<code>horizon-mixins</code> tooling
+and launcher explicit trusted native-build</td>
+<td>no sandbox, per-commit build; no arbitrary server-native pipeline
+yet</td>
+</tr>
+<tr class="odd">
+<td>Shader</td>
+<td><code>.hshader</code>, experimental WGSL pack contract</td>
+<td><code>horizon-shader new/check/pack</code></td>
+<td>only supported stages and resource limits</td>
+</tr>
+<tr class="even">
+<td>Legacy Wasm</td>
+<td>historical <code>.hmod</code> <code>mod.wasm</code>, WIT
+components</td>
+<td>feature-gated/transitioning code; independently test before any
+support</td>
+<td>avoid default new-project pathway</td>
+</tr>
+<tr class="odd">
+<td>Fork profile</td>
+<td>project-specific fork SHA</td>
+<td>same APIs if compatible</td>
+<td>32 upstream commits behind at audit; separate CI matrix</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Engine request templates (no upstream files
+changed):</strong> 1. <strong>Entity registration/serialization</strong>
+— inspect <code>crates/horizon-client/src/entities.rs</code>,
+<code>src/mobs/</code>, <code>game/creatures.rs</code>,
+<code>mobs/ai.rs</code>, <code>game/remote_mob_data.rs</code>. Check
+whether static data or existing hooks suffice. If not, propose a
+versioned registry + sync contract upstream; fork patch only for
+isolated test. 2. <strong>Server events/actions</strong> — inspect
+<code>game/native_hooks.rs</code>,
+<code>game/native_lifecycle.rs</code>,
+<code>game/native_world_read.rs</code>, <code>native-hooks.json</code>,
+<code>crates/horizon-server/src/engine.rs</code>. Prefer named hook
+additions and tests; dedicated-server-native builds require separate
+support. 3. <strong>Particles / VFX</strong> — inspect
+<code>game/level_particles.rs</code>, <code>game/postprocess.rs</code>,
+<code>game/native_shaders.rs</code>,
+<code>crates/horizon-shader-api/</code>,
+<code>crates/horizon-client-render/</code>. Try shader pack contract
+before proposing renderer extension; test limits and multiplayer
+visuals. 4. <strong>Dimensions/worldgen</strong> — inspect
+<code>crates/horizon-world/</code>, <code>game/levels.rs</code>,
+<code>game/nether_portal.rs</code>, <code>src/vanillagen/</code>,
+<code>docs/world-generation.md</code>. Define ID + save format +
+serialization, portal, network packet, respawn, chunk generation; likely
+multi-subsystem engine change. 5. <strong>Vehicles/physics</strong> —
+inspect <code>game/boats.rs</code>, <code>game/minecarts.rs</code>,
+<code>game/lan_vehicles.rs</code>, <code>game/machines.rs</code>,
+<code>src/motion/</code>, and collisions in render/core crates. First
+define read/authoritative simulation boundary, not source patch by
+filename guess.</p>
+<p>For every engine issue/PR include: <code>missing API</code>,
+<code>reproduction</code>,
+<code>source code path verified at exact SHA</code>,
+<code>mod-only alternative</code>, <code>new public contract</code>,
+<code>compatibility/shim plan</code>,
+<code>security &amp; performance</code>, <code>CI tests</code>,
+<code>rollout</code>. Use experimental fork only when needed, then
+upstream a narrow API. No automatic engine modifications and no
+license/auth bypass.</p>
+<h2 id="uxui-design-system">13. UX/UI Design System</h2>
+<p><strong>Design direction:</strong> clean dark workbench with
+Minecraft-inspired materials and pixel accents <strong>without copying
+copyrighted icons or fonts</strong>. Use permissively licensed pixel
+typeface only after checking OFL/redistribution; readable UI sans-serif
+for long sessions and code monospaced face. Brand identity must be
+original. Default English; Russian full parity.</p>
+<p><strong>Layout:</strong> title + quick-switcher; left project/asset
+explorer with virtualized tree; central tabbed editor
+(3D/graph/code/textures); right context inspector; bottom
+console/build/diagnostics; collapse, dock, split/multiple monitor
+profiles. Build states always visible: <code>Saved</code>,
+<code>Dirty</code>, <code>Validating</code>, <code>Build failed</code>,
+<code>Validated</code>, <code>Game-tested</code>,
+<code>Unsupported on engine SHA</code>.</p>
+<p><strong>Core UX transactions:</strong> command palette; searchable
+object creation; context-sensitive right click; keyboard-first actions;
+atomic undo/redo; editable property chips; drag-drop import; asset
+reference picker; reversible graph actions; onboarding with 2-minute
+tutorial; template gallery; explanatory warnings vs alerts;
+crash/session restore; explicit visual indication when a preview is
+Studio-simulated rather than in-game.</p>
+<p><strong>Asset scale:</strong> 10k assets → virtualized explorer, lazy
+thumbnails, indexed tags, dependency graph, async parsing, cancellable
+imports; 3D preview 200k triangles or instanced voxel scenes need GPU
+performance budgets, not guaranteed by current WebGL viewer.</p>
+<p><strong>Privacy:</strong> local-only by default. Never send
+projects/models to AI servers without explicit consent. Prompt on
+starting external binaries/native code.</p>
+<h2 id="security-asset-licensing">14. Security &amp; Asset
+Licensing</h2>
+<p><strong>Threat model:</strong> malicious ZIP/PNG/JSON, untrusted
+third-party plugins, corrupted project paths, unsafe native
+<code>.hnmod</code> source, browser-to-localhost requests, compiler
+execution, symlink/archive traversal, remote dependencies, supply-chain
+binaries, accidental proprietary asset redistribution.</p>
+<p><strong>Controls:</strong> - Session-bound trusted origin or desktop
+IPC; validate <code>Host</code>, <code>Origin</code>, Content-Type,
+methods and CSRF token; loopback binding is defense-in-depth, not a
+complete protection. - Named workspace roots; canonical-path
+containment, symlink policy, atomic writes, no arbitrary path overrides,
+archive quotas, fuzz tests. - Decode image/content with verified limits:
+dimensions, bytes, count, CPU time, compression ratio, file count;
+reject malformed payloads. - Worker/process isolation for plugins;
+per-plugin workspace permission grants; subprocess resource limits; do
+not load arbitrary plugin JS in privileged main window. - Native code
+executes with user’s permissions; explicit red trust prompt, source
+inspection, pin hashes, isolated game instances, disclose network/file
+access. Do not label native mods sandboxed. - No checked-in Mojang
+assets, Minecraft code or account credentials. User-supplied resource
+packs remain local; exporting content into redistributable packages
+requires verifying licenses and source rights. Font/icon licenses
+recorded in <code>THIRD_PARTY_NOTICES</code>. - CI pin actions and
+artifacts where practical, dependency review, reproducible packages,
+SHA-256 checksums, release signing when established, optional SBOM,
+vulnerability reporting.</p>
+<h2 id="testing-and-release-engineering">15. Testing and Release
+Engineering</h2>
+<p><strong>Five-tier quality model:</strong> 1.
+<strong>Unit/contracts:</strong> 69 existing tests remain; add schema,
+IR, graph, serializer, ZIP-fuzz, shader checks and migration tests. 2.
+<strong>Editor integration:</strong> Playwright mouse/keyboard
+workflows, EN/RU, desktop resize, accessibility scanning, save/restore
+and 3D visual baselines. 3. <strong>Toolchain compatibility:</strong>
+pinned <code>cargo horizon-mod check --json</code> per fixture; native
+mixin checker/build on safe authored fixtures; shader checker. 4.
+<strong>Actual game:</strong> start pinned Horizon client with test
+content; inspect logs/registry and known item/block; build trusted
+native template; test shader hot reload; preserve screenshots and JSON
+evidence. 5. <strong>Release/security:</strong> Windows/macOS/Linux
+smoke, upgrade/migration, local API attack tests, signing/checksums,
+rollback.</p>
+<p><strong>Release statuses must distinguish:</strong>
+<code>unit-tested</code>, <code>official-validator-tested</code>,
+<code>game-load-tested</code>, <code>manual-UX-reviewed</code>; no one
+badge may stand for all four. CI matrix includes
+<code>os × python × engine SHA × mod target</code>; expensive
+native/game tests can be nightly and required before stable release. Use
+a separate instance/world with backups. Store logs, package hashes,
+screenshots, versions and command transcripts.</p>
+<p><strong>Manual approval gate:</strong> compiling a native
+<code>.hnmod</code> or launching an external binary must be an explicit
+user action. CI can compile its own trusted test fixture only, not
+arbitrary contributed code with broad credentials.</p>
+<h2 id="detailed-phased-roadmap">16. Detailed Phased Roadmap</h2>
+<p><strong>Effort units:</strong> <strong>S</strong> 1–3 engineer-weeks;
+<strong>M</strong> 4–10; <strong>L</strong> 11–24; <strong>XL</strong>
+&gt;24, with major uncertainty. These are <strong>comparative planning
+buckets</strong>, not calendar promises; estimates exclude upstream
+design/acceptance and new-engine research.</p>
+<table>
+<colgroup>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Phase</th>
+<th>Objective / major deliverables</th>
+<th>Dependencies</th>
+<th>Complexity</th>
+<th>Gate / demonstrator</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>F0 — Integrity Foundation</strong></td>
+<td>pin upstream; validator runner; secure API; source docs; release
+metadata; browser tests</td>
+<td>existing code</td>
+<td>M</td>
+<td>simple <code>.hmod</code> passes official validator + real game
+test</td>
+</tr>
+<tr class="even">
+<td><strong>F1 — Durable Workspace</strong></td>
+<td>project graph v1, migration from schema3, filesystem storage, ID
+refs, undo journal, asset index, plugin contracts</td>
+<td>F0</td>
+<td>L</td>
+<td>import old project → edit → crash recovery → identical output</td>
+</tr>
+<tr class="odd">
+<td><strong>F2 — Professional Editor</strong></td>
+<td>modular UI, dock/layout, search, Rust code bridge, rust-analyzer,
+Cargo diagnostics; 3D selection + Blockbench interchange</td>
+<td>F1</td>
+<td>L–XL</td>
+<td>edit Rust file, receive diagnostics, model round-trip with declared
+loss report</td>
+</tr>
+<tr class="even">
+<td><strong>F3 — Visual Modding</strong></td>
+<td>typed graph IR, validation, schema-driven inspector, generated
+ownership, <code>.hmod</code> + safe <code>.hnmod</code> bridges</td>
+<td>F1/F2 + engine hooks</td>
+<td>XL</td>
+<td>one graph builds native mod only on supported hook contract</td>
+</tr>
+<tr class="odd">
+<td><strong>F4 — Gameplay Systems</strong></td>
+<td>prefab/entity components, attributes, AI BT, events, blocks/items
+data patches, RPG/automation</td>
+<td>F3 + engine API</td>
+<td>XL</td>
+<td>smart animal or boss in game with persistence/sync</td>
+</tr>
+<tr class="even">
+<td><strong>F5 — Simulation &amp; VFX</strong></td>
+<td>shader graph over <code>.hshader</code>, particle authoring, physics
+sandbox, transport editor, cinematic demo</td>
+<td>F2, shader API + missing hooks</td>
+<td>XL</td>
+<td>visual game effect scales across quality profiles; logical damage
+independent</td>
+</tr>
+<tr class="odd">
+<td><strong>F6 — Native Engine Integration</strong></td>
+<td>accepted/pinned capability enhancements: entities, server events,
+worldgen, physics, rendering</td>
+<td>ongoing upstream coordination</td>
+<td>XL, external</td>
+<td>real engine integration matrix, no undocumented patches</td>
+</tr>
+<tr class="even">
+<td><strong>F7 — Platform &amp; Ecosystem</strong></td>
+<td>SDK, plugin marketplace/index, stable docs, templates, collaboration
+opt-in, signed releases</td>
+<td>F0–F6 maturity</td>
+<td>XL</td>
+<td>third party implements a new type/editor/backend with no core
+edits</td>
+</tr>
+<tr class="odd">
+<td><strong>F8 — Advanced Creative Platform</strong></td>
+<td>advanced animation, AI perception, procedural worlds, complex sims,
+multiplatform authoring, team assets</td>
+<td>F7 + market evidence</td>
+<td>XL</td>
+<td>8 demos end-to-end, community plug-in proof</td>
+</tr>
+</tbody>
+</table>
+<p><strong>F0 acceptance:</strong> 0 unmitigated local API criticals,
+official validator result attached to a generated test
+<code>.hmod</code>, real game load success evidence, clean CI; release
+notes match tag. <strong>F1:</strong> no data loss in crash/legacy
+migration tests; undo/redo stable; 1000-object synthetic workspace
+browsable. <strong>F2:</strong> Rust LSP reliable and cancellable,
+editing is not limited to generated JSON; Blockbench format conversion
+explicitly measured for loss. <strong>F3:</strong> source ownership
+stable, unsupported capability never builds silently; all graph nodes
+have unit tests. <strong>F4–F6:</strong> per-object authoritative
+server/runtime protocol and regression suite, real in-game
+demonstrations. <strong>F7/F8:</strong> independent plugins, migration
+proof, high-quality documentation, contribution pipeline.</p>
+<p><strong>Parallel opportunities:</strong> (a) UX/design system, (b)
+shader authoring adapter, (c) Blockbench import/export, (d) docs+tests
+can run alongside the project graph only after contract freeze; do not
+run multiple competing schemas. Native and worldgen tracks depend on
+engine APIs and are <strong>not</strong> blockers for content
+workflow.</p>
+<h2 id="dependencies-and-critical-path">17. Dependencies and Critical
+Path</h2>
+<pre class="mermaid"><code>flowchart LR
+  F0[Validator + Secure Local API] --&gt; F1[Project Graph + Durable Storage]
+  F1 --&gt; F2[Modular UI + Asset Pipeline]
+  F1 --&gt; F3[Typed IR + Source Ownership]
+  F2 --&gt; G3[3D/Model Workflow]
+  F3 --&gt; N[Native Target Adapter]
+  N --&gt; H[Engine Hook Contracts]
+  H --&gt; E[Entity/AI/Worldgen/Physics]
+  F2 --&gt; S[Shader Graph via existing API]
+  E --&gt; V[8 End-to-End Demos]
+  S --&gt; V
+  G3 --&gt; V
+  V --&gt; PL[Plugin SDK &amp; ecosystem]</code></pre>
+<p><strong>True critical path to credible modding product:</strong>
+official <code>.hmod</code> compatibility → durable project graph →
+typed IR → capability registry → native hooks → real game-test harness →
+vertical demo. Shader and Blockbench workflows can develop parallel once
+asset IDs are fixed.</p>
+<p><strong>Team profiles:</strong> one developer + AI: prioritize F0–F2,
+use existing DCC/LSP, do only one graph/runtime vertical at a time; keep
+upstream fork maintenance isolated. Small team (3–6): one
+platform/contracts, one UX/asset viewport, one runtime/CI, with peer
+reviews. Mature team (10+): bounded tracks for core editor, engine
+integrations, renderer/VFX, AI/physics, DX/QA, design/community with
+quarterly contract stability reviews. Do not schedule calendar dates
+without staffing, hardware and upstream acceptance assumptions.</p>
+<h2 id="prioritized-engineering-backlog">18. Prioritized Engineering
+Backlog</h2>
+<p><strong>Scoring (proposal):</strong> for each ticket rate 0–5 on
+<code>U</code> user impact, <code>R</code> reuse/platform unlock,
+<code>T</code> testability, <code>C</code> community benefit,
+<code>E</code> engineering effort, <code>D</code> engine-dependency
+risk, <code>S</code> security/maintenance burden. Ranking score =
+<code>(3U+4R+2T+C) / (1+E+D+S)</code>. <strong>Override:</strong> P0
+security/data loss/compatibility gates always first. Scores are
+prioritization heuristics, not measured business returns.</p>
+<table>
+<colgroup>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>ID</th>
+<th>Priority</th>
+<th>Work</th>
+<th>Unlock / proof</th>
+<th>Rough effort</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>HS-001</td>
+<td>P0</td>
+<td>official <code>.hmod</code> validator runner with pinned SHA</td>
+<td>trustworthy export gate</td>
+<td>S</td>
+</tr>
+<tr class="even">
+<td>HS-002</td>
+<td>P0</td>
+<td>real game smoke + log evidence</td>
+<td>first verified in-game content mod</td>
+<td>M</td>
+</tr>
+<tr class="odd">
+<td>HS-003</td>
+<td>P0</td>
+<td>local API threat hardening</td>
+<td>safe expansion to file/compile actions</td>
+<td>S–M</td>
+</tr>
+<tr class="even">
+<td>HS-004</td>
+<td>P0</td>
+<td>fix release-notes version drift, docs status</td>
+<td>reliable publication metadata</td>
+<td>S</td>
+</tr>
+<tr class="odd">
+<td>HS-005</td>
+<td>P1</td>
+<td>schema3 migration into project graph v1</td>
+<td>all future object types</td>
+<td>M–L</td>
+</tr>
+<tr class="even">
+<td>HS-006</td>
+<td>P1</td>
+<td>atomic workspace save + undo</td>
+<td>durability and UX</td>
+<td>M</td>
+</tr>
+<tr class="odd">
+<td>HS-007</td>
+<td>P1</td>
+<td>split monolithic HTML/JS, Playwright suite</td>
+<td>maintainable UI</td>
+<td>M</td>
+</tr>
+<tr class="even">
+<td>HS-008</td>
+<td>P1</td>
+<td>capability registry per engine SHA</td>
+<td>avoids unsupported promises</td>
+<td>M</td>
+</tr>
+<tr class="odd">
+<td>HS-009</td>
+<td>P1</td>
+<td>Blockbench conversion adapter + loss reports</td>
+<td>3D content leverage</td>
+<td>M</td>
+</tr>
+<tr class="even">
+<td>HS-010</td>
+<td>P1</td>
+<td>native <code>.hnmod</code> template check and trusted build</td>
+<td>logic beyond content</td>
+<td>L</td>
+</tr>
+<tr class="odd">
+<td>HS-011</td>
+<td>P1</td>
+<td>Monaco + rust-analyzer + Cargo adapter</td>
+<td>genuine pro mode</td>
+<td>M–L</td>
+</tr>
+<tr class="even">
+<td>HS-012</td>
+<td>P1</td>
+<td>IR v1 + one event graph backend</td>
+<td>graph platform</td>
+<td>L</td>
+</tr>
+<tr class="odd">
+<td>HS-013</td>
+<td>P1</td>
+<td><code>.hshader</code> checker and shader graph v1</td>
+<td>high-value VFX early</td>
+<td>M–L</td>
+</tr>
+<tr class="even">
+<td>HS-014</td>
+<td>P2</td>
+<td>AI/BT authoring with simulation + budgets</td>
+<td>smart entities</td>
+<td>L</td>
+</tr>
+<tr class="odd">
+<td>HS-015</td>
+<td>P2</td>
+<td>physics sandbox with debug overlay</td>
+<td>vehicles/rockets</td>
+<td>XL</td>
+</tr>
+<tr class="even">
+<td>HS-016</td>
+<td>P2</td>
+<td>dimension/noise generator editor</td>
+<td>custom worlds</td>
+<td>XL, engine-dependent</td>
+</tr>
+<tr class="odd">
+<td>HS-017</td>
+<td>P2</td>
+<td>secure plugin host SDK</td>
+<td>independent new editors</td>
+<td>XL</td>
+</tr>
+<tr class="even">
+<td>HS-018</td>
+<td>P2</td>
+<td>community marketplace/publishing</td>
+<td>ecosystem</td>
+<td>XL</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Risk ledger:</strong> upstream hook churn (high); scope
+explosion (high); untrusted native execution (critical trust); model
+conversion loss (medium); custom world serialization (high); server
+synchronization (high); GPU effects performance (high); AI
+nondeterminism (medium/high). Maintain fallback and cancellation for
+each expensive path.</p>
+<h2 id="eight-end-to-end-demo-projects">19. Eight End-to-End Demo
+Projects</h2>
+<p>Each demo is a <strong>contract probe</strong>. “Current” refers
+strictly to Studio source at pinned HEAD, not validated in running
+game.</p>
+<table>
+<colgroup>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+<col style="width: 20%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Demo</th>
+<th>User creates / Studio tools</th>
+<th>Possible now</th>
+<th>Missing APIs/work</th>
+<th>Automated success proof</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>A Smart Animal</strong></td>
+<td>original model+UV, skeleton, animation, health, perception, BT</td>
+<td>static assets/model JSON only</td>
+<td>spawn/AI/animation/network/serialization native hooks</td>
+<td>spawn in controlled world, behavior reproducibility, reload
+persistence, FPS guardrail</td>
+</tr>
+<tr class="even">
+<td><strong>B Intelligent Boss</strong></td>
+<td>boss phases, patterns, VFX, attacks, AI state, health bar</td>
+<td>static item/block themes</td>
+<td>server events, boss combat, animations, HUD effects</td>
+<td>phase transition recorded under synthetic combat, deterministic
+log</td>
+</tr>
+<tr class="odd">
+<td><strong>C Rocket Simulation</strong></td>
+<td>fictional assembly, thrusters, game energy, trajectory, flight
+controls</td>
+<td>local simulated graph if built; not in current Studio</td>
+<td>game rigid body/vehicle/control/network hooks</td>
+<td>scripted launch reaches specified <em>game</em> checkpoint; energy
+balance within tested tolerance</td>
+</tr>
+<tr class="even">
+<td><strong>D Cinematic Explosion</strong></td>
+<td>giant fantasy explosion, cloud, shockwave, audio, camera,
+terrain-rule graph</td>
+<td>ordinary content assets; shader API exists upstream</td>
+<td>shader graph adapter, particles, visual/runtime separation, terrain
+editing contract</td>
+<td>seeded visual playback; gameplay damage invariant across
+Low/Ultra</td>
+</tr>
+<tr class="odd">
+<td><strong>E Custom Dimension</strong></td>
+<td>sky, biome, terrain noise, portals, gravity and creatures</td>
+<td>limited NBT structure generation only</td>
+<td>custom dimension worldgen registration, save/network/portal
+APIs</td>
+<td>same seed same terrain hash; transition+save/reload world</td>
+</tr>
+<tr class="even">
+<td><strong>F Automation</strong></td>
+<td>machines, conveyor networks, energy, block state &amp; GUI</td>
+<td>static blocks/items/recipes</td>
+<td>native simulation, tick/block events and persistence</td>
+<td>constructed circuit produces scheduled output with bounded tick
+work</td>
+</tr>
+<tr class="odd">
+<td><strong>G RPG System</strong></td>
+<td>classes, abilities, quests, reputation, NPCs, progression</td>
+<td>basic items/recipes only</td>
+<td>attributes, events, server storage, GUI, dialogue</td>
+<td>quest state survives save/reconnect; no unauthorized progression
+edits</td>
+</tr>
+<tr class="even">
+<td><strong>H Complete Rust Mod</strong></td>
+<td>visual template, custom Rust source, build/run/debug</td>
+<td>local JSON text overrides &amp; <code>.hmod</code> export</td>
+<td>Cargo/LSP, <code>.hnmod</code> integration, native build, debugger,
+game launch</td>
+<td>clean cargo diagnostics, trusted native checker, game hook
+observed</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Demo priority:</strong> H (native proof), A (entity
+platform), D (shader/VFX differentiation), F (events/state), B (AI
+composition), G (systems/integration), E (worldgen), C (physics). This
+is <strong>dependency-informed order</strong>, not customer
+popularity.</p>
+<h2 id="performance-and-quality-targets-proposals-not-measurements">20.
+Performance and Quality Targets — proposals, NOT measurements</h2>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Metric</th>
+<th>Target for dedicated benchmark</th>
+<th>Method</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Time to first working <strong>in-game</strong> block mod</td>
+<td>median &lt; 8 min for first-time user after engine installed</td>
+<td>10+ novice sessions, timed with event markers</td>
+</tr>
+<tr class="even">
+<td>Reopen 1,000-object workspace</td>
+<td>p95 &lt; 3 s on agreed baseline hardware</td>
+<td>cold start repeated × 30; cache separately</td>
+</tr>
+<tr class="odd">
+<td>Search 10,000 assets</td>
+<td>p95 interaction &lt; 100 ms</td>
+<td>synthetic asset corpus and tracing</td>
+</tr>
+<tr class="even">
+<td>Common inspector actions</td>
+<td>p95 &lt; 100 ms UI commit</td>
+<td>browser Performance timeline</td>
+</tr>
+<tr class="odd">
+<td>Viewport movement</td>
+<td>p95 &lt;= 16.7 ms on target GPU for baseline scene</td>
+<td>frame-time capture, three GPU tiers</td>
+</tr>
+<tr class="even">
+<td>Incremental <code>.hmod</code> build after one asset</td>
+<td>p95 &lt; 3 s excluding first toolchain setup</td>
+<td>50 repeated edits, warm vs cold stated</td>
+</tr>
+<tr class="odd">
+<td>Project save durability</td>
+<td>zero lost confirmed writes in 100 fault-injection trials</td>
+<td>kill process during atomic save/recovery</td>
+</tr>
+<tr class="even">
+<td>Native build</td>
+<td>report benchmark only; no ungrounded target</td>
+<td>measure per SHA/hardware/Cargo cache</td>
+</tr>
+<tr class="odd">
+<td>Mod game-load validation</td>
+<td>100% on supported fixture matrix</td>
+<td>real client run + log/behavior assert</td>
+</tr>
+<tr class="even">
+<td>Accessibility</td>
+<td>keyboard reachability + WCAG 2.2 AA for core controls (goal)</td>
+<td>automated scans and manual screen-reader</td>
+</tr>
+<tr class="odd">
+<td>Memory use</td>
+<td>establish baseline then budget, no invented MB figure</td>
+<td>1k/10k assets, image stress, GPU leak profiling</td>
+</tr>
+<tr class="even">
+<td>AI tick cost</td>
+<td>configurable per-agent/server quotas, measured</td>
+<td>100/1k/10k NPC synthetic worlds with controlled CPU</td>
+</tr>
+</tbody>
+</table>
+<p>Test profiles: minimum laptop/standard desktop/high-end GPU; Windows
+11, Ubuntu, macOS; GPU vendors; browser/WebView engines. Every
+performance claim must preserve scene version, test SHA, driver,
+hardware, percentiles and trace.</p>
+<h2 id="risks-and-alternative-strategies">21. Risks and Alternative
+Strategies</h2>
+<ul>
+<li><strong>Monolithic platform:</strong> counter with 7 small
+interfaces, contracts, plugin boundaries, multiple independently
+deployable packages; reject feature-specific core rewrites.</li>
+<li><strong>Custom 3D renderer too soon:</strong> integrate Blockbench
+and maintained viewer first; delay bespoke animation graph until
+requirements justify.</li>
+<li><strong>Tauri migration trap:</strong> benchmark shell and IPC
+first; retain Python while proven; do not migrate UI and data model
+simultaneously.</li>
+<li><strong>Graph logic unmaintainable:</strong> IR/effect typing,
+modular subgraphs, replace graph segment with user-owned Rust modules;
+robust source mappings.</li>
+<li><strong>Upstream drift:</strong> engine SHA pinned per project,
+compatibility database, validator CI, no blind nightly upgrades.</li>
+<li><strong>Unsafe plugins:</strong> no arbitrary in-process trusted
+extension by default; separate process and granular permissions.</li>
+<li><strong>Full simulation scope:</strong> use sandbox simulation
+first, engine hook proof second, quality profiling third; do not pretend
+simulation equals vanilla parity.</li>
+<li><strong>Marketplace too soon:</strong> postpone until correct
+packaging, trust, version constraints, moderation and rollback.</li>
+<li><strong>Overloaded UX:</strong> progressive disclosure (Beginner /
+Creator / Professional) over one common project, searchable commands,
+adaptive panels, task-based navigation.</li>
+<li><strong>Licensing:</strong> custom icons/assets + optional user
+supplied packs; provenance index in builds.</li>
+</ul>
+<p><strong>Counterfactual architecture review:</strong> if native hook
+access remains too narrow for entities/dimensions after several upstream
+releases, prioritize <em>best-in-class content/shader IDE</em> and keep
+advanced entity/physics authoring as engine-independent experimental
+work rather than promising game deployment. This does not invalidate the
+project graph or plugin SDK investment.</p>
+<h2 id="first-three-concrete-development-iterations-directly-actionable">22.
+First Three Concrete Development Iterations — directly actionable</h2>
+<h3 id="iteration-i-verified-mod-compatibility-security-p0">Iteration I
+— Verified Mod Compatibility &amp; Security (P0)</h3>
+<p><strong>Existing files:</strong> <code>studio.py</code>,
+<code>horizon_cli.py</code>, <code>mod_doctor.py</code>,
+<code>tests/test_studio.py</code>,
+<code>tests/test_voxel_http.py</code>,
+<code>.github/workflows/tests.yml</code>,
+<code>.github/workflows/windows-release.yml</code>,
+<code>RELEASE_NOTES.md</code>, <code>CHANGELOG.md</code>,
+<code>docs/FEATURE_MATRIX.md</code>, <code>README.md</code>.</p>
+<p><strong>New modules:</strong>
+<code>horizon_compat/engine_profile.py</code>,
+<code>horizon_compat/official_validator.py</code>,
+<code>horizon_compat/game_smoke.py</code>,
+<code>security/request_policy.py</code>,
+<code>tests/test_official_validator.py</code>,
+<code>tests/test_api_security.py</code>,
+<code>tests/fixtures/official_ruby/</code>,
+<code>docs/COMPATIBILITY_EVIDENCE.md</code>,
+<code>scripts/check_release_metadata.py</code>.</p>
+<p><strong>Interfaces:</strong></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a aria-hidden="true" href="#cb4-1" tabindex="-1"></a><span class="at">@dataclass</span>(frozen<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-2"><a aria-hidden="true" href="#cb4-2" tabindex="-1"></a><span class="kw">class</span> EngineProfile:</span>
+<span id="cb4-3"><a aria-hidden="true" href="#cb4-3" tabindex="-1"></a>    upstream_sha: <span class="bu">str</span></span>
+<span id="cb4-4"><a aria-hidden="true" href="#cb4-4" tabindex="-1"></a>    game_version: <span class="bu">str</span></span>
+<span id="cb4-5"><a aria-hidden="true" href="#cb4-5" tabindex="-1"></a>    content_api: <span class="bu">str</span></span>
+<span id="cb4-6"><a aria-hidden="true" href="#cb4-6" tabindex="-1"></a>    validator_revision: <span class="bu">str</span></span>
+<span id="cb4-7"><a aria-hidden="true" href="#cb4-7" tabindex="-1"></a></span>
+<span id="cb4-8"><a aria-hidden="true" href="#cb4-8" tabindex="-1"></a><span class="at">@dataclass</span>(frozen<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-9"><a aria-hidden="true" href="#cb4-9" tabindex="-1"></a><span class="kw">class</span> VerificationResult:</span>
+<span id="cb4-10"><a aria-hidden="true" href="#cb4-10" tabindex="-1"></a>    stage: <span class="bu">str</span>  <span class="co"># local | official | game</span></span>
+<span id="cb4-11"><a aria-hidden="true" href="#cb4-11" tabindex="-1"></a>    passed: <span class="bu">bool</span></span>
+<span id="cb4-12"><a aria-hidden="true" href="#cb4-12" tabindex="-1"></a>    command: <span class="bu">list</span>[<span class="bu">str</span>]</span>
+<span id="cb4-13"><a aria-hidden="true" href="#cb4-13" tabindex="-1"></a>    tool_sha: <span class="bu">str</span></span>
+<span id="cb4-14"><a aria-hidden="true" href="#cb4-14" tabindex="-1"></a>    stdout_path: <span class="bu">str</span> <span class="op">|</span> <span class="va">None</span></span>
+<span id="cb4-15"><a aria-hidden="true" href="#cb4-15" tabindex="-1"></a>    stderr_path: <span class="bu">str</span> <span class="op">|</span> <span class="va">None</span></span></code></pre></div>
+<p><strong>Tasks:</strong> pin engine and official tools; generate
+fixture and invoke <code>cargo horizon-mod check --json</code> in
+controlled CI; capture SHA, stdout/stderr and package hash; add game
+smoke fixture where runners have legally prepared game assets; reject
+hostile Host/Origin and missing session token; remove cross-origin
+permissive assumptions; check releases use current <code>VERSION</code>;
+update docs. <strong>Do not</strong> add arbitrary filesystem POST
+endpoints, Rust code execution, Tauri migration, or new entity GUI
+yet.</p>
+<p><strong>Tests:</strong> origin/host/header fuzz, CSRF from simulated
+hostile page, schema reject cases, fake official-checker process
+failure/timeout, actual official checker on fixture, shader-independent
+regression, release note version verification, no proprietary fixture
+assets. <strong>Done:</strong> one canonical generated block
+demonstrably accepted by official checker and loaded in real game with
+evidence; security tests pass; report honest tier if game
+unavailable.</p>
+<h3 id="iteration-ii-project-graph-durability-modular-ui-p1">Iteration
+II — Project Graph, Durability, Modular UI (P1)</h3>
+<p><strong>Existing files:</strong> <code>index.html</code>,
+<code>i18n.js</code>, <code>source_workbench_ui.js</code>,
+<code>model_viewer.js</code>, <code>studio.py</code>,
+<code>horizon_cli.py</code>, <code>source_workbench.py</code>,
+<code>tests/test_source_workbench.py</code>,
+<code>tests/test_launcher.py</code>.</p>
+<p><strong>New modules:</strong>
+<code>studio_core/project_schema.py</code>,
+<code>studio_core/graph.py</code>, <code>studio_core/assets.py</code>,
+<code>studio_core/migrate.py</code>,
+<code>studio_core/commands.py</code>,
+<code>studio_core/workspace_store.py</code>,
+<code>web/src/state/</code>, <code>web/src/ui/</code>,
+<code>web/src/commands/</code>, <code>web/tests/</code>,
+<code>tests/test_project_migration.py</code>,
+<code>tests/test_workspace_recovery.py</code>.</p>
+<p><strong>Interfaces:</strong>
+<code>ProjectStore.open/commit/rollback</code>,
+<code>Migration.upgrade(schema, data)</code>,
+<code>Command.apply/revert</code>, <code>AssetGraph.dependencies</code>,
+<code>FileOwner.generated/user</code>. Preserve
+<code>.hstudio.json</code> schema3 migration from existing examples. Add
+transaction journal, autosave+atomic rename, backups, source-reference
+invariants, undo/redo; split frontend without design overhaul;
+Playwright smoke runs save/import/search/EN-RU. <strong>Do not</strong>
+add browser-origin native compilers or rewrite all Python into Rust.</p>
+<p><strong>Tests/DoD:</strong> 100 simulated interruptions around save;
+migration golden files for all 3 examples; undo/redo property-based
+roundtrip; identical <code>.hmod</code> output for untouched imported
+project; 1,000-object workspace benchmark captured; browser workflows
+pass on Windows/Linux.</p>
+<h3 id="iteration-iii-capability-registry-first-nativeshader-vertical-p1">Iteration
+III — Capability Registry &amp; First Native/Shader Vertical (P1)</h3>
+<p><strong>Existing files:</strong> <code>horizon_cli.py</code>,
+<code>studio.py</code>, <code>model_viewer.js</code>,
+<code>source_workbench_ui.js</code>,
+<code>tests/test_workshop.py</code>,
+<code>.github/workflows/tests.yml</code>.</p>
+<p><strong>New modules:</strong>
+<code>targets/capability_registry.py</code>,
+<code>targets/hmod.py</code>, <code>targets/hnmod.py</code>,
+<code>targets/hshader.py</code>, <code>ir/core.py</code>,
+<code>ir/typecheck.py</code>, <code>ir/codegen/rust_native.py</code>,
+<code>build/orchestrator.py</code>, <code>build/diagnostics.py</code>,
+<code>assets/blockbench_adapter.py</code>, <code>web/src/graph/</code>,
+<code>tests/test_target_gating.py</code>,
+<code>tests/test_codegen_golden.py</code>,
+<code>tests/test_shader_pack.py</code>, <code>docs/ADR/</code>.</p>
+<p><strong>Interfaces:</strong>
+<code>TargetAdapter.detect(profile)</code>,
+<code>TargetAdapter.validate(project)</code>,
+<code>TargetAdapter.build(project, approved_trust)</code>,
+<code>CapabilityRequirement(version, evidence)</code>,
+<code>GraphIR.compile(target)</code>,
+<code>BuildArtifact(hash, sourceMap, logs)</code>. Build shader
+material/post example using existing official <code>.hshader</code>
+compiler; separately generate a <em>trusted example</em> native hook mod
+with pinned target and explicit approval. Add model interchange proof
+with loss report. <strong>Do not</strong> implement full ECS, dynamic
+dimensions, massive VFX renderer, or a public plugin marketplace.</p>
+<p><strong>Tests/DoD:</strong> stable graph AST IDs; type failures
+generate precise diagnostic ranges; no unsupported hook builds; source
+ownership resists regeneration drift; pinned shader checker succeeds;
+optional native smoke executes example hook on validated pinned build;
+untrusted code never starts without confirmation.</p>
+<p><strong>P0 / P1 / P2 summary:</strong> iteration I all P0; iteration
+II all P1 with P0 data-loss regressions; iteration III P1 core targets,
+P2 optional Blockbench UX refinements. Each iteration ends with
+reproducible command outputs and user-visible demo, not a slide
+mockup.</p>
+<h2 id="long-term-extensibility-strategy-adr-register">23. Long-Term
+Extensibility Strategy + ADR Register</h2>
+<p><strong>ADR-001: Canonical Project Graph</strong> — Context: browser
+state and schema3 cannot scale. Alternatives: one JSON blob / filesystem
+schemas / DB-only. Decision: versioned files + stable IDs + derived
+index; revise if multiuser live edits truly demand shared transactional
+DB. Pros: inspectable/git-friendly; cons: migrations and references.</p>
+<p><strong>ADR-002: Source ownership and IR</strong> — Context: visual
+tools vs hand-written Rust. Alternatives: full round-trip, one-way
+codegen, generated regions + user modules. Decision: typed IR + explicit
+user-owned modules; revisit for a limited supported Rust AST subset.
+Pros: deterministic; cons: some graph edits unavailable after arbitrary
+source changes.</p>
+<p><strong>ADR-003: Target adapters</strong> — Context: .hmod content vs
+.hnmod native vs .hshader. Decision: independent capability-gated
+backends with engine SHA proofs; revisit only if upstream publishes
+unified stable SDK. Pros: resilience; cons: duplicate test matrices.</p>
+<p><strong>ADR-004: Python retention</strong> — Context: initial Python
+server works and has tests. Alternatives: all-Rust rewrite, Electron,
+Qt, Tauri sidecar. Decision: retain Python business logic, modularize
+UI, spike Tauri later. Pros: delivery speed; cons: packaging/process
+complexity. Revisit after performance/security benchmarks show material
+benefit.</p>
+<p><strong>ADR-005: Blockbench integration-first</strong> — Context:
+costly custom DCC. Decision: exchange codecs and external app workflow
+first; a restricted in-app voxel editor only where round-trip is
+lossless. Pros: mature tooling; cons: two applications and version
+compatibility. Revisit based on user metrics.</p>
+<p><strong>ADR-006: Native trust</strong> — Context: .hnmod compiles
+Rust into executable Horizon. Decision: explicit user trust + isolated
+instance + pinned source, no auto-build of untrusted imports. Pros:
+lower security surprise; cons: friction. Review when upstream supplies a
+true sandbox.</p>
+<p><strong>ADR-007: Shader-first VFX</strong> — Context: WGSL
+<code>.hshader</code> exists today. Decision: implement shader graph
+adapter first, build custom GPU particle APIs only after measured use
+case. Pros: fast value and reuse; cons: shader-stage limitations. Review
+when Horizon stabilizes renderer plugin interfaces.</p>
+<p><strong>API lifecycle:</strong> <code>experimental</code> →
+<code>preview</code> → <code>stable</code>; explicit deprecation at
+project schema and plugin API level, migration procedures, compatibility
+test fixtures, two-line support matrix, additive capability detection.
+Every third-party extension must be able to register an independent new
+asset kind and inspector without editing the Studio core; test this with
+a plugin developed outside the main repository.</p>
+<h2 id="final-technical-assessment">24. Final Technical Assessment</h2>
+<p><strong>Current Studio state (0–10, provisional expert source-based
+judgment, not a UX/benchmark study):</strong></p>
+<table>
+<colgroup>
+<col style="width: 30%"/>
+<col style="width: 40%"/>
+<col style="width: 30%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Category</th>
+<th style="text-align: right;">Score</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Architecture</td>
+<td style="text-align: right;">4</td>
+<td>small but highly coupled Python/HTML global state</td>
+</tr>
+<tr class="even">
+<td>UI/UX</td>
+<td style="text-align: right;">4</td>
+<td>clear starter workflow, not yet extensible professional
+workspace</td>
+</tr>
+<tr class="odd">
+<td>3D Editing</td>
+<td style="text-align: right;">2</td>
+<td>3D viewer exists, no true asset modeling/rigging</td>
+</tr>
+<tr class="even">
+<td>Visual Programming</td>
+<td style="text-align: right;">0</td>
+<td>no graph/typed IR</td>
+</tr>
+<tr class="odd">
+<td>Native Rust Integration</td>
+<td style="text-align: right;">0</td>
+<td>no <code>.hnmod</code> builder/LSP</td>
+</tr>
+<tr class="even">
+<td>Game Compatibility</td>
+<td style="text-align: right;">2</td>
+<td>valid-looking content emitter, no official/game check</td>
+</tr>
+<tr class="odd">
+<td>Modding Capabilities</td>
+<td style="text-align: right;">3</td>
+<td>blocks/items/recipes/structures; capped templates</td>
+</tr>
+<tr class="even">
+<td>Extensibility</td>
+<td style="text-align: right;">2</td>
+<td>no plugin SDK</td>
+</tr>
+<tr class="odd">
+<td>Build System</td>
+<td style="text-align: right;">4</td>
+<td>deterministic <code>.hmod</code> ZIP, CLI, portable release; lacks
+target validation</td>
+</tr>
+<tr class="even">
+<td>Testing</td>
+<td style="text-align: right;">5</td>
+<td>69 test methods and 4 CI combinations, major integration gap</td>
+</tr>
+<tr class="odd">
+<td>Reliability</td>
+<td style="text-align: right;">4</td>
+<td>deterministic local code; durability/security hardening
+required</td>
+</tr>
+<tr class="even">
+<td>Community Readiness</td>
+<td style="text-align: right;">4</td>
+<td>MIT/docs/releases, early alpha, stale notes and missing contribution
+proof</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Proposed roadmap quality (0–10; self-evaluation, subject to
+external review):</strong></p>
+<table>
+<colgroup>
+<col style="width: 30%"/>
+<col style="width: 40%"/>
+<col style="width: 30%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Category</th>
+<th style="text-align: right;">Score</th>
+<th>What must be validated</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Technical feasibility</td>
+<td style="text-align: right;">7</td>
+<td>native hook extension design and shader capability tests</td>
+</tr>
+<tr class="even">
+<td>Architectural coherence</td>
+<td style="text-align: right;">8</td>
+<td>proof by one content + one native + one shader adapter</td>
+</tr>
+<tr class="odd">
+<td>Extensibility</td>
+<td style="text-align: right;">8</td>
+<td>actual external plugin exercise</td>
+</tr>
+<tr class="even">
+<td>User experience</td>
+<td style="text-align: right;">8</td>
+<td>real user studies and accessibility acceptance</td>
+</tr>
+<tr class="odd">
+<td>Engineering precision</td>
+<td style="text-align: right;">8</td>
+<td>additional exact APIs/schemas after proof-of-concept</td>
+</tr>
+<tr class="even">
+<td>Risk management</td>
+<td style="text-align: right;">9</td>
+<td>explicit incompatibility, trust, security and fallback gates</td>
+</tr>
+<tr class="odd">
+<td>Incremental deliverability</td>
+<td style="text-align: right;">8</td>
+<td>small iterations and parallel independent tracks</td>
+</tr>
+<tr class="even">
+<td>Competitive differentiation</td>
+<td style="text-align: right;">7</td>
+<td>Minecraft/Horizon niche real users needed</td>
+</tr>
+<tr class="odd">
+<td>Research confidence</td>
+<td style="text-align: right;">7</td>
+<td>code/docs GitHub verified; no full runtime tests</td>
+</tr>
+<tr class="even">
+<td>Long-term sustainability</td>
+<td style="text-align: right;">8</td>
+<td>upstream sync budget and community contributors still unknown</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommended next action:</strong> execute <strong>Iteration
+I</strong>, starting with <strong>HS-001 official <code>.hmod</code>
+validation</strong> and <strong>HS-003 local API security</strong>; only
+then build a richer shell. This yields a tool users can trust before
+more impressive but unproven authoring interfaces accumulate.</p>
+<hr/>
+<h2 id="primary-evidence-research-links">Primary evidence &amp; research
+links</h2>
+<p><strong>Repositories pinned:</strong> - Studio SHA:
+https://github.com/pneqnp-iswr/horizon-studio/tree/63a313f50b08ddccf55e331c99a6e25b7f72d8ad
+; primary <code>studio.py</code>, <code>source_workbench.py</code>,
+<code>model_viewer.js</code>, <code>.github/workflows</code>,
+<code>tests</code> inspected. - Companion fork SHA:
+https://github.com/pneqnp-iswr/unlicensed-horizon/tree/186ea2900ca698a61625d691e8f9a63702f99936
+; <code>FORK_DIFFERENCES.md</code> inspected. - Upstream SHA:
+https://github.com/horizon-rust/horizon/tree/d2186eb9aa022a64a8b26e6989a04e44fba99ee7
+; code <code>docs/mods.md</code>, <code>docs/native-mods.md</code>,
+<code>native-hooks.json</code>,
+<code>crates/horizon-client/src/game/native_hooks.rs</code>,
+<code>native_shaders.rs</code>,
+<code>crates/horizon-mods/src/{manifest,content}.rs</code>,
+<code>crates/horizon-client/src/mod_content.rs</code>,
+<code>crates/cargo-horizon-mod/src/check.rs</code>,
+<code>docs/shaders.md</code> inspected. - Official content docs:
+https://playhorizon.dev/docs/content-mods - Official mod guide:
+https://playhorizon.dev/docs/mods ;
+https://playhorizon.dev/docs/make-a-mod - Official publication:
+https://playhorizon.dev/docs/publish-a-mod - Official source lifecycle:
+https://github.com/horizon-rust/horizon/blob/main/docs/api/stability.md
+- Official shader docs:
+https://github.com/horizon-rust/horizon/blob/main/docs/shaders.md -
+Official Blockbench <code>.bbmodel</code>:
+https://blockbench.net/wiki/docs/bbmodel/ - Blockbench formats/plugin
+APIs: https://blockbench.net/wiki/blockbench/formats/ ;
+https://blockbench.net/wiki/docs/plugin/ - Godot inspector/plugins:
+https://docs.godotengine.org/en/stable/tutorials/editor/inspector_dock.html
+;
+https://docs.godotengine.org/en/stable/tutorials/plugins/editor/making_plugins.html
+- Unreal Blueprint debugger:
+https://dev.epicgames.com/documentation/unreal-engine/blueprint-debugging-example-in-unreal-engine
+- Rust analysis: https://rust-analyzer.github.io/book/ ; Cargo:
+https://doc.rust-lang.org/cargo/reference/external-tools.html - Monaco
+limitations:
+https://github.com/microsoft/monaco-editor/blob/main/README.md - Tauri
+sidecars / permissions: https://tauri.app/develop/sidecar/ ;
+https://v2.tauri.app/plugin/file-system/</p>
+<p><strong>Evidence gaps / required follow-up verification:</strong>
+exact engine SHA of each relevant nightly release, an actual
+<code>cargo horizon-mod check</code> run on Studio’s output, full
+in-game smoke scenarios on licensed/legally prepared resources, Windows
+UI visual and accessibility tests, engine/native server capability
+integration tests, upstream issues/PR architecture decisions on custom
+entities/dimensions, independent plugin API research, controlled
+comparison UX studies and benchmark hardware measurements. Those are not
+silently assumed completed.</p>
+</body>
+</html>

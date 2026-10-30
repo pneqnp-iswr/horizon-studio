@@ -242,3 +242,9 @@ The application serves the editor locally at `http://127.0.0.1:8787`; keeping th
 The `VERSION` file is the canonical release version. On `master`, changing `VERSION` triggers a Windows GitHub Actions job that runs tests, builds with PyInstaller, smoke-tests the **actual compiled `.exe`**, calculates SHA-256, and publishes an immutable-by-convention GitHub **prerelease**. Existing versions are not overwritten. You can also run it manually using **Actions → Windows EXE / versioned Release → Run workflow**.
 
 For a new release, update `VERSION`, `RELEASE_NOTES.md`, `CHANGELOG.md` and the displayed version in the README before pushing. Do not bump only the README badge.
+
+## Engineering roadmap and legal policy (2026-10-30)
+
+The [full Master Engineering Roadmap](docs/roadmap/master-2026-10-30.md) describes the verified source audit, capability registry, phased IDE/asset/visual programming development, AI/VFX plans, release gates, prioritized backlog and first three concrete iterations. [Research index and PDF](docs/roadmap/README.md) · [Legal policy](docs/roadmap/LEGAL_AND_DISTRIBUTION.md).
+
+Current implementation focus: **Studio only**. The separate companion fork is not modified. In-game compatibility must still be proven with official validator and runtime tests.

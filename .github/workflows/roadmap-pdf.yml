@@ -1,0 +1,55 @@
+name: Render Master Roadmap PDF
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'docs/roadmap/master-2026-10-30.html'
+      - '.github/workflows/roadmap-pdf.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    name: Render, validate, and publish documentation PDF
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PDF renderer
+        run: python -m pip install --disable-pip-version-check 'weasyprint==66.0'
+      - name: Render HTML to PDF
+        run: weasyprint docs/roadmap/master-2026-10-30.html docs/roadmap/master-2026-10-30.pdf
+      - name: Validate PDF structure
+        shell: python
+        run: |
+          from pathlib import Path
+          data = Path('docs/roadmap/master-2026-10-30.pdf').read_bytes()
+          assert data.startswith(b'%PDF-'), 'Invalid PDF header'
+          assert len(data) > 20000, 'Suspiciously small PDF'
+          print('Valid PDF:', len(data), 'bytes')
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Horizon-Studio-Master-Roadmap-PDF
+          path: docs/roadmap/master-2026-10-30.pdf
+          if-no-files-found: error
+      - name: Commit generated PDF to master
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/roadmap/master-2026-10-30.pdf
+          if git diff --cached --quiet; then
+            echo 'Generated PDF is unchanged.'
+          else
+            git commit -m 'docs: publish master roadmap PDF [skip ci]'
+            git push origin HEAD:master
+          fi
