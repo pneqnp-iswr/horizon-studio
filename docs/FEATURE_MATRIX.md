@@ -1,4 +1,4 @@
-# Capability matrix — Horizon Studio 0.4
+# Capability matrix — Horizon Studio 0.6
 
 A Rust game engine does not make an algorithm impossible in Java. **Do not label a feature "Rust-only" without a comparable implementation study and proof.** "Rust engine integration" means the feature is specifically integrated with Horizon's Rust internals.
 
@@ -11,7 +11,10 @@ A Rust game engine does not make an algorithm impossible in Java. **Do not label
 | Export rotation/mirroring, reproducible seeds | Implemented, tested | Not verified | editor geometry |
 | Isometric canvas preview and Y layers | Browser smoke tested | Not applicable | local editor |
 | Mod Doctor / recipe diagnostics | Implemented, tested | Not equivalent to official check | local analysis |
-| Headless build/check CLI | Implemented, tested | Generated package unverified | developer automation |
+| Headless build/check CLI | Implemented, tested; local checks only | Generated package unverified | developer automation |
+| Source Workbench JSON overrides | Implemented, tested | Content runtime compatibility not verified | editor and `.hmod` resources |
+| Local 3D cuboid model viewer | Implemented; manual browser E2E not yet verified | Not a game-runtime test | WebGL + software fallback |
+| User-provided resource pack import | Selective ZIP/JAR processing implemented | Not a game feature | local-only assets; no redistributed originals |
 | Place structures automatically in worlds | **Not implemented** | Not verified | structure pools/sets |
 | Live scripted custom behaviors | **Not implemented** | Requires verified native/server mod APIs | Rust-native integration |
 | Real-time shader graph and hot reload | **Not implemented** | Requires pinned renderer/shader API | Rust-native integration |

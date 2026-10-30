@@ -1,25 +1,27 @@
-# Horizon Studio 0.5.0 — Recipe Lab
+# Horizon Studio 0.6.0 — Source Workbench
 
-First Windows portable executable release of Horizon Studio.
+Windows portable alpha release of the Horizon Studio offline editor.
 
 ## Download
 
-Download **`HorizonStudio-0.5.0-Windows-x64.exe`** from the assets below, and double-click it on Windows 10/11 x64. **Python is not required.** The app starts a local web editor, keeps a small control window open, and can be stopped with **Stop & Exit**.
+Download **`HorizonStudio-0.6.0-Windows-x64.exe`** from the `v0.6.0` release assets and run it on Windows 10/11 x64. Python is not required for the packaged executable.
 
-## Features
+## Key functionality
 
-- Recipe Lab: new recipe gallery and search interface
-- EN/RU user interface and bilingual content names
-- Custom blocks, items, shaped and shapeless recipes
-- Six Voxel Architect structure generators and NBT packaging
-- Mod Doctor static checks; command-line build tooling
-- Local-only server at `127.0.0.1:8787`; no cloud registration
+- Source Workbench: inspect and edit generated JSON content models; changes are validated and included as safe overrides in project exports.
+- Local 3D cuboid model preview with WebGL orbit/zoom and fallback rendering. Not a complete model/animation editor.
+- Import selected textures from a user-provided local resource pack; no Minecraft assets are bundled.
+- Recipe Lab editor with blocks, items, recipes, PNG textures, EN/RU languages, and bilingual in-game names.
+- Voxel Architect: six procedural NBT structure generators with rotation and mirroring.
+- Mod Doctor local static checks, project source ZIP and experimental `.hmod` output.
+- Standalone Windows `.exe` packaging, checksums, and local developer CLI.
 
-## Notes
+## Important limitations
 
-- Alpha: packaged `.hmod` mods have **not** been verified in-game.
-- This portable `.exe` is **unsigned**; Windows SmartScreen may display a warning. Verify the SHA-256 against the attached `SHA256SUMS.txt`. Do not disable system security globally.
-- No proprietary Minecraft or Horizon game files are included.
-- The executable is a standalone launcher/editor, **not** the Horizon game client or a Java/Rust mod runtime.
+- The `.hmod` files are generated against a documented content-only API. The official `cargo horizon-mod check` and in-game load tests are **not yet verified** for this release.
+- Source Workbench edits JSON, not arbitrary Rust; no `.hnmod` native mod authoring/runtime integration is provided.
+- The executable is **unsigned**, and SmartScreen may show a warning. Compare the file's SHA-256 with `SHA256SUMS.txt`; do not disable system-wide protection.
+- No proprietary game executables, accounts, resource packs or authentication bypasses are included.
+- The executable is an **editor/launcher**, not the Horizon game client.
 
-See the [README](https://github.com/pneqnp-iswr/horizon-studio#readme) for help and the [source changelog](https://github.com/pneqnp-iswr/horizon-studio/blob/master/CHANGELOG.md) for earlier versions.
+See [README](https://github.com/pneqnp-iswr/horizon-studio#readme), [CHANGELOG](https://github.com/pneqnp-iswr/horizon-studio/blob/master/CHANGELOG.md) and [Master Roadmap](https://github.com/pneqnp-iswr/horizon-studio/blob/master/docs/roadmap/README.md).
