@@ -6,9 +6,9 @@ Last verified repository baseline before this work: `4d8c5e7cab8781690e92f74157c
 
 - Phase: **F0 / Iteration I — Verified Mod Compatibility & Security**.
 - HS-003: **completed** in PR #1, merged at `36c3bb6964e5476831de47499ae0610dca738855`; CI passed on Python 3.11/3.12 on Ubuntu and Windows.
-- HS-001: pending — official pinned `.hmod` validator integration.
+- HS-001: **in progress** — official checker subprocess and truthful JSON evidence adapter implemented; real pinned-tool invocation and game verification still pending.
 - HS-002: pending — controlled real-game smoke fixture/evidence.
-- HS-004: in progress — docs corrected to 0.6.0; new CI assertions pending.
+- HS-004: **completed** in PR #2, merged at `6c61770c02d68d53c10035314405f1dba72c2c3d`; CI passed on Windows and Ubuntu.
 
 ## Current verified vs experimental
 
@@ -20,8 +20,8 @@ Last verified repository baseline before this work: `4d8c5e7cab8781690e92f74157c
 
 ## Next concrete steps
 
-1. Verify HS-004 release-metadata checks and merge only after CI is green.
-2. Integrate a pinned official `cargo horizon-mod check` adapter and capture reliable logs (HS-001).
-3. Add opt-in game-load smoke tests where legally prepared game data exists (HS-002).
+1. Verify HS-001 adapter with CI and run a pinned real official checker as a separate integration gate.
+2. Add opt-in game-load smoke tests where legally prepared game data exists (HS-002).
+3. Track actual compatibility evidence by engine SHA; do not promote local smoke to in-game validation.
 
 Do not treat a CI-only pass as real Horizon game compatibility.
