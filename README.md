@@ -124,7 +124,11 @@ python horizon_cli.py doctor examples/workshop_showcase.hstudio.json --json
 python horizon_cli.py inspect examples/workshop_showcase.hstudio.json
 python horizon_cli.py build examples/workshop_showcase.hstudio.json --output dist/workshop_showcase.hmod
 python horizon_cli.py source examples/workshop_showcase.hstudio.json --output dist/workshop_showcase-source.zip
+python horizon_cli.py migrate examples/ruby_demo.hstudio.json --output my_project.hstudio.json
+python horizon_cli.py graph examples/workshop_showcase.hstudio.json
 ```
+
+Every command accepts both the canonical `studio.project/1` format and older `.hstudio.json` files (schemas 2–4); see [docs/PROJECT_FORMAT.md](docs/PROJECT_FORMAT.md). `migrate` writes the canonical format (in place only with an automatic backup); `graph` lists which recipes use which blocks/items and reports broken references.
 
 ### Intended use cases
 - CI validation
@@ -163,7 +167,8 @@ studio.py            Local editor server + export API
 i18n.js              EN/RU localization
 voxel_architect.py   Deterministic procedural structure engine
 mod_doctor.py        Static diagnostics
-horizon_cli.py       Headless build / inspect / doctor CLI
+horizon_cli.py       Headless build / inspect / doctor / migrate / graph CLI
+studio_core/         Project document (studio.project/1), migration, asset graph, atomic storage
 examples/            Demo projects and generated examples
 tests/               Regression suite
 ```

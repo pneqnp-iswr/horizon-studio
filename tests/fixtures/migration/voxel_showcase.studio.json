@@ -1,0 +1,56 @@
+{
+  "format": "horizon-studio",
+  "schema": "studio.project/1",
+  "project": {
+    "id": "voxel_showcase",
+    "name": "Voxel Architect Showcase",
+    "version": "0.3.0",
+    "author": "Horizon Studio",
+    "description": "Three procedural structures: dome, spiral tower and deterministic maze"
+  },
+  "objects": [
+    {
+      "uid": "283eea7b-5dce-51bd-bd93-838b75b1bd43",
+      "kind": "structure",
+      "id": "sky_citadel",
+      "props": {
+        "kind": "sky_dome",
+        "theme": "prismarine",
+        "size": 27,
+        "seed": 42
+      }
+    },
+    {
+      "uid": "c93e1b10-b88a-5bcd-90fd-8330aac1cd56",
+      "kind": "structure",
+      "id": "crystal_spire",
+      "props": {
+        "kind": "spiral_tower",
+        "theme": "copper",
+        "size": 21,
+        "seed": 99
+      }
+    },
+    {
+      "uid": "da4e06a5-2997-5805-8209-52dbc521faea",
+      "kind": "structure",
+      "id": "dark_labyrinth",
+      "props": {
+        "kind": "labyrinth",
+        "theme": "nether",
+        "size": 25,
+        "seed": 20261030
+      }
+    }
+  ],
+  "source_overrides": {},
+  "extensions": {},
+  "provenance": {
+    "migrations": [
+      {
+        "from": 3,
+        "to": "studio.project/1"
+      }
+    ]
+  }
+}
