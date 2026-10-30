@@ -17,7 +17,7 @@ Last updated: 2026-10-31. Master before this update: `957eec0b8956933b6805444354
 | HS-004 release metadata | **done** | PR #2 |
 | HS-005 project document + migration | **done** | PR #7; migrated fixtures pass the pinned checker (run `41124192941`) |
 | HS-006 durable workspace + undo | **done** | PR #8 (Python fault injection, Node journal); PR #10 browser E2E: autosave, fresh-browser recovery, 409 conflicts, undo/redo |
-| HS-007 browser E2E + UI modules | **done** | PR #10: 13 Chromium scenarios in CI; PR #13: `editor_model.js` and `editor_render.js` (state logic and card markup) join `editor_api.js`/`editor_workspace.js`, 22 Node tests; the inline script only wires the DOM |
+| HS-007 browser E2E + UI modules | **done** | PR #10: 13 Chromium scenarios in CI; PR #14: `editor_model.js` and `editor_render.js` (state logic and card markup) join `editor_api.js`/`editor_workspace.js`, 22 Node tests; the inline script only wires the DOM |
 | HS-008 engine capability registry | **in progress** | — |
 
 ## Compatibility status (by level)
