@@ -42,9 +42,15 @@ WEB_SCRIPTS = {
     'editor_workspace.js': b'createWorkspaceSync',
     'source_workbench_ui.js': b'source_overrides',
     'desktop_bridge.js': b'HorizonDesktop',
+    'workbench_ui.js': b'HorizonWorkbench',
 }
 # Every file the packaged application needs at runtime, relative to the repository root.
-BUNDLED_FILES = ('index.html', 'VERSION', *WEB_SCRIPTS, 'assets/branding/horizon-studio-mark.png')
+UI_ICONS = tuple(sorted(f'assets/editor/icons/{icon.name}'
+                        for icon in (Path(__file__).parent / 'assets' / 'editor' / 'icons').glob('*.svg')))
+# Everything the frozen app serves or reads at runtime (build scripts and smoke tests use this list).
+BUNDLED_FILES = ('index.html', 'VERSION', *WEB_SCRIPTS, 'assets/branding/horizon-studio-mark.png',
+                 'assets/branding/horizon-studio-wordmark.svg', 'assets/editor/workbench.css', *UI_ICONS,
+                 'assets/roadmap/roadmap-overview.svg', 'docs/roadmap/roadmap.json', 'studio_core/engine_profiles.json')
 MAX_REQUEST_BYTES = 6 * 1024 * 1024
 ID_RE = re.compile(r'^[a-z][a-z0-9_]{0,63}$')
 VERSION_RE = re.compile(r'^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$')
@@ -443,6 +449,9 @@ class Handler(BaseHTTPRequestHandler):
             return self.response(403, 'application/json; charset=utf-8', b'{"error":"Untrusted request origin or host"}')
         if self.path == '/api/session':
             return self.response(200, 'application/json; charset=utf-8', json_bytes({'token': session_token(self.server)}))
+        if self.path == '/api/journey':
+            from studio_core.journey import view
+            return self.response(200, 'application/json; charset=utf-8', json_bytes(view()))
         root = Path(__file__).parent
         if self.path in ('/', '/index.html'):
             self.response(200, 'text/html; charset=utf-8', (root / 'index.html').read_bytes())
@@ -468,7 +477,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         if self.path not in ('/api/export', '/api/hmod', '/api/preview', '/api/source', '/api/structure-preview', '/api/doctor', '/api/resourcepack',
-                             '/api/project/open', '/api/project/save', '/api/workspace/write', '/api/workspace/recover'):
+                             '/api/project/open', '/api/project/save', '/api/workspace/write', '/api/workspace/recover',
+                             '/api/capabilities/check'):
             return self.response(404, 'application/json', b'{"error":"Not found"}')
         if not trusted_request(self.headers, self.server.server_address[1]):
             return self.response(403, 'application/json; charset=utf-8', b'{"error":"Untrusted request origin or host"}')
@@ -515,6 +525,10 @@ class Handler(BaseHTTPRequestHandler):
                     'state': to_editor_state(document),
                     'migrated_from': None if schema == SCHEMA else schema,
                     'diagnostics': AssetGraph(document).diagnostics()}))
+            if self.path == '/api/capabilities/check':
+                # HS-008: what the project needs versus what the target engine revision can load.
+                from studio_core.capabilities import check
+                return self.response(200, 'application/json; charset=utf-8', json_bytes(check(from_editor_state(payload))))
             if self.path == '/api/project/save':
                 return self.response(200, 'application/json; charset=utf-8',
                                      dumps(from_editor_state(payload)).encode('utf-8'))

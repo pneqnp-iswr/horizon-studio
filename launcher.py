@@ -124,6 +124,15 @@ def smoke_test(report_path: Path | None = None, workspace_dir: Path | None = Non
         checks["scripts"] = sorted(WEB_SCRIPTS)
         if not get(base, "/assets/branding/horizon-studio-mark.png").startswith(b"\x89PNG"):
             raise RuntimeError("Bundled favicon is missing")
+        from studio import BUNDLED_FILES
+        assets = [name for name in BUNDLED_FILES if name.startswith("assets/")]
+        for name in assets:
+            get(base, "/" + name)  # every bundled stylesheet, icon and image is served
+        checks["assets"] = len(assets)
+        journey = json.loads(get(base, "/api/journey"))
+        if journey.get("schema") != "horizon-studio.journey/1" or not journey["build"]["groups"]["official-static"]:
+            raise RuntimeError("The development journey or the capability registry is not bundled")
+        checks["journey"] = {"current_phase": journey["current_phase"], "engine": journey["build"]["revision"][:7]}
         i18n = get(base, "/i18n.js")
         if b'"en": {' not in i18n or b'"ru": {' not in i18n:
             raise RuntimeError("Both EN and RU catalogs must be bundled")
@@ -138,6 +147,10 @@ def smoke_test(report_path: Path | None = None, workspace_dir: Path | None = Non
         if status != 200 or json.loads(raw).get("schema") != "studio.project/1":
             raise RuntimeError(f"Project save failed: {status}")
         checks["project_open_save"] = "schema 2 -> studio.project/1"
+        status, raw = post(base, token, "/api/capabilities/check", opened["state"])
+        if status != 200 or json.loads(raw)["diagnostics"]:
+            raise RuntimeError(f"Capability check failed: {status} {raw[:200]!r}")
+        checks["capabilities"] = json.loads(raw)["profile"]["revision"][:7]
 
         state = opened["state"]
         status, raw = post(base, token, "/api/workspace/recover", {"project_id": "smoke_project"})

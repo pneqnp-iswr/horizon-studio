@@ -8,7 +8,7 @@
   const en={
     title:'SOURCE WORKBENCH',description:'Edit the actual generated JSON. Validated changes are included in your .hmod and source ZIP.',
     source:'Source', preview:'3D Preview', asset:'Import your resource pack (.zip / .jar)',
-    open:'Open Workbench',close:'Close',apply:'Validate & Apply',reload:'Reload generated files',
+    open:'Source & 3D',close:'Close',apply:'Validate & Apply',reload:'Reload generated files',
     choose:'Select a file to edit',idle:'Changes stay in the editor until you apply them.',
     pending:'Unsaved changes',saved:'Saved and validated — included in future exports.',
     invalid:'Invalid JSON',fallback:'Model has no cuboid elements — showing a reference cube, not a faithful geometry preview.',
@@ -19,7 +19,7 @@
   const ru={
     title:'РЕДАКТОР ИСХОДНИКОВ',description:'Изменяйте настоящий JSON. После проверки правки войдут в .hmod и исходный ZIP.',
     source:'Исходный код',preview:'3D-просмотр',asset:'Импортировать свой ресурспак (.zip / .jar)',
-    open:'Редактор кода',close:'Закрыть',apply:'Проверить и применить',reload:'Обновить файлы',
+    open:'Исходники и 3D',close:'Закрыть',apply:'Проверить и применить',reload:'Обновить файлы',
     choose:'Выберите файл',idle:'Правки не применятся до нажатия кнопки.',
     pending:'Есть несохранённые изменения',saved:'Проверено и сохранено — правки войдут в экспорт.',
     invalid:'Неправильный JSON',fallback:'Модель без cuboid elements — показан условный куб, не точная геометрия.',

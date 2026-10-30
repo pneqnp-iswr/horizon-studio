@@ -211,18 +211,22 @@ e2e('invalid project IDs pause disk autosave and make export fail visibly', asyn
 });
 
 for (const viewport of [{ width: 1280, height: 720 }, { width: 1024, height: 640 }, { width: 390, height: 844 }]) {
-  e2e(`project controls and entries stay reachable at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+  e2e(`workbench controls and entries stay reachable at ${viewport.width}x${viewport.height}`, async ({ page }) => {
     const compact = viewport.width <= 1100;
-    assert.equal(await page.isVisible('#saveProject'), !compact, 'the sidebar is a drawer only on narrow windows');
+    // The top bar keeps the project actions in reach at every window size.
+    for (const control of ['#loadProject', '#saveProject', '#undoEdit', '#exportHmod', '#openWorkbench', '#openJourney']) {
+      assert.equal(await page.isVisible(control), true, `${control} must always be visible`);
+    }
+    assert.equal(await page.isVisible('#modId'), !compact, 'the project explorer is a drawer only on narrow windows');
     assert.equal(await page.getAttribute('#toggleExplorer', 'aria-expanded'), String(!compact));
     await loadDemo(page);
     if (compact) {
       assert.equal(await page.getAttribute('#toggleExplorer', 'aria-expanded'), 'true');
-      for (const control of ['#saveProject', '#undoEdit', '#exportHmod', '#modId']) {
+      for (const control of ['#modId', '#exportSource', '#doctor', '#openCapabilities']) {
         assert.equal(await page.isVisible(control), true, `${control} must be reachable in the drawer`);
       }
       await page.keyboard.press('Escape');
-      await page.waitForSelector('#saveProject', { state: 'hidden' });
+      await page.waitForSelector('#modId', { state: 'hidden' });
       assert.equal(await page.getAttribute('#toggleExplorer', 'aria-expanded'), 'false');
       assert.equal(await page.evaluate(() => document.activeElement.id), 'toggleExplorer');
     }
@@ -235,6 +239,7 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 1024, height: 640
     assert.equal(hit, '0', 'the Configure button must not be covered');
     await button.click();
     assert.equal(await page.inputValue('#entryId'), 'ruby');
+    assert.equal(await page.isVisible('#addObject'), true, 'the inspector form is reachable');
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     assert.ok(overflow <= 0, `page scrolls horizontally by ${overflow}px`);
   }, { viewport });
