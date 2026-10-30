@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Horizon Studio 0.5 — Recipe Lab</title>
+<link rel="icon" type="image/png" href="/assets/branding/horizon-studio-mark.png">
 <style>
 :root{--bg:#05070b;--bg2:#0b1018;--panel:#0b1117;--panel2:#101722;--line:#202a37;--line2:#273345;--text:#eef5fb;--muted:#8da0b8;--accent:#6ae3ff;--accent2:#73a0ff;--green:#7ff0c8;--red:#ff8ea2;--slot:#121820;--shadow:0 18px 60px rgba(0,0,0,.45);color-scheme:dark}
 *{box-sizing:border-box}[hidden]{display:none !important}html,body{height:100%}body{margin:0;background:radial-gradient(circle at top right, rgba(77,191,255,.16), transparent 24%),linear-gradient(180deg,#06080c,#080c14 25%, #05070b);color:var(--text);font:14px/1.45 "Segoe UI",Inter,system-ui,-apple-system,sans-serif;overflow:hidden}
@@ -97,13 +98,19 @@ body.sidebar-collapsed .workspace{grid-column:2}
 .rail-btn{font-family:'Cascadia Mono',Consolas,monospace;font-weight:800}
 /* Short viewports (e.g. 1280x720): the editor form would squeeze the entry list to zero height, so let the whole workspace scroll instead. */
 @media (max-height:900px){.workspace{grid-template-rows:auto auto auto;overflow:auto}.entries-wrap{overflow:visible}}
+/* The fixed footer must not cover the last sidebar controls. */
+.sidebar{padding-bottom:40px}
+/* Narrow windows: the project sidebar (metadata, save/open, undo, export) becomes a drawer
+   opened from the rail, instead of disappearing. Phones get the rail as a top bar. */
+@media (max-width:1100px){body.sidebar-open .sidebar{display:flex;position:fixed;top:12px;bottom:12px;left:96px;width:min(340px,calc(100vw - 112px));z-index:30;box-shadow:0 18px 60px rgba(0,0,0,.65)}}
+@media (max-width:760px){.workspace{grid-column:1;padding:12px}.head-row,.top-controls{flex-wrap:wrap}.rail{display:flex;flex-direction:row;justify-content:flex-start;gap:8px;padding:6px 8px;position:sticky;top:0;z-index:25;overflow-x:auto}.rail-group,.rail-top,.rail-bottom{flex-direction:row;width:auto}body.sidebar-open .sidebar{top:72px;left:10px;width:calc(100vw - 20px)}}
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="rail panelish" aria-label="Primary navigation">
     <div class="rail-top">
-      <button class="rail-btn" type="button" id="toggleExplorer" aria-label="Toggle explorer">☰</button>
+      <button class="rail-btn" type="button" id="toggleExplorer" aria-label="Toggle explorer" aria-controls="projectSidebar" aria-expanded="true">☰</button>
       <div class="rail-group">
         <button class="rail-btn" id="blockTab" role="tab" aria-label="Blocks"><span aria-hidden="true">▦</span></button>
         <button class="rail-btn" id="itemTab" role="tab" aria-label="Items"><span aria-hidden="true">◆</span></button>
@@ -114,7 +121,7 @@ body.sidebar-collapsed .workspace{grid-column:2}
     <div class="rail-bottom"><button class="rail-btn" type="button" id="quickExport" aria-label="Export mod">↓</button></div>
   </aside>
 
-  <aside class="sidebar panelish">
+  <aside class="sidebar panelish" id="projectSidebar">
     <div class="sidebar-head">
       <div class="app-icon">📦</div>
       <div><h1 id="explorerTitle">Recipes</h1><p>Horizon Studio 0.5 · Recipe Lab</p></div>
@@ -241,6 +248,8 @@ body.sidebar-collapsed .workspace{grid-column:2}
 <script src="/i18n.js"></script>
 <script src="/model_viewer.js"></script>
 <script src="/editor_history.js"></script>
+<script src="/editor_api.js"></script>
+<script src="/editor_workspace.js"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -259,14 +268,17 @@ function payload(){return {...meta(),blocks:state.blocks,items:state.items,struc
 function editorState(){return {metadata:meta(),blocks:state.blocks,items:state.items,recipes:state.recipes,structures:state.structures,source_overrides:state.source_overrides||{},carry:state.carry||{}};}
 function newUid(){return globalThis.crypto?.randomUUID?.();}
 const editJournal=new window.HorizonStudioHistory.Journal();
-const diskWorkspace={id:null,revision:null,mode:'checking',generation:0};
-let diskTimer=null,diskQueue=Promise.resolve();
+const studioPost=window.HorizonStudioApi.post;
+const workspaceSync=window.HorizonStudioWorkspace.createWorkspaceSync({
+  post:studioPost,snapshot:editorState,projectId:()=>meta().id,isValidId:id=>VALID.test(id),
+  apply:state=>applyProject(state,{skipWorkspaceCheck:true}),notify:workspaceNotice,
+});
 function historyButtons(){ $('undoEdit').disabled=!editJournal.canUndo; $('redoEdit').disabled=!editJournal.canRedo; }
-function workspaceNotice(key,values={}){
+function workspaceNotice(key,values={},mode=workspaceSync.mode){
   const label=$('workspaceSaveStatus');
   label.textContent=t(key,values);label.dataset.key=key;
-  $('restoreWorkspace').hidden=diskWorkspace.mode!=='conflict';
-  $('keepEditor').hidden=diskWorkspace.mode!=='conflict';
+  $('restoreWorkspace').hidden=mode!=='conflict';
+  $('keepEditor').hidden=mode!=='conflict';
 }
 function persist({record=true,disk=true}={}){
   const snapshot=editorState();
@@ -274,85 +286,21 @@ function persist({record=true,disk=true}={}){
   historyButtons();
   try{localStorage.setItem('horizonStudio_v02',JSON.stringify(snapshot));}
   catch(e){status(t('storageFull'),true);}
-  if(disk)scheduleWorkspaceSave();
+  if(disk)workspaceSync.scheduleSave();
 }
-function scheduleWorkspaceSave(){
-  clearTimeout(diskTimer);
-  if(diskWorkspace.mode!=='ready'||diskWorkspace.id!==meta().id)return;
-  diskTimer=setTimeout(()=>{
-    const snapshot=editorState(),id=meta().id,generation=diskWorkspace.generation;
-    diskQueue=diskQueue.then(()=>flushWorkspaceSave(snapshot,id,generation))
-      .catch(error=>{if(diskWorkspace.id===id&&diskWorkspace.generation===generation)workspaceNotice('workspaceError',{error:error.message});});
-  },850);
-}
-async function flushWorkspaceSave(snapshot,id,generation){
-  if(diskWorkspace.id!==id||diskWorkspace.generation!==generation||diskWorkspace.mode!=='ready')return;
-  workspaceNotice('workspacePending');
-  const response=await studioPost('/api/workspace/write',JSON.stringify({
-    state:snapshot,expected_revision:diskWorkspace.revision
-  }));
-  if(diskWorkspace.id!==id||diskWorkspace.generation!==generation)return;
-  if(response.status===409){diskWorkspace.mode='conflict';workspaceNotice('workspaceRecoverable');return;}
-  const data=await response.json();
-  if(!response.ok)throw Error(data.error||t('apiError'));
-  diskWorkspace.revision=data.revision;
-  workspaceNotice('workspaceSaved');
-}
-async function beginWorkspaceSession(){
-  clearTimeout(diskTimer);
-  const id=meta().id,generation=++diskWorkspace.generation;
-  diskWorkspace.id=id;diskWorkspace.revision=null;diskWorkspace.mode='checking';
-  if(!VALID.test(id)){diskWorkspace.mode='invalid';workspaceNotice('workspaceInvalidId');return;}
-  workspaceNotice('workspaceChecking');
-  try{
-    const response=await studioPost('/api/workspace/recover',JSON.stringify({project_id:id}));
-    if(generation!==diskWorkspace.generation)return;
-    if(response.status===404){diskWorkspace.mode='ready';workspaceNotice('workspacePending');scheduleWorkspaceSave();return;}
-    const data=await response.json();
-    if(!response.ok)throw Error(data.error||t('apiError'));
-    diskWorkspace.revision=data.revision;
-    if(JSON.stringify(data.state)===JSON.stringify(editorState())){
-      diskWorkspace.mode='ready';workspaceNotice('workspaceSaved');
-    }else{diskWorkspace.mode='conflict';workspaceNotice('workspaceRecoverable');}
-  }catch(e){
-    if(generation===diskWorkspace.generation){diskWorkspace.mode='unavailable';workspaceNotice('workspaceError',{error:e.message});}
-  }
-}
-async function acceptDiskWorkspace(){
-  if(diskWorkspace.mode!=='conflict')return;
-  const id=diskWorkspace.id,generation=diskWorkspace.generation;
-  try{
-    const response=await studioPost('/api/workspace/recover',JSON.stringify({project_id:id}));
-    const data=await response.json();if(!response.ok)throw Error(data.error||t('apiError'));
-    if(generation!==diskWorkspace.generation)return;
-    diskWorkspace.generation++; // Cancel queued writes from the old editor snapshot.
-    applyProject(data.state,{skipWorkspaceCheck:true});
-    diskWorkspace.id=id;diskWorkspace.revision=data.revision;diskWorkspace.mode='ready';
-    workspaceNotice(data.recovered_from_backup?'workspaceBackupRecovered':'workspaceRecovered');
-    if(data.recovered_from_backup)scheduleWorkspaceSave();
-  }catch(e){workspaceNotice('workspaceError',{error:e.message});}
-}
-async function keepEditorWorkspace(){
-  if(diskWorkspace.mode!=='conflict')return;
-  const id=diskWorkspace.id,generation=diskWorkspace.generation;
-  try{
-    const response=await studioPost('/api/workspace/recover',JSON.stringify({project_id:id}));
-    const data=await response.json();if(!response.ok)throw Error(data.error||t('apiError'));
-    if(generation!==diskWorkspace.generation)return;
-    diskWorkspace.generation++; // Invalidate any queued stale writes before an explicit overwrite.
-    diskWorkspace.revision=data.revision;diskWorkspace.mode='ready';
-    scheduleWorkspaceSave();
-  }catch(e){workspaceNotice('workspaceError',{error:e.message});}
-}
+const scheduleWorkspaceSave=()=>workspaceSync.scheduleSave();
+const beginWorkspaceSession=()=>workspaceSync.begin();
+const acceptDiskWorkspace=()=>workspaceSync.restoreDisk();
+const keepEditorWorkspace=()=>workspaceSync.keepEditor();
 function undoProject(){
   const previous=editJournal.undo();if(!previous)return;
   applyProject(previous,{preserveHistory:true,skipWorkspaceCheck:true});
-  historyButtons();if(diskWorkspace.id!==meta().id)beginWorkspaceSession();else scheduleWorkspaceSave();
+  historyButtons();if(workspaceSync.id!==meta().id)beginWorkspaceSession();else scheduleWorkspaceSave();
 }
 function redoProject(){
   const next=editJournal.redo();if(!next)return;
   applyProject(next,{preserveHistory:true,skipWorkspaceCheck:true});
-  historyButtons();if(diskWorkspace.id!==meta().id)beginWorkspaceSession();else scheduleWorkspaceSave();
+  historyButtons();if(workspaceSync.id!==meta().id)beginWorkspaceSession();else scheduleWorkspaceSave();
 }
 function allEntries(){return [...state.blocks,...state.items];}
 function ingredientChoices(){return {...ING,...Object.fromEntries(allEntries().map(e=>['@'+e.id,e.name+t('modSuffix')]))};}
@@ -427,20 +375,7 @@ const file=$('texture').files[0];if(file){if(file.size>1024*1024||file.type!=='i
 e.uid=state.editing>=0?collection[state.editing].uid:newUid();if(state.editing<0)collection.push(e);else{const old=collection[state.editing];collection[state.editing]=e;if(old.id!==id){for(const r of state.recipes){r.result=r.result==='@'+old.id?'@'+id:r.result;r.grid=r.grid.map(x=>x==='@'+old.id?'@'+id:x);}}}resetObject();persist();render();status(t('savedEntry'));}
 function addRecipe(){const e={id:$('recipeId').value.trim(),type:$('recipeType').value,result:$('recipeResult').value,count:Number($('recipeCount').value),grid:Array.from({length:9},(_,i)=>$('slot'+i).value)};if(!VALID.test(e.id)||!e.result||!Number.isInteger(e.count)||e.count<1||e.count>64||!e.grid.some(Boolean)){status(t('invalidRecipe'),true);return;}if(state.recipes.some((x,i)=>x.id===e.id&&i!==state.editing)){status(t('duplicateRecipe'),true);return;}if(state.editing<0&&state.recipes.length>=64){status(t('recipeLimit'),true);return;}e.uid=state.editing>=0?state.recipes[state.editing].uid:newUid();if(state.editing<0)state.recipes.push(e);else state.recipes[state.editing]=e;resetRecipe();render();persist();status(t('savedRecipe'));}
 function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
-let studioSessionPromise;
-async function studioSession(){
-  if(!studioSessionPromise){
-    studioSessionPromise=fetch('/api/session',{cache:'no-store'})
-      .then(async response=>{if(!response.ok)throw Error('Could not authorize Studio session');const data=await response.json();if(!data.token)throw Error('Missing Studio session token');return data.token;})
-      .catch(error=>{studioSessionPromise=null;throw error;});
-  }
-  return studioSessionPromise;
-}
-async function studioPost(path,body,contentType='application/json'){
-  const token=await studioSession();
-  return fetch(path,{method:'POST',headers:{'Content-Type':contentType,'X-Studio-Token':token},body});
-}
-window.HorizonStudioPost=studioPost;
+
 async function api(path){const response=await studioPost(path,JSON.stringify(payload()));if(!response.ok){const data=await response.json();throw new Error(data.error||t('apiError'));}return response;}
 async function exportFile(path,extension){const b=$(extension==='hmod'?'exportHmod':'exportSource');b.disabled=true;try{status(t('exporting'));const result=await api(path);download(await result.blob(),meta().id+(extension==='hmod'?'.hmod':'-source.zip'));status(extension==='hmod'?t('hmodExported'):t('zipExported'));}catch(e){status(e.message,true);}finally{b.disabled=false;}}
 async function inspect(){try{const result=await (await api('/api/preview')).json();$('inspectPanel').hidden=false;$('manifestPreview').textContent=result.manifest;$('filePreview').textContent=result.files.join('\n');status(t('inspectSuccess',{count:result.file_count,bytes:result.bytes_raw}));}catch(e){status(e.message,true);}}
@@ -511,9 +446,15 @@ $('rotateStructure').onclick=()=>{isoRotation=(isoRotation+1)%4;if(lastStructure
 $('addStructure').onclick=addStructure;$('cancelStructure').onclick=resetStructure;$('previewStructure').onclick=previewStructure;$('sliceY').addEventListener('change',previewStructure);
 $('blockTab').onclick=()=>chooseTab('block');$('itemTab').onclick=()=>chooseTab('item');$('recipeTab').onclick=()=>chooseTab('recipe');$('structureTab').onclick=()=>chooseTab('structure');$('addObject').onclick=addObject;$('cancelObject').onclick=resetObject;$('addRecipe').onclick=addRecipe;$('cancelRecipe').onclick=resetRecipe;$('exportHmod').onclick=()=>exportFile('/api/hmod','hmod');$('exportSource').onclick=()=>exportFile('/api/export','zip');$('preview').onclick=inspect;$('doctor').onclick=runDoctor;$('closeInspect').onclick=()=>$('inspectPanel').hidden=true;$('saveProject').onclick=saveProject;$('undoEdit').onclick=undoProject;$('redoEdit').onclick=redoProject;$('restoreWorkspace').onclick=acceptDiskWorkspace;$('keepEditor').onclick=keepEditorWorkspace;$('demo').onclick=example;$('loadProject').onclick=()=>$('projectFile').click();
 $('projectFile').onchange=async()=>{const file=$('projectFile').files[0];if(!file)return;try{if(file.size>6*1024*1024)throw new Error(t('fileTooBig'));const response=await studioPost('/api/project/open',await file.text());const opened=await response.json();if(!response.ok)throw new Error(opened.error||t('badProject'));applyProject(opened.state);const problems=opened.diagnostics.filter(d=>d.level==='error').length;await api('/api/preview');status(opened.migrated_from!=null?t('projectMigrated',{schema:opened.migrated_from}):problems?t('projectProblems',{count:problems}):t('projectOpened'));}catch(e){status(e.message,true);}finally{$('projectFile').value='';}};
-$('toggleExplorer').onclick=()=>document.body.classList.toggle('sidebar-collapsed');$('quickExport').onclick=()=>exportFile('/api/hmod','hmod');
+const compactLayout=window.matchMedia('(max-width:1100px)');
+function sidebarVisible(){return compactLayout.matches?document.body.classList.contains('sidebar-open'):!document.body.classList.contains('sidebar-collapsed');}
+function toggleExplorer(){document.body.classList.toggle(compactLayout.matches?'sidebar-open':'sidebar-collapsed');$('toggleExplorer').setAttribute('aria-expanded',String(sidebarVisible()));}
+$('toggleExplorer').onclick=toggleExplorer;
+compactLayout.addEventListener('change',()=>{document.body.classList.remove('sidebar-open');$('toggleExplorer').setAttribute('aria-expanded',String(sidebarVisible()));});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&document.body.classList.contains('sidebar-open')){document.body.classList.remove('sidebar-open');$('toggleExplorer').setAttribute('aria-expanded','false');$('toggleExplorer').focus();}});
+$('toggleExplorer').setAttribute('aria-expanded',String(sidebarVisible()));$('quickExport').onclick=()=>exportFile('/api/hmod','hmod');
 window.addEventListener('keydown',event=>{if(!(event.ctrlKey||event.metaKey)||event.altKey)return;const tag=event.target?.tagName;if(['INPUT','TEXTAREA','SELECT'].includes(tag)||event.target?.isContentEditable||!$('sourceWorkbench').hidden)return;const key=event.key.toLowerCase();if(key==='z'&&!event.shiftKey){event.preventDefault();undoProject();}else if(key==='y'||(key==='z'&&event.shiftKey)){event.preventDefault();redoProject();}});
-for(const id of META)$(id).addEventListener('change',()=>{persist();if(diskWorkspace.id!==meta().id)beginWorkspaceSession();}); if($('entrySearch'))$('entrySearch').addEventListener('input',render);
+for(const id of META)$(id).addEventListener('change',()=>{persist();if(workspaceSync.id!==meta().id)beginWorkspaceSession();}); if($('entrySearch'))$('entrySearch').addEventListener('input',render);
 try{const cached=JSON.parse(localStorage.getItem('horizonStudio_v02')||'null');if(cached)applyProject(cached); else {chooseTab('recipe');editJournal.reset(editorState());beginWorkspaceSession();}}catch(_){chooseTab('recipe');editJournal.reset(editorState());beginWorkspaceSession();}
 window.HorizonI18n.init(); updateWorkspaceMeta();historyButtons();
 </script>

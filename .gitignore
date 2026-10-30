@@ -20,3 +20,7 @@ Thumbs.db
 
 # application runtime/debug
 *.log
+
+# Browser E2E failure artifacts
+test-results/
+node_modules/

@@ -428,7 +428,8 @@ class Handler(BaseHTTPRequestHandler):
         root = Path(__file__).parent
         if self.path in ('/', '/index.html'):
             self.response(200, 'text/html; charset=utf-8', (root / 'index.html').read_bytes())
-        elif self.path in ('/i18n.js', '/model_viewer.js', '/source_workbench_ui.js', '/editor_history.js'):
+        elif self.path in ('/i18n.js', '/model_viewer.js', '/source_workbench_ui.js', '/editor_history.js',
+                           '/editor_api.js', '/editor_workspace.js'):
             self.response(200, 'text/javascript; charset=utf-8', (root / self.path.lstrip('/')).read_bytes())
         elif self.path.startswith('/assets/'):
             target = (root / self.path.lstrip('/')).resolve()

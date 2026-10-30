@@ -25,7 +25,7 @@ The most recent browser fallback is still kept in `localStorage` where supported
 - In-memory Undo/Redo resets on project switch and app restart.
 - Only one local Studio instance per server port is supported. The optimistic SHA-256 check protects different tabs/processes in ordinary use but is not a distributed multi-host lock.
 - A manually corrupted current file and previous snapshot is an error; recovery never silently overwrites both.
-- Security and simulated filesystem failure tests run in Python CI. Pure journal tests run under Node 22. Full browser Playwright tests are planned under HS-007.
+- Security and simulated filesystem failure tests run in Python CI. The journal (`editor_history.js`) and the disk sync controller (`editor_workspace.js`) have Node 22 unit tests. Autosave, recovery in a fresh browser, revision conflicts and both conflict choices are exercised in Chromium by the browser E2E suite ([BROWSER_E2E.md](BROWSER_E2E.md)).
 
 The snapshots are part of the author's private local machine and are not bundled with published game mods. No Minecraft or Horizon assets are copied.
 
