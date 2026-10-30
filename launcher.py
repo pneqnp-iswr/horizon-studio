@@ -44,7 +44,7 @@ def smoke_test() -> int:
     worker.start()
     base = f"http://{HOST}:{server.server_port}"
     try:
-        for path, expected in (("/", b"Horizon Studio"), ("/i18n.js", b"HorizonI18n"), ("/model_viewer.js", b"HorizonModelViewer"), ("/source_workbench_ui.js", b"source_overrides"), ("/editor_history.js", b"HorizonStudioHistory")):
+        for path, expected in (("/", b"Horizon Studio"), ("/i18n.js", b"HorizonI18n"), ("/model_viewer.js", b"HorizonModelViewer"), ("/source_workbench_ui.js", b"source_overrides"), ("/editor_history.js", b"HorizonStudioHistory"), ("/editor_api.js", b"HorizonStudioApi"), ("/editor_workspace.js", b"createWorkspaceSync")):
             with urllib.request.urlopen(base + path, timeout=10) as response:
                 data = response.read()
                 if response.status != 200 or expected not in data:

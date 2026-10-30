@@ -13,7 +13,7 @@
     pending:'Unsaved changes',saved:'Saved and validated — included in future exports.',
     invalid:'Invalid JSON',fallback:'Model has no cuboid elements — showing a reference cube, not a faithful geometry preview.',
     native:'Rust native mods use .hnmod and horizon-mixins. JSON content cannot be compiled to native Rust. See the official template.',
-    drag:'Drag to orbit · Scroll to zoom · GPU WebGL', packReady:'Resource pack loaded locally: {count} PNG textures.',
+    drag:'Drag to orbit · Scroll to zoom · GPU WebGL', packReady:'Resource pack loaded locally: {count} PNG textures.', loaded:'{count} generated source files · JSON edits export to .hmod',
     packError:'Could not load resource pack: ',
   };
   const ru={
@@ -24,13 +24,15 @@
     pending:'Есть несохранённые изменения',saved:'Проверено и сохранено — правки войдут в экспорт.',
     invalid:'Неправильный JSON',fallback:'Модель без cuboid elements — показан условный куб, не точная геометрия.',
     native:'Нативные Rust-моды используют .hnmod и horizon-mixins. Контентный JSON не компилируется напрямую в Rust. См. официальный шаблон.',
-    drag:'Зажмите и вращайте · Колёсико для масштаба · WebGL',packReady:'Ресурспак обработан локально: {count} PNG.',
+    drag:'Зажмите и вращайте · Колёсико для масштаба · WebGL',packReady:'Ресурспак обработан локально: {count} PNG.',loaded:'Сгенерировано файлов: {count} · правки JSON попадают в .hmod',
     packError:'Не удалось прочитать ресурспак: ',
   };
   const labels=()=>window.HorizonI18n?.language==='ru'?ru:en;
   const text=(key)=>labels()[key]||en[key]||key;
   const stat=(message,error=false)=>{const s=$('sourceStatus');s.textContent=message;s.classList.toggle('error',error);};
   const entryName=path=>path.split('/').slice(-1)[0];
+  // assets/<mod>/models/block/x.json -> models/block/x.json: unique, unlike the bare file name.
+  const shortPath=path=>path.split('/').slice(2).join('/')||path;
   function updateLabels(){document.querySelectorAll('[data-source-i18n]').forEach(n=>{n.textContent=text(n.dataset.sourceI18n);});const open=$('openWorkbench');if(open)open.textContent=text('open');}
   function renderFileList(){
     const search=($('sourceFileSearch').value||'').trim().toLowerCase();
@@ -38,7 +40,7 @@
     for(const path of Object.keys(files).sort()){
       if(!path.endsWith('.json')||!path.toLowerCase().includes(search))continue;
       const button=document.createElement('button');button.type='button';button.className='source-file'+(path===selected?' active':'');
-      button.textContent=(state.source_overrides?.[path]?'● ':'')+entryName(path);
+      button.textContent=(state.source_overrides?.[path]?'● ':'')+shortPath(path);
       button.title=path;button.onclick=()=>selectFile(path);list.appendChild(button);
     }
   }
@@ -70,7 +72,7 @@
       files=result.files;if(selected&&!files[selected])selected='';
       if(!selected){selected=Object.keys(files).find(p=>p.includes('/models/block/'))||Object.keys(files).find(p=>p.includes('/models/item/'))||Object.keys(files).find(p=>p.endsWith('.json'))||'';}
       renderFileList();if(selected)selectFile(selected);
-      stat(`${result.count} generated source files · JSON edits export to .hmod`);
+      stat(text('loaded').replace('{count}',result.count));
     }catch(e){stat(e.message,true);}finally{busy=false;}
   }
   async function applyCode(){

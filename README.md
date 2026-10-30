@@ -25,24 +25,25 @@
 ## Where we are now
 
 <p align="center">
-  <img src="assets/roadmap/current-phase.svg" alt="Current phase: F1 Project Core. HS-005 done, HS-006 partially verified, HS-007 in progress." width="100%" />
+  <img src="assets/roadmap/current-phase.svg" alt="Current phase: F1 Project Core. HS-005 and HS-006 done, HS-007 in progress." width="100%" />
 </p>
 
 - **Released:** Version **0.6 — Source Workbench** (Windows EXE prerelease). `master` is ahead of that release with the canonical project format, disk workspaces and Undo/Redo, which have not been packaged yet.
 - **Proven:** the example mods pass the official `cargo-horizon-mod check` built from a pinned Horizon revision, in CI and locally.
-- **Not yet proven:** loading a Studio mod in the running game, and any gameplay behaviour. Browser end-to-end tests are being added now (HS-007).
+- **Proven in a browser:** 13 editor workflows run in Chromium on every pull request (Ubuntu CI), including autosave, recovery, revision conflicts and the exported package bytes.
+- **Not yet proven:** loading a Studio mod in the running game, and any gameplay behaviour.
 
 ## Roadmap
 
 <p align="center">
-  <img src="assets/roadmap/roadmap-overview.svg" alt="Development journey from F0 Foundation to F8 Creative Platform. F0 partially verified, F1 in progress, later phases planned. Verification levels: unit and CI verified, official check verified, browser E2E in progress, game load blocked, gameplay planned." width="100%" />
+  <img src="assets/roadmap/roadmap-overview.svg" alt="Development journey from F0 Foundation to F8 Creative Platform. F0 partially verified, F1 in progress, later phases planned. Verification levels: unit and CI verified, official check verified, browser E2E verified, game load blocked, gameplay planned." width="100%" />
 </p>
 
 <!-- roadmap:status:start -->
 | Phase | Focus | Status | Milestones done |
 |---|---|---|---|
 | F0 Foundation | Official validator, secure local API, release metadata, real-game smoke harness | Partially verified | 3 / 4 |
-| F1 Project Core | Canonical project document, migrations, durable workspace, undo, browser E2E | **In progress** | 1 / 3 |
+| F1 Project Core | Canonical project document, migrations, durable workspace, undo, browser E2E | **In progress** | 2 / 3 |
 | F2 Creative Editor | Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bridge (HS-011) | Planned | 0 / 2 |
 | F3 Visual Scripting | Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (HS-010) | Planned | 0 / 3 |
 | F4 Gameplay Systems | Entities, components, AI behaviour trees, events, RPG and automation | Planned | 0 / 1 |
@@ -51,7 +52,7 @@
 | F7 Ecosystem | Secure plugin SDK, templates, signed releases, publishing | Planned | 0 / 2 |
 | F8 Creative Platform | Advanced animation, procedural worlds, team assets, eight end-to-end demos | Planned | — |
 
-**Verification levels:** Unit/CI — verified → Official check — verified → Browser E2E — in progress → Game load — blocked → Gameplay — planned
+**Verification levels:** Unit/CI — verified → Official check — verified → Browser E2E — verified → Game load — blocked → Gameplay — planned
 <!-- roadmap:status:end -->
 
 Phase states are derived from milestone states in [`docs/roadmap/roadmap.json`](docs/roadmap/roadmap.json); every *done* or *partially verified* milestone links its evidence. Details, dependencies and evidence: **[docs/ROADMAP_VISUAL.md](docs/ROADMAP_VISUAL.md)**. Strategy: [Master Engineering Roadmap](docs/roadmap/master-2026-10-30.md).
@@ -65,8 +66,8 @@ Phase states are derived from milestone states in [`docs/roadmap/roadmap.json`](
 | Voxel Architect: six seeded structure generators, rotation and mirroring, NBT export | Works in Studio | Unit tests; official check of `voxel_showcase` |
 | `.hmod` packaging, byte-identical on every OS | Works | Official `cargo-horizon-mod check` (pinned engine) |
 | Canonical `studio.project/1` with stable IDs; migration of older projects | Works | Golden migration tests, byte-identical builds |
-| Disk workspace with crash recovery, revision conflicts, Undo/Redo | Works in Studio | Python and Node tests; browser E2E pending |
-| Source Workbench: validated JSON overrides, cuboid 3D preview | Works in Studio | Unit tests |
+| Disk workspace with crash recovery, revision conflicts, Undo/Redo | Works in Studio | Python, Node and browser E2E tests |
+| Source Workbench: validated JSON overrides, cuboid 3D preview | Works in Studio | Unit tests; browser E2E (override reaches the `.hmod`) |
 | Mod Doctor static diagnostics, CLI (`build`, `verify`, `migrate`, `graph`…) | Works | Unit tests |
 | Loading in the Horizon game | **Not verified** | Harness ready, needs an authorized installation |
 | Visual scripting, entities/AI, native Rust mods, shaders | **Not implemented** | Planned in F2–F5 |
@@ -111,7 +112,7 @@ Each level is separate evidence; passing one never implies the next.
 |---|---|---|
 | Unit / CI | Studio's own tests on Ubuntu and Windows, Python 3.11/3.12, Node 22 | Verified on every PR |
 | Official static check | Real `cargo-horizon-mod check --json` from Horizon `d2186eb` accepts the exact package bytes | Verified for all examples ([ledger](docs/COMPATIBILITY_EVIDENCE.md)) |
-| Browser end-to-end | Editor workflows driven in a real browser | In progress (HS-007) |
+| Browser end-to-end | Editor workflows driven in a real browser | Verified in CI: 13 scenarios, Chromium on Ubuntu ([scope](docs/BROWSER_E2E.md)) |
 | Game content load | A real Horizon client loads the package | Not verified — [procedure](docs/GAME_CONTENT_SMOKE.md) |
 | Gameplay | Behaviour asserted in a running game | Not verified |
 
@@ -119,7 +120,8 @@ Each level is separate evidence; passing one never implies the next.
 
 ```sh
 python -m unittest discover -s tests -v          # Python suite (CI: Ubuntu + Windows)
-node --test tests/test_editor_history.cjs        # editor history (CI: Node 22)
+node --test tests/test_editor_*.cjs             # editor history and workspace sync (CI: Node 22)
+node --test tests/e2e/*.e2e.cjs                  # browser E2E, needs Playwright Chromium (docs/BROWSER_E2E.md)
 python scripts/roadmap.py                        # re-render roadmap images and tables from roadmap.json
 python scripts/render_branding.py                # re-render the pixel-art banner and mark
 ```
