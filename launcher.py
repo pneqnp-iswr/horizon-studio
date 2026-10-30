@@ -54,10 +54,12 @@ def smoke_test() -> int:
             "author": "Horizon Studio", "description": "Bundled application smoke check",
             "blocks": [], "items": [{"id": "probe", "name": "Probe", "template": "minecraft:diamond"}], "recipes": [], "structures": []
         }
+        with urllib.request.urlopen(base + "/api/session", timeout=10) as response:
+            token = json.loads(response.read())["token"]
         body = json.dumps(sample).encode("utf-8")
         request = urllib.request.Request(
             base + "/api/preview", body,
-            headers={"Content-Type": "application/json"}, method="POST"
+            headers={"Content-Type": "application/json", "X-Studio-Token": token}, method="POST"
         )
         with urllib.request.urlopen(request, timeout=10) as response:
             result = json.loads(response.read())
