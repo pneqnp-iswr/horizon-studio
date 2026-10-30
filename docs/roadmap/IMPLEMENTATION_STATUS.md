@@ -46,6 +46,7 @@ Last updated: 2026-10-31. Verified master after PR #8: `496d7d93cfb84fddd747114c
 - Evidence levels are separate fields (`unit`, `official-static`, `game-content-load`, `gameplay`); none implies another.
 - Engine facts used by Studio (CLI flags, log lines, file layout) are cited with the upstream file and pinned SHA; re-check them when the pin moves.
 - The pinned engine revision stays `d2186eb9aa022a64a8b26e6989a04e44fba99ee7` until a deliberate pin update with fresh evidence.
+- `docs/roadmap/roadmap.json` is the source of truth for the README roadmap images and tables (`scripts/roadmap.py`). Change a milestone's status only together with its evidence, in the same PR; `tests/test_roadmap.py` rejects contradictions and stale images.
 - ADR-0001: one canonical `studio.project/1` document; editor state and generator request are derived views; every entry point reads through `studio_core.migrate.upgrade`. Migrated projects must build byte-identical packages.
 
 ## Next recommended tasks
