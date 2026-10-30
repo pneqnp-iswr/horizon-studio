@@ -1,0 +1,37 @@
+{
+  "format": "horizon-studio",
+  "schema": 3,
+  "metadata": {
+    "id": "voxel_showcase",
+    "name": "Voxel Architect Showcase",
+    "version": "0.3.0",
+    "author": "Horizon Studio",
+    "description": "Three procedural structures: dome, spiral tower and deterministic maze"
+  },
+  "blocks": [],
+  "items": [],
+  "recipes": [],
+  "structures": [
+    {
+      "id": "sky_citadel",
+      "kind": "sky_dome",
+      "theme": "prismarine",
+      "size": 27,
+      "seed": 42
+    },
+    {
+      "id": "crystal_spire",
+      "kind": "spiral_tower",
+      "theme": "copper",
+      "size": 21,
+      "seed": 99
+    },
+    {
+      "id": "dark_labyrinth",
+      "kind": "labyrinth",
+      "theme": "nether",
+      "size": 25,
+      "seed": 20261030
+    }
+  ]
+}

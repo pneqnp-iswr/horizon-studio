@@ -1,0 +1,126 @@
+{
+  "format": "horizon-studio",
+  "schema": 4,
+  "metadata": {
+    "id": "workshop_showcase",
+    "name": "Workshop Showcase",
+    "version": "0.4.0",
+    "author": "Horizon Studio Team",
+    "description": "Visual creator examples: bilingual items, tool tags and six NBT structure generators."
+  },
+  "blocks": [
+    {
+      "id": "beacon_block",
+      "name": "Beacon Block",
+      "name_ru": "Маячный блок",
+      "template": "minecraft:amethyst_block",
+      "hardness": 3,
+      "light": 15,
+      "requires_tool": true,
+      "mining_tool": "pickaxe",
+      "tool_tier": "iron"
+    }
+  ],
+  "items": [
+    {
+      "id": "shard",
+      "name": "Prismatic Shard",
+      "name_ru": "Призматический осколок",
+      "template": "minecraft:amethyst_shard",
+      "rarity": "rare",
+      "max_stack_size": 64
+    }
+  ],
+  "recipes": [
+    {
+      "id": "shard_from_vanilla",
+      "type": "shapeless",
+      "count": 1,
+      "result": "@shard",
+      "grid": [
+        "minecraft:amethyst_shard",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": "beacon_craft",
+      "type": "shaped",
+      "count": 1,
+      "result": "@beacon_block",
+      "grid": [
+        "@shard",
+        "@shard",
+        "@shard",
+        "@shard",
+        "@shard",
+        "@shard",
+        "@shard",
+        "@shard",
+        "@shard"
+      ]
+    }
+  ],
+  "structures": [
+    {
+      "id": "island",
+      "kind": "floating_island",
+      "theme": "end",
+      "size": 19,
+      "seed": 17,
+      "rotation": 90,
+      "mirror": "x"
+    },
+    {
+      "id": "crystals",
+      "kind": "crystal_grove",
+      "theme": "quartz",
+      "size": 19,
+      "seed": 99,
+      "rotation": 180,
+      "mirror": "z"
+    },
+    {
+      "id": "arena",
+      "kind": "battle_arena",
+      "theme": "nether",
+      "size": 25,
+      "seed": 42,
+      "rotation": 0,
+      "mirror": "none"
+    },
+    {
+      "id": "maze",
+      "kind": "labyrinth",
+      "theme": "stone",
+      "size": 17,
+      "seed": 1337,
+      "rotation": 270,
+      "mirror": "x"
+    },
+    {
+      "id": "tower",
+      "kind": "spiral_tower",
+      "theme": "prismarine",
+      "size": 21,
+      "seed": 8,
+      "rotation": 0,
+      "mirror": "none"
+    },
+    {
+      "id": "dome",
+      "kind": "sky_dome",
+      "theme": "copper",
+      "size": 19,
+      "seed": 7,
+      "rotation": 90,
+      "mirror": "none"
+    }
+  ]
+}

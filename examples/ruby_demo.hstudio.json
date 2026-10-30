@@ -1,0 +1,65 @@
+{
+  "blocks": [
+    {
+      "id": "ruby_block",
+      "name": "Block of Ruby",
+      "template": "minecraft:iron_block",
+      "hardness": 4,
+      "light": 3
+    }
+  ],
+  "items": [
+    {
+      "id": "ruby",
+      "name": "Ruby",
+      "template": "minecraft:diamond",
+      "rarity": "rare",
+      "max_stack_size": 64
+    }
+  ],
+  "recipes": [
+    {
+      "id": "ruby_block",
+      "type": "shaped",
+      "result": "@ruby_block",
+      "count": 1,
+      "grid": [
+        "@ruby",
+        "@ruby",
+        "@ruby",
+        "@ruby",
+        "@ruby",
+        "@ruby",
+        "@ruby",
+        "@ruby",
+        "@ruby"
+      ]
+    },
+    {
+      "id": "ruby_from_block",
+      "type": "shapeless",
+      "result": "@ruby",
+      "count": 9,
+      "grid": [
+        "@ruby_block",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    }
+  ],
+  "format": "horizon-studio",
+  "schema": 2,
+  "metadata": {
+    "id": "ruby_demo",
+    "name": "Ruby Demo",
+    "version": "0.1.0",
+    "author": "Creator",
+    "description": "Example with two recipes, a block and a gem"
+  }
+}
