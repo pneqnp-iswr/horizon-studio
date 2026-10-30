@@ -25,6 +25,8 @@ from security.request_policy import session_token, trusted_request, authorized_p
 from studio_core.graph import AssetGraph
 from studio_core.migrate import from_editor_state, source_schema, to_editor_state, upgrade
 from studio_core.project_schema import SCHEMA, dumps
+from studio_core.workspace import WorkspaceStore, WorkspaceNotFound, WorkspaceConflict, WorkspaceCorrupt
+import threading
 
 HOST = '127.0.0.1'
 PORT = 8787
@@ -389,6 +391,16 @@ def inspect_project(request: dict):
             'recipes': len(request.get('recipes', [])), 'structures': len(request.get('structures', [])), 'ok': True}
 
 
+_workspace_lock = threading.Lock()
+
+
+def workspace_for(server):
+    with _workspace_lock:
+        if not hasattr(server, 'studio_workspaces'):
+            server.studio_workspaces = WorkspaceStore(Path.home() / '.horizon-studio' / 'workspaces')
+        return server.studio_workspaces
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         if sys.stdout is not None:
@@ -438,7 +450,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         if self.path not in ('/api/export', '/api/hmod', '/api/preview', '/api/source', '/api/structure-preview', '/api/doctor', '/api/resourcepack',
-                             '/api/project/open', '/api/project/save'):
+                             '/api/project/open', '/api/project/save', '/api/workspace/write', '/api/workspace/recover'):
             return self.response(404, 'application/json', b'{"error":"Not found"}')
         if not trusted_request(self.headers, self.server.server_address[1]):
             return self.response(403, 'application/json; charset=utf-8', b'{"error":"Untrusted request origin or host"}')
@@ -462,6 +474,21 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == '/api/doctor':
                 from mod_doctor import audit_project
                 return self.response(200, 'application/json; charset=utf-8', json_bytes(audit_project(payload)))
+            if self.path == '/api/workspace/recover':
+                if not isinstance(payload, dict) or not isinstance(payload.get('project_id'), str):
+                    fail('Expected project_id')
+                result = workspace_for(self.server).recover(payload['project_id'])
+                return self.response(200, 'application/json; charset=utf-8', json_bytes({
+                    'state': to_editor_state(result['document']),
+                    'revision': result['revision'],
+                    'recovered_from_backup': result['recovered_from_backup']}))
+            if self.path == '/api/workspace/write':
+                if not isinstance(payload, dict) or not isinstance(payload.get('state'), dict):
+                    fail('Expected project state')
+                document = from_editor_state(payload['state'])
+                outcome = workspace_for(self.server).save(
+                    document, expected_revision=payload.get('expected_revision'))
+                return self.response(200, 'application/json; charset=utf-8', json_bytes(outcome))
             if self.path == '/api/project/open':
                 # Any supported project file -> editor state; older schemas are migrated in memory only.
                 document = upgrade(payload)
@@ -483,6 +510,12 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == '/api/hmod':
                 return self.response(200, 'application/octet-stream', hmod_zip(payload), f'{mod_id}.hmod')
             return self.response(200, 'application/zip', project_zip(payload), f'{mod_id}-source.zip')
+        except WorkspaceNotFound as exc:
+            return self.response(404, 'application/json; charset=utf-8', json_bytes({'error': str(exc)}))
+        except WorkspaceConflict as exc:
+            return self.response(409, 'application/json; charset=utf-8', json_bytes({'error': str(exc)}))
+        except WorkspaceCorrupt as exc:
+            return self.response(422, 'application/json; charset=utf-8', json_bytes({'error': str(exc)}))
         except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             return self.response(400, 'application/json; charset=utf-8', json_bytes({'error': str(exc)}))
 
