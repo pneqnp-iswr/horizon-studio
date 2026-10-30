@@ -1,0 +1,92 @@
+name: Official Horizon content-mod check
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - '.github/workflows/official-content-check.yml'
+      - 'horizon_compat/**'
+      - 'horizon_cli.py'
+      - 'studio.py'
+      - 'source_workbench.py'
+      - 'voxel_architect.py'
+      - 'examples/**'
+      - 'scripts/record_official_evidence.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  official-content-mod:
+    name: Pinned Rust validator against generated Ruby mod
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      HORIZON_SHA: d2186eb9aa022a64a8b26e6989a04e44fba99ee7
+    steps:
+      - name: Checkout Studio
+        uses: actions/checkout@v4
+
+      - name: Checkout audited Horizon source at immutable revision
+        uses: actions/checkout@v4
+        with:
+          repository: horizon-rust/horizon
+          ref: d2186eb9aa022a64a8b26e6989a04e44fba99ee7
+          path: _horizon_upstream
+          persist-credentials: false
+
+      - name: Verify exact checkout revision
+        shell: bash
+        run: |
+          actual="$(git -C _horizon_upstream rev-parse HEAD)"
+          test "$actual" = "$HORIZON_SHA" || {
+            echo "::error::Unexpected Horizon checkout $actual"
+            exit 1
+          }
+          echo "Pinned upstream checkout: $actual"
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust toolchain metadata
+        shell: bash
+        run: |
+          mkdir -p dist/official
+          rustc --version | tee dist/official/rustc.txt
+          cargo --version | tee dist/official/cargo.txt
+
+      - name: Compile official cargo-horizon-mod from pinned source
+        shell: bash
+        run: |
+          cargo build --manifest-path _horizon_upstream/Cargo.toml --locked --package cargo-horizon-mod
+          test -x _horizon_upstream/target/debug/cargo-horizon-mod
+          sha256sum _horizon_upstream/target/debug/cargo-horizon-mod | tee dist/official/checker-binary.sha256
+
+      - name: Validate generated .hmod using genuine official CLI
+        shell: bash
+        run: |
+          python horizon_cli.py verify examples/ruby_demo.hstudio.json \
+            --direct-validator \
+            --validator-bin "$PWD/_horizon_upstream/target/debug/cargo-horizon-mod" \
+            --validator-revision "$HORIZON_SHA" \
+            --evidence dist/official/ruby-check.json \
+            --json
+
+      - name: Record independently inspectable provenance
+        shell: bash
+        run: |
+          python scripts/record_official_evidence.py \
+            --checker _horizon_upstream/target/debug/cargo-horizon-mod \
+            --checker-revision "$HORIZON_SHA" \
+            --official-result dist/official/ruby-check.json \
+            --output dist/official/attestation.json
+
+      - name: Upload official checker logs and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: horizon-official-content-check
+          path: dist/official/
+          if-no-files-found: warn
+          retention-days: 90

@@ -20,7 +20,7 @@ Last verified repository baseline before this work: `4d8c5e7cab8781690e92f74157c
 
 ## Next concrete steps
 
-1. Run a pinned real `cargo horizon-mod check` on a generated fixture and archive evidence; unit tests alone are insufficient.
+1. Execute the new pinned official checker GitHub Actions workflow, inspect the real report and archive evidence. Fix any detected `.hmod` incompatibilities instead of weakening checks.
 2. Add opt-in game-load smoke tests where legally prepared game data exists (HS-002).
 3. Track actual compatibility evidence by engine SHA; do not promote local smoke to in-game validation.
 
