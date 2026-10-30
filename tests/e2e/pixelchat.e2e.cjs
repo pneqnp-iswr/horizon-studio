@@ -3,6 +3,7 @@
 const assert = require('node:assert/strict');
 const { spawn } = require('node:child_process');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { test } = require('node:test');
 const { chromium } = require('playwright');
 
@@ -67,22 +68,17 @@ test('two real Chromium clients share animated GIF and pixel emoji with auth and
     assert.equal(await pageB.locator('.content canvas').count(), 1);
     assert.equal(await pageB.locator('.bubble img').getAttribute('alt'), 'Shared GIF/image');
 
-    const animated = await pageB.evaluate(async () => {
-      const img = document.querySelector('.bubble img');
-      const canvas = document.createElement('canvas');
-      canvas.width = canvas.height = 8;
-      const ctx = canvas.getContext('2d');
-      const samples = new Set();
-      for (let i = 0; i < 40; i++) {
-        ctx.clearRect(0, 0, 8, 8);
-        ctx.drawImage(img, 0, 0);
-        samples.add([...ctx.getImageData(4, 4, 1, 1).data].slice(0, 3).join(','));
-        if (samples.size > 1) return true;
-        await new Promise(resolve => setTimeout(resolve, 75));
-      }
-      return false;
-    });
-    assert.ok(animated, 'GIF animation frames must visibly change within three seconds');
+    await pageB.bringToFront();
+    const hashes = new Set();
+    const gifImage = pageB.locator('.bubble img');
+    for (let i = 0; i < 32; i++) {
+      // Screenshot the actually painted GIF, not drawImage's possibly static source snapshot.
+      const png = await gifImage.screenshot({ animations: 'allow' });
+      hashes.add(crypto.createHash('sha256').update(png).digest('hex'));
+      if (hashes.size > 1) break;
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    assert.ok(hashes.size > 1, 'The browser must paint more than one GIF frame in 3.2 seconds');
 
     await pageB.locator('#reduce').check();
     await pageB.waitForFunction(() => document.querySelector('.bubble')?.textContent.includes('[image paused:'));
