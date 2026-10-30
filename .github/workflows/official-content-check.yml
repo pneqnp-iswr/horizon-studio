@@ -28,6 +28,7 @@ on:
       - 'tests/fixtures/migration/**'
       - 'scripts/record_official_evidence.py'
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read

@@ -1,0 +1,32 @@
+name: Repair published release notes
+
+# Replaces only the description of an existing release with docs/releases/v<version>.md.
+# Assets, checksums and tags are never touched (scripts/release.py repair-notes).
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Released version, e.g. 0.6.0'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  repair:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ inputs.version }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Update the description only
+        run: python scripts/release.py repair-notes --repo "$GITHUB_REPOSITORY" --version "$VERSION" --notes "docs/releases/v$VERSION.md"
+      - name: Verify the release through the API
+        run: python scripts/release.py verify --repo "$GITHUB_REPOSITORY" --version "$VERSION"
