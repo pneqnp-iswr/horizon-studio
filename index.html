@@ -325,6 +325,7 @@ async function acceptDiskWorkspace(){
     const response=await studioPost('/api/workspace/recover',JSON.stringify({project_id:id}));
     const data=await response.json();if(!response.ok)throw Error(data.error||t('apiError'));
     if(generation!==diskWorkspace.generation)return;
+    diskWorkspace.generation++; // Cancel queued writes from the old editor snapshot.
     applyProject(data.state,{skipWorkspaceCheck:true});
     diskWorkspace.id=id;diskWorkspace.revision=data.revision;diskWorkspace.mode='ready';
     workspaceNotice(data.recovered_from_backup?'workspaceBackupRecovered':'workspaceRecovered');
@@ -337,6 +338,7 @@ async function keepEditorWorkspace(){
     const response=await studioPost('/api/workspace/recover',JSON.stringify({project_id:id}));
     const data=await response.json();if(!response.ok)throw Error(data.error||t('apiError'));
     if(generation!==diskWorkspace.generation)return;
+    diskWorkspace.generation++; // Invalidate any queued stale writes before an explicit overwrite.
     diskWorkspace.revision=data.revision;diskWorkspace.mode='ready';
     scheduleWorkspaceSave();
   }catch(e){workspaceNotice('workspaceError',{error:e.message});}
@@ -344,12 +346,12 @@ async function keepEditorWorkspace(){
 function undoProject(){
   const previous=editJournal.undo();if(!previous)return;
   applyProject(previous,{preserveHistory:true,skipWorkspaceCheck:true});
-  historyButtons();scheduleWorkspaceSave();
+  historyButtons();if(diskWorkspace.id!==meta().id)beginWorkspaceSession();else scheduleWorkspaceSave();
 }
 function redoProject(){
   const next=editJournal.redo();if(!next)return;
   applyProject(next,{preserveHistory:true,skipWorkspaceCheck:true});
-  historyButtons();scheduleWorkspaceSave();
+  historyButtons();if(diskWorkspace.id!==meta().id)beginWorkspaceSession();else scheduleWorkspaceSave();
 }
 function allEntries(){return [...state.blocks,...state.items];}
 function ingredientChoices(){return {...ING,...Object.fromEntries(allEntries().map(e=>['@'+e.id,e.name+t('modSuffix')]))};}
@@ -460,7 +462,7 @@ function refreshLanguage(){
     const grid=Array.from({length:9},(_,i)=>$('slot'+i)?.value||'');
     renderGrid(grid);
   }
-  render();status('');
+  render();if($('workspaceSaveStatus').dataset.key)workspaceNotice($('workspaceSaveStatus').dataset.key);status('');
 }
 window.HorizonStudioRefreshLanguage=refreshLanguage;
 async function runDoctor(){
