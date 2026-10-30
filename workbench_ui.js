@@ -73,6 +73,20 @@
     let journey=null,lastCheck=null,timer=null,returnFocus=null;
 
     for(const button of document.querySelectorAll('.outline-btn[data-kind]'))button.onclick=()=>ctx.chooseTab(button.dataset.kind);
+    // Rail kinds follow the ARIA tabs pattern: one tab stop, arrows/Home/End move and select.
+    const tabs=KINDS.map(kind=>$(kind+'Tab'));
+    for(const tab of tabs){
+      tab.setAttribute('aria-controls','canvas');
+      tab.addEventListener('keydown',event=>{
+        const index=tabs.indexOf(tab),last=tabs.length-1;
+        const next={ArrowDown:index+1,ArrowRight:index+1,ArrowUp:index-1,ArrowLeft:index-1,Home:0,End:last}[event.key];
+        if(next===undefined)return;
+        event.preventDefault();
+        const target=tabs[(next+tabs.length)%tabs.length];
+        target.focus();
+        target.click();
+      });
+    }
 
     async function check(){
       const response=await post('/api/capabilities/check',JSON.stringify(snapshot()));
@@ -129,6 +143,14 @@
     $('openCapabilities').onclick=()=>openJourney(true);
     $('closeJourney').onclick=closeJourney;
     document.addEventListener('keydown',event=>{if(event.key==='Escape')closeJourney();});
+    // aria-modal: keep Tab inside the open dialog.
+    $('journeyDialog').addEventListener('keydown',event=>{
+      if(event.key!=='Tab')return;
+      const focusable=[...$('journeyDialog').querySelectorAll('button,[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.disabled&&el.getClientRects().length);
+      const first=focusable[0],last=focusable[focusable.length-1];
+      if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+    });
 
     function update({meta,counts,tab}){
       $('topProjectName').textContent=meta.name||meta.id||'—';
@@ -139,6 +161,7 @@
         button.classList.toggle('selected',kind===tab);
         button.setAttribute('aria-current',kind===tab?'true':'false');
         $(kind+'Tab').setAttribute('aria-selected',String(kind===tab));
+        $(kind+'Tab').tabIndex=kind===tab?0:-1;
       }
       document.body.dataset.tab=tab;
       refreshEngine();

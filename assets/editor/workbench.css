@@ -6,7 +6,7 @@
   --stone0:#1d232c;--stone1:#2b333e;--stone2:#3e4755;--stone3:#5a6472;--stone4:#7f8999;
   --moss1:#2c5a36;--moss2:#467f43;--moss3:#79b257;--gold0:#7a4e12;--gold1:#c48a24;--gold2:#f0bd4a;--gold3:#fff0b5;
   --cyan0:#0c4a5a;--cyan1:#1f9fbd;--cyan2:#58dcef;--cyan3:#d2fbff;--violet2:#9a78e0;--ember2:#ff9a4d;--red:#d94a4a;
-  --ink:#e8edf4;--muted:#a3afbe;--faint:#6f7b8b;
+  --ink:#e8edf4;--muted:#a3afbe;--faint:#8b97a8;  /* faint stays >= 4.5:1 on every surface (axe-checked) */
   /* roles */
   --bg:var(--void);--surface:var(--night2);--surface2:var(--night3);--raised:var(--dusk);--field:var(--night);
   --line:var(--stone1);--line2:var(--stone2);--text:var(--ink);--accent:var(--cyan2);--verified:var(--gold2);--danger:#ff9caa;

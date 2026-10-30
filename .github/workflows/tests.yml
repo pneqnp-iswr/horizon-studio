@@ -53,7 +53,7 @@ jobs:
           node-version: '22'
       - name: Install pinned Playwright and Chromium
         run: |
-          npm install --no-save --no-package-lock playwright@1.63.0
+          npm install --no-save --no-package-lock playwright@1.63.0 axe-core@4.10.3
           npx playwright install --with-deps chromium
       - name: Run browser end-to-end tests
         run: node --test --test-reporter=spec tests/e2e/*.e2e.cjs

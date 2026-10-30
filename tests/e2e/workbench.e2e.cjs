@@ -130,3 +130,45 @@ e2e('the Russian workbench has no leftover English interface text', async ({ pag
   }, [...allowed]);
   assert.deepEqual(leftovers, []);
 });
+
+e2e('the rail is keyboard operable and the journey dialog keeps focus inside', async ({ page }) => {
+  await page.focus('#recipeTab');
+  await page.keyboard.press('ArrowDown');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'structureTab');
+  assert.equal(await page.getAttribute('body', 'data-tab'), 'structure');
+  await page.keyboard.press('Home');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'blockTab');
+  assert.deepEqual(await page.$$eval('.rail-group [role=tab]', tabs => tabs.map(t => t.tabIndex)), [0, -1, -1, -1]);
+  await page.click('#openJourney');
+  await page.waitForSelector('#journeyBuild');
+  for (let i = 0; i < 6; i++) {
+    await page.keyboard.press('Tab');
+    assert.ok(await page.evaluate(() => document.querySelector('#journeyDialog').contains(document.activeElement)),
+      'focus must stay in the modal dialog');
+  }
+});
+
+e2e('automated WCAG 2.1 AA rules pass on the main workbench states (axe-core)', async ({ page }) => {
+  let axe;
+  try { axe = require.resolve('axe-core/axe.min.js'); } catch (_) {
+    if (process.env.CI) throw new Error('axe-core must be installed in CI');
+    return;  // local runs without axe-core skip this check
+  }
+  // Entry cards fade in; with reduced motion they render final colours at once, so contrast is measured as seen.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const audit = async label => {
+    await page.addScriptTag({ path: axe });
+    const result = await page.evaluate(() => window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] }));
+    assert.deepEqual(result.violations.map(v => `${label}: ${v.id} (${v.nodes.map(n => n.target.join(' ')).join(', ')})`), []);
+  };
+  await audit('empty project');
+  await showExplorer(page);
+  await page.click('#demo');
+  await waitStatus(page, await t(page, 'demoLoaded'));
+  assert.equal(await page.$eval('.entry-card', card => getComputedStyle(card).animationName), 'none', 'reduced motion stops the fade-in');
+  await audit('demo');
+  await page.click('#lang-ru');
+  await page.click('#openJourney');
+  await page.waitForSelector('#journeyBuild');
+  await audit('journey in Russian');
+});

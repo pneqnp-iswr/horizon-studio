@@ -34,6 +34,8 @@ Set `PYTHON` to choose the interpreter that runs `studio.py` (default `python3`,
 | Engine target | After loading the demo the card lists the capabilities the project needs; the status bar shows `Horizon d2186eb · API 0.2` |
 | Export gate | When the capability check reports a missing capability, export is refused with the reason, nothing is downloaded and the project is unchanged |
 | Russian UI | No English interface words remain in visible text, labels, placeholders or titles (product names, formats and commands excepted) |
+| Keyboard | Rail kinds follow the ARIA tabs pattern (one tab stop; arrows, Home and End move and select); Tab stays inside the modal journey dialog |
+| Accessibility | axe-core 4.10.3 WCAG 2.0/2.1 A and AA rules report no violations on the empty project, the demo and the Russian journey (with reduced motion, which also stops the card fade-in) |
 
 Any uncaught page error, console error, failed static asset request or HTTP 5xx fails the test. Expected API answers (404 "no workspace yet", 409 conflict, 400 validation) are part of the protocol and each test asserts how the UI handles them.
 
