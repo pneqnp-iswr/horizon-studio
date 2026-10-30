@@ -5,7 +5,7 @@ Last updated: 2026-10-30. Master before this update: `156192db2d8abc3b2cef55bad8
 ## Roadmap position
 
 - Phase: **F0 / Iteration I — Verified Mod Compatibility & Security**, all code deliverables merged; the F0 gate still lacks a real-game load record (HS-002 evidence).
-- Current phase: **F1 / Iteration II — Project Graph, Durability**. HS-005 implemented in this change; HS-006 next.
+- Current phase: **F1 / Iteration II — Project Graph, Durability**. HS-005 delivered in PR #7; HS-006 next.
 
 | ID | State | Evidence |
 |---|---|---|
@@ -13,7 +13,7 @@ Last updated: 2026-10-30. Master before this update: `156192db2d8abc3b2cef55bad8
 | HS-004 release metadata | **done** | PR #2 → `6c61770`; `scripts/check_release_metadata.py` in tests |
 | HS-001 official `.hmod` checker | **done (official-static level)** | PR #3 adapter → `3ed765a`; PR #4 pinned CI → `b38b95c`; PR #6 checks every example → `156192d` (CI run `41121633085`). Real `cargo-horizon-mod` built from `d2186eb` accepted all three examples; see [COMPATIBILITY_EVIDENCE.md](../COMPATIBILITY_EVIDENCE.md) |
 | HS-002 real-game content smoke | **harness ready, never run on a real game** | PR #5 → `cfab21b`; PR #6 → `156192d` makes the launch self-exiting (`--frames`, `--smoke-report`, `--home`) and corroborates files byte for byte ([GAME_CONTENT_SMOKE.md](../GAME_CONTENT_SMOKE.md)) |
-| HS-005 project document + migration | **implemented (this change)** | `studio_core/` — `studio.project/1` with stable UIDs and UID references, migration from schemas 2–4 with golden fixtures and byte-identical `.hmod`, `AssetGraph`, atomic writes; CLI `migrate`/`graph`; editor open/save via `/api/project/open` and `/api/project/save`. [PROJECT_FORMAT.md](../PROJECT_FORMAT.md), [ADR-0001](../adr/0001-canonical-project-document.md) |
+| HS-005 project document + migration | **done** (PR #7; CI on the PR) | `studio_core/` — `studio.project/1` with stable UIDs and UID references, migration from schemas 2–4 with golden fixtures and byte-identical `.hmod`, `AssetGraph`, atomic writes; CLI `migrate`/`graph`; editor open/save via `/api/project/open` and `/api/project/save`. [PROJECT_FORMAT.md](../PROJECT_FORMAT.md), [ADR-0001](../adr/0001-canonical-project-document.md) |
 | HS-006 durable workspace + undo | next | — |
 
 ## Compatibility status (by level)
@@ -28,9 +28,9 @@ Last updated: 2026-10-30. Master before this update: `156192db2d8abc3b2cef55bad8
 - CLI dropped editor `source_overrides`, so CLI builds differed from editor exports (HS-005; regression test in `tests/test_project_migration.py`).
 - At 1280×720 and other viewports under ~900 px high the editor form squeezed the entry list to zero height, so entries could not be opened or deleted (found by the browser check below; fixed with a short-viewport layout rule).
 
-## Verification of this change
+## Verification of PR #7
 
-- Unit/integration: `python -m unittest discover -s tests` — 134 tests pass locally (Python 3.13, Linux).
+- Unit/integration: `python -m unittest discover -s tests` — 134 tests pass locally on Python 3.11, 3.12 and 3.13 (Linux); CI matrix on the PR covers Ubuntu/Windows × 3.11/3.12.
 - Official checker (local, `d2186eb`): 3 legacy examples + 3 migrated `studio.project/1` fixtures pass with identical hashes.
 - Browser (local, Playwright + Chromium, not yet in CI): demo → save produces `studio.project/1`; renaming an item keeps its `uid` and recipe references; new objects get UUIDv4; opening the schema-2 example shows the migration notice; exported `.hmod` SHA-256 `ee3e1c87…` equals the officially checked package; Russian status text; no page errors.
 
