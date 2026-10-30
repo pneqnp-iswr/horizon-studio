@@ -66,7 +66,7 @@ class WorkspaceStoreTests(unittest.TestCase):
         edited = json.loads(json.dumps(self.document))
         edited['project']['name'] = 'Interrupt-me'
         with patch('studio_core.workspace.atomic_write_bytes', wraps=atomic_write_bytes) as writer:
-            original = writer.side_effect
+            original = atomic_write_bytes
             calls = [0]
             def interrupted(*args):
                 calls[0] += 1
