@@ -30,6 +30,18 @@ import threading
 
 HOST = '127.0.0.1'
 PORT = 8787
+# Editor scripts served at /<name> and bundled into the Windows executable, each with a marker
+# the frozen smoke test looks for. index.html, the build and the smoke test all use this list.
+WEB_SCRIPTS = {
+    'i18n.js': b'HorizonI18n',
+    'model_viewer.js': b'HorizonModelViewer',
+    'editor_history.js': b'HorizonStudioHistory',
+    'editor_api.js': b'HorizonStudioApi',
+    'editor_workspace.js': b'createWorkspaceSync',
+    'source_workbench_ui.js': b'source_overrides',
+}
+# Every file the packaged application needs at runtime, relative to the repository root.
+BUNDLED_FILES = ('index.html', 'VERSION', *WEB_SCRIPTS, 'assets/branding/horizon-studio-mark.png')
 MAX_REQUEST_BYTES = 6 * 1024 * 1024
 ID_RE = re.compile(r'^[a-z][a-z0-9_]{0,63}$')
 VERSION_RE = re.compile(r'^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$')
@@ -428,8 +440,7 @@ class Handler(BaseHTTPRequestHandler):
         root = Path(__file__).parent
         if self.path in ('/', '/index.html'):
             self.response(200, 'text/html; charset=utf-8', (root / 'index.html').read_bytes())
-        elif self.path in ('/i18n.js', '/model_viewer.js', '/source_workbench_ui.js', '/editor_history.js',
-                           '/editor_api.js', '/editor_workspace.js'):
+        elif self.path.lstrip('/') in WEB_SCRIPTS:
             self.response(200, 'text/javascript; charset=utf-8', (root / self.path.lstrip('/')).read_bytes())
         elif self.path.startswith('/assets/'):
             target = (root / self.path.lstrip('/')).resolve()

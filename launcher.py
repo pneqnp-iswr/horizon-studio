@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import sys
 import threading
+import urllib.error
 import urllib.request
 import webbrowser
 from http.server import ThreadingHTTPServer
@@ -37,45 +38,151 @@ def start_server(*, smoke_test: bool = False) -> ThreadingHTTPServer:
     return server
 
 
-def smoke_test() -> int:
-    """Exercise bundled web assets and a generated mod without displaying a GUI."""
-    server = start_server(smoke_test=True)
-    worker = threading.Thread(target=server.serve_forever, daemon=True)
-    worker.start()
-    base = f"http://{HOST}:{server.server_port}"
-    try:
-        for path, expected in (("/", b"Horizon Studio"), ("/i18n.js", b"HorizonI18n"), ("/model_viewer.js", b"HorizonModelViewer"), ("/source_workbench_ui.js", b"source_overrides"), ("/editor_history.js", b"HorizonStudioHistory"), ("/editor_api.js", b"HorizonStudioApi"), ("/editor_workspace.js", b"createWorkspaceSync")):
-            with urllib.request.urlopen(base + path, timeout=10) as response:
-                data = response.read()
-                if response.status != 200 or expected not in data:
-                    raise RuntimeError(f"Unexpected response from {path}")
-        sample = {
-            "id": "smoke", "name": "Smoke Test", "version": "0.1.0",
-            "author": "Horizon Studio", "description": "Bundled application smoke check",
-            "blocks": [], "items": [{"id": "probe", "name": "Probe", "template": "minecraft:diamond"}], "recipes": [], "structures": []
-        }
-        with urllib.request.urlopen(base + "/api/session", timeout=10) as response:
-            token = json.loads(response.read())["token"]
-        body = json.dumps(sample).encode("utf-8")
-        request = urllib.request.Request(
-            base + "/api/preview", body,
-            headers={"Content-Type": "application/json", "X-Studio-Token": token}, method="POST"
-        )
-        with urllib.request.urlopen(request, timeout=10) as response:
-            result = json.loads(response.read())
-            if response.status != 200 or "manifest" not in result:
-                raise RuntimeError("Packager API verification failed")
-        if sys.stdout is not None:
-            print("Horizon Studio standalone smoke test passed", flush=True)
-        return 0
-    except Exception as exc:
-        if sys.stderr is not None:
-            print(f"Horizon Studio smoke test FAILED: {exc}", file=sys.stderr, flush=True)
-        return 1
-    finally:
+# The ruby demo request; the official cargo-horizon-mod accepted exactly these package bytes
+# (docs/COMPATIBILITY_EVIDENCE.md), so a frozen build must reproduce them.
+SMOKE_PACKAGE = {
+    "id": "ruby_demo", "name": "Ruby Demo", "version": "0.1.0", "author": "Creator",
+    "description": "Example with two recipes, a block and a gem",
+    "blocks": [{"id": "ruby_block", "name": "Block of Ruby", "template": "minecraft:iron_block", "hardness": 4, "light": 3}],
+    "items": [{"id": "ruby", "name": "Ruby", "template": "minecraft:diamond", "rarity": "rare", "max_stack_size": 64}],
+    "recipes": [
+        {"id": "ruby_block", "type": "shaped", "result": "ruby_demo:ruby_block", "count": 1, "grid": ["ruby_demo:ruby"] * 9},
+        {"id": "ruby_from_block", "type": "shapeless", "result": "ruby_demo:ruby", "count": 9,
+         "grid": ["ruby_demo:ruby_block"] + [""] * 8},
+    ],
+    "structures": [],
+}
+SMOKE_PACKAGE_SHA256 = "ee3e1c878ea41fbf710f749896bfdb92b23b18e21e67b016b57b95b96a8797e2"
+SMOKE_LEGACY_PROJECT = {
+    "format": "horizon-studio", "schema": 2,
+    "metadata": {"id": "smoke_project", "name": "Smoke", "version": "0.1.0", "author": "Horizon Studio"},
+    "blocks": [], "items": [{"id": "probe", "name": "Probe", "template": "minecraft:diamond"}],
+    "recipes": [{"id": "probe_recipe", "type": "shapeless", "result": "@probe", "count": 1,
+                 "grid": ["minecraft:diamond"] + [""] * 8}],
+}
+
+
+def smoke_test(report_path: Path | None = None, workspace_dir: Path | None = None) -> int:
+    """Self-test of the bundled application without a GUI.
+
+    Checks every bundled script and asset, both languages, the session API, project
+    open/save, disk workspaces (also across a server restart and, with a persistent
+    ``workspace_dir``, across process launches), the exported package bytes and shutdown.
+    """
+    import hashlib
+    import tempfile
+    from studio import WEB_SCRIPTS
+    from studio_core.workspace import WorkspaceStore
+
+    checks: dict[str, object] = {}
+    error = None
+    temporary = None
+    if workspace_dir is None:
+        temporary = tempfile.TemporaryDirectory(prefix="horizon-studio-smoke-")
+        workspace_dir = Path(temporary.name)
+    servers = []
+
+    def launch():
+        server = start_server(smoke_test=True)
+        server.studio_workspaces = WorkspaceStore(Path(workspace_dir))
+        worker = threading.Thread(target=server.serve_forever, daemon=True)
+        worker.start()
+        servers.append((server, worker))
+        return f"http://{HOST}:{server.server_port}"
+
+    def get(base, path):
+        with urllib.request.urlopen(base + path, timeout=10) as response:
+            if response.status != 200:
+                raise RuntimeError(f"GET {path} returned {response.status}")
+            return response.read()
+
+    def post(base, token, path, payload):
+        request = urllib.request.Request(base + path, json.dumps(payload).encode("utf-8"), method="POST",
+                                         headers={"Content-Type": "application/json", "X-Studio-Token": token})
+        try:
+            with urllib.request.urlopen(request, timeout=10) as response:
+                return response.status, response.read()
+        except urllib.error.HTTPError as exc:
+            return exc.code, exc.read()
+
+    def stop(server, worker):
         server.shutdown()
         server.server_close()
         worker.join(timeout=5)
+        return not worker.is_alive()
+
+    try:
+        base = launch()
+        html = get(base, "/")
+        missing = [name for name in WEB_SCRIPTS if f'src="/{name}"'.encode() not in html]
+        if b"Horizon Studio" not in html or missing:
+            raise RuntimeError(f"index.html does not load {missing}")
+        for name, marker in WEB_SCRIPTS.items():
+            if marker not in get(base, "/" + name):
+                raise RuntimeError(f"Bundled script {name} is wrong or missing")
+        checks["scripts"] = sorted(WEB_SCRIPTS)
+        if not get(base, "/assets/branding/horizon-studio-mark.png").startswith(b"\x89PNG"):
+            raise RuntimeError("Bundled favicon is missing")
+        i18n = get(base, "/i18n.js")
+        if b'"en": {' not in i18n or b'"ru": {' not in i18n:
+            raise RuntimeError("Both EN and RU catalogs must be bundled")
+        checks["i18n"] = ["en", "ru"]
+        token = json.loads(get(base, "/api/session"))["token"]
+
+        status, raw = post(base, token, "/api/project/open", SMOKE_LEGACY_PROJECT)
+        opened = json.loads(raw)
+        if status != 200 or opened.get("migrated_from") != 2:
+            raise RuntimeError(f"Project open failed: {status} {raw[:200]!r}")
+        status, raw = post(base, token, "/api/project/save", opened["state"])
+        if status != 200 or json.loads(raw).get("schema") != "studio.project/1":
+            raise RuntimeError(f"Project save failed: {status}")
+        checks["project_open_save"] = "schema 2 -> studio.project/1"
+
+        state = opened["state"]
+        status, raw = post(base, token, "/api/workspace/recover", {"project_id": "smoke_project"})
+        previous = json.loads(raw).get("revision") if status == 200 else None
+        if status not in (200, 404):
+            raise RuntimeError(f"Workspace recover failed: {status}")
+        checks["workspace_before_launch"] = "recovered" if previous else "empty"
+        status, raw = post(base, token, "/api/workspace/write", {"state": state, "expected_revision": previous})
+        if status != 200:
+            raise RuntimeError(f"Workspace write failed: {status} {raw[:200]!r}")
+        revision = json.loads(raw)["revision"]
+
+        status, raw = post(base, token, "/api/hmod", SMOKE_PACKAGE)
+        digest = hashlib.sha256(raw).hexdigest()
+        if status != 200 or digest != SMOKE_PACKAGE_SHA256:
+            raise RuntimeError(f"Exported package {digest} differs from the officially checked bytes")
+        checks["hmod_sha256"] = digest
+
+        if not stop(*servers[0]):
+            raise RuntimeError("Server thread did not stop")
+        base = launch()  # a fresh server must see the saved workspace
+        token = json.loads(get(base, "/api/session"))["token"]
+        status, raw = post(base, token, "/api/workspace/recover", {"project_id": "smoke_project"})
+        if status != 200 or json.loads(raw)["revision"] != revision:
+            raise RuntimeError("Workspace did not survive a server restart")
+        checks["workspace_after_restart"] = revision
+        if not stop(*servers[1]):
+            raise RuntimeError("Server thread did not stop")
+        checks["shutdown"] = "clean"
+    except Exception as exc:  # reported, never hidden
+        error = f"{type(exc).__name__}: {exc}"
+    finally:
+        for server, worker in servers:
+            if worker.is_alive():
+                stop(server, worker)
+        if temporary is not None:
+            temporary.cleanup()
+    report = {"schema": "horizon-studio.smoke/1", "version": app_version(), "ok": error is None,
+              "checks": checks, "error": error}
+    if report_path is not None:
+        Path(report_path).write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    if sys.stdout is not None and error is None:
+        print("Horizon Studio standalone smoke test passed", flush=True)
+    if sys.stderr is not None and error is not None:
+        print(f"Horizon Studio smoke test FAILED: {error}", file=sys.stderr, flush=True)
+    return 0 if error is None else 1
 
 
 def launch_gui() -> None:
@@ -169,7 +276,9 @@ def launch_gui() -> None:
 
 def main() -> int:
     if "--smoke-test" in sys.argv:
-        return smoke_test()
+        def option(flag):
+            return Path(sys.argv[sys.argv.index(flag) + 1]) if flag in sys.argv[:-1] else None
+        return smoke_test(option("--smoke-report"), option("--smoke-workspace"))
     launch_gui()
     return 0
 

@@ -10,3 +10,7 @@ Thanks for helping make Horizon tooling accessible to mod creators.
 6. Do not bundle proprietary Horizon/Minecraft assets, publish credentials, or claim game compatibility without reproduction.
 
 All contributors must follow the project's [Code of Conduct](CODE_OF_CONDUCT.md). Changes to the project are licensed under MIT.
+
+## Releases
+
+Version bumps follow [docs/RELEASING.md](docs/RELEASING.md): every new `VERSION` must end in a GitHub release with a verified Windows executable, checksums and build manifest, and release notes for exactly that version.
