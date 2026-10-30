@@ -53,9 +53,10 @@ class RoadmapValidationTests(unittest.TestCase):
         self.assert_rejected(lambda d: d.update(active_milestone="HS-005"), "is not in_progress")
         self.assert_rejected(lambda d: milestone(d, "HS-009").update(status="in_progress"),
                              "in progress outside the current phase")
-        self.assert_rejected(lambda d: d["verification"][3].update(
-            status="verified", evidence=[{"ref": "x", "url": "docs/GAME_CONTENT_SMOKE.md"}]),
-            "lower level is not")
+        def skip_a_level(d):
+            d["verification"][3].update(status="blocked", evidence=[])
+            d["verification"][4].update(status="verified", evidence=[{"ref": "x", "url": "docs/GAME_CONTENT_SMOKE.md"}])
+        self.assert_rejected(skip_a_level, "lower level is not")
 
     def test_rejects_invalid_or_missing_evidence(self):
         self.assert_rejected(lambda d: milestone(d, "HS-003").update(evidence=[]), "without evidence")
@@ -67,7 +68,7 @@ class RoadmapValidationTests(unittest.TestCase):
                              "missing file")
         self.assert_rejected(lambda d: milestone(d, "HS-003")["evidence"][0].update(level="vibes"),
                              "unsupported level")
-        self.assert_rejected(lambda d: milestone(d, "HS-006").pop("missing"), "does not say what is missing")
+        self.assert_rejected(lambda d: milestone(d, "HS-005").update(status="partial"), "does not say what is missing")
         self.assert_rejected(lambda d: milestone(d, "HS-002").pop("blocker"), "without a blocker")
         self.assert_rejected(lambda d: d["verification"][0].update(evidence=[]), "verified without evidence")
 
