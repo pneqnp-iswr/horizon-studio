@@ -11,6 +11,7 @@ import tempfile
 import threading
 import unittest
 from unittest.mock import patch
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -70,6 +71,21 @@ class MigrationGoldenTests(unittest.TestCase):
                 self.assertEqual(sha(migrated), OFFICIALLY_CHECKED[name])
                 golden = json.loads((ROOT / "tests" / "fixtures" / "migration" / f"{name}.studio.json").read_text())
                 self.assertEqual(sha(hmod_zip(to_generator_request(golden))), OFFICIALLY_CHECKED[name])
+
+    def test_package_bytes_do_not_depend_on_the_operating_system(self):
+        # zipfile.ZipInfo defaults create_system to 0 on Windows; that once made
+        # Windows exports differ from the officially checked Linux bytes.
+        original = zipfile.ZipInfo.__init__
+
+        def windows_default(info, *args, **kwargs):
+            original(info, *args, **kwargs)
+            info.create_system = 0
+
+        with patch.object(zipfile.ZipInfo, "__init__", windows_default):
+            for name in EXAMPLES:
+                with self.subTest(name):
+                    package = hmod_zip(to_generator_request(upgrade(example(name))))
+                    self.assertEqual(sha(package), OFFICIALLY_CHECKED[name])
 
     def test_migration_is_idempotent_and_deterministic(self):
         for name in EXAMPLES:

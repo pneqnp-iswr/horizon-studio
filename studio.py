@@ -361,6 +361,9 @@ def _archive(files):
             # Stable timestamps for reproducible output (1980 is ZIP's earliest date).
             info = zipfile.ZipInfo(path, date_time=(2020, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
+            # ZipInfo defaults create_system to 0 on Windows and 3 elsewhere; pin it so
+            # every OS writes the same bytes (and the Unix mode below means what it says).
+            info.create_system = 3
             info.external_attr = 0o644 << 16
             archive.writestr(info, content, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
     return result.getvalue()

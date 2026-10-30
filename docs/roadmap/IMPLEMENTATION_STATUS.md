@@ -26,11 +26,12 @@ Last updated: 2026-10-30. Master before this update: `156192db2d8abc3b2cef55bad8
 
 - HS-002 harness (PR #6): no exit condition for the interactive client (every run timed out); `ModuleNotFoundError` when run as documented; stale resource-root files counted as evidence.
 - CLI dropped editor `source_overrides`, so CLI builds differed from editor exports (HS-005; regression test in `tests/test_project_migration.py`).
+- Windows builds wrote different `.hmod` bytes than Linux (`zipfile` "made by" field defaults to MS-DOS on Windows), so packages exported by the Windows EXE were not the officially checked bytes. Found by the new hash assertions failing only on Windows CI; fixed by pinning the field, with a test that simulates the Windows default on every OS.
 - At 1280×720 and other viewports under ~900 px high the editor form squeezed the entry list to zero height, so entries could not be opened or deleted (found by the browser check below; fixed with a short-viewport layout rule).
 
 ## Verification of PR #7
 
-- Unit/integration: `python -m unittest discover -s tests` — 134 tests pass locally on Python 3.11, 3.12 and 3.13 (Linux); CI matrix on the PR covers Ubuntu/Windows × 3.11/3.12.
+- Unit/integration: `python -m unittest discover -s tests` — 135 tests pass locally on Python 3.11, 3.12 and 3.13 (Linux); CI matrix on the PR covers Ubuntu/Windows × 3.11/3.12.
 - Official checker (local, `d2186eb`): 3 legacy examples + 3 migrated `studio.project/1` fixtures pass with identical hashes.
 - Browser (local, Playwright + Chromium, not yet in CI): demo → save produces `studio.project/1`; renaming an item keeps its `uid` and recipe references; new objects get UUIDv4; opening the schema-2 example shows the migration notice; exported `.hmod` SHA-256 `ee3e1c87…` equals the officially checked package; Russian status text; no page errors.
 

@@ -13,6 +13,8 @@ Every compatibility statement about Horizon Studio output is recorded here with 
 
 Packages are deterministic: the same project yields the same bytes on every machine (all hashes below are identical in GitHub Actions and in an independent Linux run). Projects migrated to `studio.project/1` build the same bytes (`tests/test_project_migration.py`).
 
+**Windows caveat (fixed in PR #7):** before PR #7, Python's `zipfile` wrote a different "made by" system field on Windows, so Windows builds — including the 0.5/0.6 Windows EXE — produced different bytes with identical file contents (`ruby_demo`: `8143d989beb2583913f5288770fa5e61f800009f9a63b5b2a60bf6b2aa183173`). Those Windows-built bytes were never run through the official checker. Since PR #7 the field is pinned and every OS writes the hashes below; a test simulates the Windows default on every platform.
+
 | Example | `.hmod` SHA-256 | Bytes | Engine `d2186eb9` (audited pin) | Engine `3a5ac7ff` (upstream `main`, 2026-10-30) |
 |---|---|---:|---|---|
 | `ruby_demo` | `ee3e1c878ea41fbf710f749896bfdb92b23b18e21e67b016b57b95b96a8797e2` | 3128 | **pass** — CI + local | **pass** — local |

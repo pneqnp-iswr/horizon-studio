@@ -8,6 +8,7 @@
 - HS-002: opt-in real-game content-load harness with a bounded, self-exiting launch and byte-for-byte resource corroboration; not yet run on a real game.
 - HS-005: canonical project document `studio.project/1` with stable object UIDs and UID-based recipe references; automatic migration of `.hstudio.json` schemas 2–4 (byte-identical `.hmod` output), `migrate` and `graph` CLI commands, editor open/save through the new format, atomic file writes.
 - Fixed: the CLI dropped editor `source_overrides`, so CLI builds differed from editor exports.
+- Fixed: `.hmod`/source ZIPs built on Windows differed byte-for-byte from Linux builds (ZIP "made by" field); every OS now writes the officially checked bytes.
 - Fixed: at 1280×720 and similar short screens the editor form covered the entry list, making entries unreachable.
 - These post-0.6.0 development changes do not imply a newly published Windows binary.
 
