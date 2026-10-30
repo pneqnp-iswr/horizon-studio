@@ -28,3 +28,5 @@ The most recent browser fallback is still kept in `localStorage` where supported
 - Security and simulated filesystem failure tests run in Python CI. Pure journal tests run under Node 22. Full browser Playwright tests are planned under HS-007.
 
 The snapshots are part of the author's private local machine and are not bundled with published game mods. No Minecraft or Horizon assets are copied.
+
+Windows PyInstaller packages must include `editor_history.js` and the bundled launcher smoke test fetches it alongside other JS assets. An unmodified older executable cannot provide the new workspace UI; use a future release built from this source after QA.
