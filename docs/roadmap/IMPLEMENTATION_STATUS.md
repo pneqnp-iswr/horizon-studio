@@ -1,11 +1,11 @@
 # Horizon Studio — Implementation Status
 
-Last updated: 2026-10-30. Master before this update: `156192db2d8abc3b2cef55bad8f80b8c61c7567c` (PR #6).
+Last updated: 2026-10-31. Verified master after PR #8: `496d7d93cfb84fddd747114cae2a10a05c2d4aa7`.
 
 ## Roadmap position
 
 - Phase: **F0 / Iteration I — Verified Mod Compatibility & Security**, all code deliverables merged; the F0 gate still lacks a real-game load record (HS-002 evidence).
-- Current phase: **F1 / Iteration II — Project Graph, Durability**. HS-005 delivered in PR #7; HS-006 next.
+- Current phase: **F1 / Iteration II — Project Graph, Durability**. HS-005 delivered in PR #7; HS-006 disk-backed workspace and browser history delivered in PR #8, with browser E2E still pending.
 
 | ID | State | Evidence |
 |---|---|---|
@@ -14,7 +14,7 @@ Last updated: 2026-10-30. Master before this update: `156192db2d8abc3b2cef55bad8
 | HS-001 official `.hmod` checker | **done (official-static level)** | PR #3 adapter → `3ed765a`; PR #4 pinned CI → `b38b95c`; PR #6 checks every example → `156192d` (CI run `41121633085`). Real `cargo-horizon-mod` built from `d2186eb` accepted all three examples; see [COMPATIBILITY_EVIDENCE.md](../COMPATIBILITY_EVIDENCE.md) |
 | HS-002 real-game content smoke | **harness ready, never run on a real game** | PR #5 → `cfab21b`; PR #6 → `156192d` makes the launch self-exiting (`--frames`, `--smoke-report`, `--home`) and corroborates files byte for byte ([GAME_CONTENT_SMOKE.md](../GAME_CONTENT_SMOKE.md)) |
 | HS-005 project document + migration | **done** (PR #7; CI on the PR) | `studio_core/` — `studio.project/1` with stable UIDs and UID references, migration from schemas 2–4 with golden fixtures and byte-identical `.hmod`, `AssetGraph`, atomic writes; CLI `migrate`/`graph`; editor open/save via `/api/project/open` and `/api/project/save`. [PROJECT_FORMAT.md](../PROJECT_FORMAT.md), [ADR-0001](../adr/0001-canonical-project-document.md) |
-| HS-006 durable workspace + undo | next | — |
+| HS-006 durable workspace + undo | **implemented (browser E2E pending)** | PR #8 → `496d7d9`: `studio_core/workspace.py`, `/api/workspace/write` and `/api/workspace/recover`, optimistic revision checks, previous-good backup and crash recovery, browser Undo/Redo and explicit overwrite choice; [WORKSPACE_DURABILITY.md](../WORKSPACE_DURABILITY.md). Python/Node CI 41128196057; official checker 41128196066. |
 
 ## Compatibility status (by level)
 
@@ -38,7 +38,7 @@ Last updated: 2026-10-30. Master before this update: `156192db2d8abc3b2cef55bad8
 ## Known open issues
 
 - Browser UI has no automated E2E tests in CI (C-09 / HS-007); the HS-005 browser check was run manually.
-- Browser autosave still keeps editor state in `localStorage`; no undo, no crash-safe workspace on disk (HS-006).
+- Undo/Redo history is in-memory and resets on restart; one previous-good disk snapshot is retained. Browser now uses debounced disk autosave with explicit conflict resolution (HS-006). Full browser E2E is not yet automated (HS-007).
 - Windows EXE is unsigned; manual desktop acceptance not recorded.
 
 ## Architectural decisions in force
@@ -50,15 +50,17 @@ Last updated: 2026-10-30. Master before this update: `156192db2d8abc3b2cef55bad8
 
 ## Next recommended tasks
 
-1. HS-006: command layer (`Command.apply/revert`) over `studio.project/1`, undo/redo journal, on-disk workspace with atomic autosave and crash recovery (fault-injection test).
-2. HS-007: split `index.html` into modules and turn the manual Playwright check into a CI suite (EN/RU, open/save/migrate, export).
+1. HS-007: browser Playwright E2E in CI, covering Undo/Redo, autosave/recover, EN/RU, source overrides, migrations and `.hmod` export; modularize the monolithic UI.
+2. HS-006 refinement: typed `Command.apply/revert` operations over canonical `studio.project/1`, transaction grouping and longer-lived checkpoints where justified. Current editor history uses bounded full-state snapshots.
 3. HS-008: capability registry per engine SHA, recorded in the project document.
 4. HS-002 evidence: run the harness on an authorized installation and add the result to the ledger.
 
 Do not treat a CI-only pass as real Horizon game compatibility.
 
-## Current development branch — HS-006
+## HS-006 delivery (PR #8)
 
-- Initial implementation: optimistic-revision workspace store, canonical disk snapshots with one previous-known-good copy, crash recovery, request-scoped security and HTTP tests.
-- Current HS-006 branch adds browser Undo/Redo and a debounced local-disk autosave client. It requires an explicit conflict decision instead of overwriting another workspace version. Verify CI and browser interactions before marking complete.
-- Conflict is explicit (HTTP 409). Files are confined to `~/.horizon-studio/workspaces/` using hashed project IDs; no arbitrary client path is used.
+- Merged commit: `496d7d93cfb84fddd747114cae2a10a05c2d4aa7`; tests and compatibility checks succeeded at the corresponding PR head `490b8185990a700ce27707e9ac4ec743fd815b13`.
+- Python: 143 tests per runner, Python 3.11/3.12 on Ubuntu/Windows. JavaScript: 7 Node 22 tests. GitHub Actions CI run `41128196057`.
+- Official pinned Horizon `.hmod` checker: success in GitHub Actions run `41128196066`, not a game-client execution.
+- Workspace persistence: per-project hashed paths in `~/.horizon-studio/workspaces`, atomic primary/previous backup, recovery, and explicit 409 conflicts. UI: Undo/Redo, debounced local autosave, manual disk-vs-browser choice.
+- Not yet verified: actual in-browser Playwright end-to-end actions, real-game load, Windows frozen executable rebuilt with new code. No version bump and no new Windows release.
