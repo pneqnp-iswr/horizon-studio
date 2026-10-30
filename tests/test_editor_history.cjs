@@ -46,3 +46,11 @@ test('large snapshots evict old frames rather than corrupt them',()=>{
   assert.ok(journal.before.length<8);
   assert.equal(journal.undo().value.length,400);
 });
+
+test('browser inline script parses as ECMAScript (guard integration)',()=>{
+  const fs=require('node:fs'),vm=require('node:vm');
+  const html=fs.readFileSync(require('node:path').join(__dirname,'..','index.html'),'utf8');
+  const inline=[...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/g)];
+  assert.ok(inline.length>0,'inline editor script missing');
+  for(const match of inline)new vm.Script(match[1],{filename:'index.html'});
+});

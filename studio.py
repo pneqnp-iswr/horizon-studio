@@ -516,6 +516,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.response(409, 'application/json; charset=utf-8', json_bytes({'error': str(exc)}))
         except WorkspaceCorrupt as exc:
             return self.response(422, 'application/json; charset=utf-8', json_bytes({'error': str(exc)}))
+        except OSError:
+            return self.response(500, 'application/json; charset=utf-8', json_bytes({'error': 'Workspace filesystem operation failed'}))
         except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             return self.response(400, 'application/json; charset=utf-8', json_bytes({'error': str(exc)}))
 

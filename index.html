@@ -329,6 +329,7 @@ async function acceptDiskWorkspace(){
     applyProject(data.state,{skipWorkspaceCheck:true});
     diskWorkspace.id=id;diskWorkspace.revision=data.revision;diskWorkspace.mode='ready';
     workspaceNotice(data.recovered_from_backup?'workspaceBackupRecovered':'workspaceRecovered');
+    if(data.recovered_from_backup)scheduleWorkspaceSave();
   }catch(e){workspaceNotice('workspaceError',{error:e.message});}
 }
 async function keepEditorWorkspace(){
