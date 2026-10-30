@@ -63,7 +63,7 @@ Release rules and verification: [docs/RELEASING.md](docs/RELEASING.md). Every re
 |---|---|---|---|
 | F0 Foundation | Official validator, secure local API, release metadata, real-game smoke harness | Partially verified | 3 / 4 |
 | F1 Project Core | Canonical project document, migrations, durable workspace, undo, browser E2E | Done | 3 / 3 |
-| F2 Creative Editor | Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bridge (HS-011) | Planned | 0 / 2 |
+| F2 Creative Editor | Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bridge (HS-011) | Partially verified | 0 / 3 |
 | F3 Visual Scripting | Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (HS-010) | **In progress** | 0 / 3 |
 | F4 Gameplay Systems | Entities, components, AI behaviour trees, events, RPG and automation | Planned | 0 / 1 |
 | F5 World & VFX | Shader graph over .hshader, particles, physics sandbox, dimensions | Planned | 0 / 3 |
@@ -88,21 +88,32 @@ Phase states are derived from milestone states in [`docs/roadmap/roadmap.json`](
 | Disk workspace with crash recovery, revision conflicts, Undo/Redo | Works in Studio | Python, Node and browser E2E tests |
 | Source Workbench: validated JSON overrides, cuboid 3D preview | Works in Studio | Unit tests; browser E2E (override reaches the `.hmod`) |
 | Mod Doctor static diagnostics, CLI (`build`, `verify`, `migrate`, `graph`…) | Works | Unit tests |
+| Native desktop window: Tauri 2 shell, Windows installer and portable build, native Save As | **Preview** (CI builds, not released) | Windows CI: install, smoke run, uninstall ([DESKTOP.md](docs/DESKTOP.md)) |
+| Workbench UI: explorer, canvas, inspector, status bar, pixel icons; in-app development journey | Works in Studio | Browser E2E, including a Russian UI with no English leftovers |
+| Engine capability check (HS-008): export blocked with the reason when the target cannot load the project | Works in Studio | Unit tests; browser E2E |
 | Loading in the Horizon game | **Not verified** | Harness ready, needs an authorized installation |
 | Visual scripting, entities/AI, native Rust mods, shaders | **Not implemented** | Planned in F2–F5 |
 
 ## Screenshots
 
-Captured from the running editor (Playwright, 1440×900, built-in Ruby demo) — not mock-ups.
+Captured from the running application, not mock-ups: the desktop shell with its frozen core (Linux WebKitGTK,
+driven like a user), and the same editor in Chromium. More sizes in [docs/screenshots/desktop](docs/screenshots/desktop).
 
 <p align="center">
-  <img src="docs/screenshots/recipes-en.png" alt="Recipe gallery with a shaped and a shapeless recipe, the recipe editor below, and the project sidebar with Save, Open, Undo and Redo" width="49%" />
-  <img src="docs/screenshots/source-workbench-en.png" alt="Source Workbench editing generated block model JSON next to a WebGL reference-cube preview" width="49%" />
+  <img src="docs/screenshots/desktop/desktop-1440x900-recipes.png" alt="Desktop window: top bar with project actions and Export .hmod, activity rail with pixel icons, project explorer with counts, recipe canvas with a shaped and a shapeless recipe, recipe properties on the right, status bar showing the engine target and the desktop shell version" width="100%" />
+</p>
+<p align="center">
+  <img src="docs/screenshots/desktop/desktop-1440x900-journey-ru.png" alt="Development journey in Russian: the pixel-art roadmap and phase list on the left, and on the right what this build supports, grouped into available, engine-only with a native-code warning, and unsupported" width="49%" />
+  <img src="docs/screenshots/source-workbench-en.png" alt="Source and 3D workbench editing generated JSON next to a WebGL reference-cube preview" width="49%" />
 </p>
 
 ## Quick start
 
 **Windows (no Python needed):** download `HorizonStudio-<version>-Windows-x64.exe` from [Releases](https://github.com/pneqnp-iswr/horizon-studio/releases), optionally check it against `SHA256SUMS.txt`, and run it. The executable is portable and unsigned, so SmartScreen may warn. The latest release predates the features above that are marked as newer than 0.6.
+
+**Desktop preview (Windows):** every change builds an installer and a portable folder in the
+[Desktop shell workflow](https://github.com/pneqnp-iswr/horizon-studio/actions/workflows/desktop.yml) (artifact
+`desktop-windows-preview-build`). They are previews, unsigned and not releases — see [DESKTOP.md](docs/DESKTOP.md).
 
 **From source (Python 3.11+, standard library only):**
 

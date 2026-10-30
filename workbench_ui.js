@@ -51,7 +51,11 @@
     const groups=GROUPS.map(([key,label,icon,cls])=>{
       const items=build.groups[key]||[];
       if(!items.length)return '';
-      return `<h3>${esc(t(label))}</h3><ul class="capability-list">`+items.map(c=>`<li class="${cls}"><span class="ico ${icon}" aria-hidden="true"></span><span><b>${esc(c.capability)}</b>${c.note?`<small> — ${esc(c.note)}</small>`:''}</span></li>`).join('')+'</ul>';
+      const facts=c=>[c.backend&&'.'+c.backend,c.api,c.stability&&t('stability_'+c.stability.replace('-','_'))].filter(Boolean)
+        .map(fact=>`<span class="tiny-badge">${esc(fact)}</span>`).join(' ');
+      const warning=c=>c.backend==='hnmod'?`<small class="cap-missing"> ${esc(t('nativeTrustWarning'))}</small>`:'';
+      return `<h3>${esc(t(label))}</h3><ul class="capability-list">`+items.map(c=>`<li class="${cls}"><span class="ico ${icon}" aria-hidden="true"></span>`+
+        `<span><b>${esc(c.capability)}</b> ${facts(c)}${c.note?`<small> — ${esc(localized(c,'note',lang))}</small>`:''}${warning(c)}</span></li>`).join('')+'</ul>';
     }).join('');
     return `<section aria-labelledby="journeyPlanHeading"><h3 id="journeyPlanHeading">${esc(t('journeyPlan'))}</h3>`+
       `<p class="journey-note">${esc(t('journeyPlanNote'))}</p>`+

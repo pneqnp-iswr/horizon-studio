@@ -3,6 +3,11 @@
   'use strict';
   const catalog = {
   "en": {
+    "stability_experimental": "experimental",
+    "stability_preview": "preview",
+    "stability_stable": "stable",
+    "stability_not_started": "not started",
+    "nativeTrustWarning": "Native mods run with your full rights and are not sandboxed; Studio will only ever build them behind an explicit warning.",
     "workspaceSection": "Workspace",
     "aboutSaving": "How saving works",
     "projectToolbar": "Project",
@@ -241,6 +246,11 @@
     "doctor_GAME_CHECK_REQUIRED": "Run official cargo horizon-mod check and test the mod in Horizon."
   },
   "ru": {
+    "stability_experimental": "экспериментально",
+    "stability_preview": "предварительно",
+    "stability_stable": "стабильно",
+    "stability_not_started": "не начато",
+    "nativeTrustWarning": "Нативные моды работают с вашими полными правами без песочницы; Studio будет собирать их только после явного предупреждения.",
     "workspaceSection": "Рабочая область",
     "aboutSaving": "Как работает сохранение",
     "projectToolbar": "Проект",

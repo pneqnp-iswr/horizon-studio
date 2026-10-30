@@ -39,7 +39,8 @@ def build_capabilities(registry: dict | None = None) -> dict:
     profile = profile_for(registry, None)
     groups: dict[str, list[dict]] = {"official-static": [], "engine-only": [], "unsupported": []}
     for name, entry in sorted(profile["capabilities"].items()):
-        groups[entry["status"]].append({"capability": name, "note": entry.get("note"), "source": entry.get("source")})
+        groups[entry["status"]].append({"capability": name, **{key: entry.get(key) for key in (
+            "api", "stability", "side", "backend", "permissions", "contract", "note", "note_ru", "source")}})
     return {"engine": profile["engine"], "revision": profile["revision"], "label": profile["label"],
             "content_api": profile["content_api"], "buildable": BUILDABLE, "groups": groups}
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased — Desktop transformation, slice A
+
+Not in a published release yet; the verified 0.7.0 EXE is unchanged.
+
+- Desktop shell (preview): a Tauri 2 application (`desktop/`) shows the editor in one native window. It starts the bundled project core (`launcher.py --serve`) on a private loopback port, ties the core's lifetime to the window, restricts navigation to the core's origin, grants the editor two commands (`desktop_ready`, `save_file`) for that origin only, and replaces browser downloads with a native Save As that writes atomically. CI builds an NSIS installer and a portable folder, installs, smoke-tests and uninstalls them on Windows ([docs/DESKTOP.md](docs/DESKTOP.md), [ADR 0002](docs/adr/0002-desktop-shell.md)).
+- Workbench UI: top bar, activity rail with original 16×16 pixel icons, project explorer, canvas with empty states, inspector, status bar; design tokens from the pixel-art palette; stepped 100–240 ms motion with reduced-motion support; icon-only toolbars on narrow windows.
+- In-app Development journey: the roadmap from `docs/roadmap/roadmap.json` and, separately, what this build supports from the capability registry.
+- HS-008: registry entries carry Horizon's API version, stability, side, backend, permissions and contract; the editor shows the project's needs and blocks export with the reason when the target engine cannot load something.
+- Fixed: Russian UI leftovers (hardness, mod ID, rarity names, rail tooltips, Undo/Redo in the save note).
+- Fixed: a frozen build would have failed to load the capability registry, because its validation required documentation files that are not bundled.
+
 ## 0.7.0 — Project Core (2026-10-31)
 
 - HS-003: protect local API POST operations with per-process session tokens and same-origin Host/Origin/Fetch-Metadata checks; add API security regression tests and update all built-in clients.

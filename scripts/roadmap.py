@@ -30,7 +30,8 @@ SCHEMA = "horizon-studio.roadmap/1"
 
 MILESTONE_STATUSES = ("done", "partial", "in_progress", "planned", "blocked")
 VERIFICATION_STATUSES = ("verified", "in_progress", "blocked", "planned")
-EVIDENCE_LEVELS = ("unit", "official-static", "browser-e2e", "game-load", "gameplay", "docs")
+# desktop-smoke: the real desktop application started, reported ready and shut down cleanly in CI.
+EVIDENCE_LEVELS = ("unit", "official-static", "browser-e2e", "desktop-smoke", "game-load", "gameplay", "docs")
 ICONS = ("forge", "core", "editor", "nodes", "creature", "portal", "gear", "plug", "summit")
 STARTED = ("done", "partial", "in_progress", "blocked")
 LABELS = {

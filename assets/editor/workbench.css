@@ -76,7 +76,7 @@ body.sidebar-collapsed .sidebar{display:none}
 .project-chip b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
 .project-chip code{color:var(--faint);font:11px var(--font-pixel);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tool-group{display:flex;gap:4px;padding-left:8px;border-left:2px solid var(--stone1)}
-.tool{min-height:32px;padding:5px 10px}
+.tool{min-height:32px;padding:5px 10px;white-space:nowrap}
 .topbar-spacer{flex:1}
 .language-switch{display:flex;gap:2px;padding:2px;border:1px solid var(--line2);background:var(--void)}
 .language-switch button{min-height:26px;padding:2px 9px;border:0;box-shadow:none;background:transparent;color:var(--muted);font:11px var(--font-pixel)}
@@ -199,7 +199,7 @@ body:not([data-tab=structure]) #structureCanvas{display:none}
 .source-preview canvas{width:100%;height:clamp(250px,50vh,570px);border:1px solid var(--line2);background:var(--night);cursor:grab;touch-action:none}
 .source-footer{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding-top:10px;border-top:2px solid var(--stone1)}
 .source-footer input{max-width:300px}.source-status{color:var(--moss3);font-size:12px}.source-status.error{color:var(--danger)}
-.source-files-tools{display:grid;gap:8px}.source-subtitle{color:var(--muted);font-size:12px}
+.source-files-tools{display:grid;gap:8px;grid-template-rows:auto auto minmax(0,1fr) auto;min-height:0}.source-subtitle{color:var(--muted);font-size:12px}
 .journey-body{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,1fr);gap:16px;min-height:0;overflow:auto}
 .journey-body section{display:grid;align-content:start;gap:10px}
 .journey-body h3{margin:6px 0 0;font:700 12px var(--font-pixel);letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
@@ -226,7 +226,8 @@ body:not([data-tab=structure]) #structureCanvas{display:none}
   body.sidebar-collapsed .app{grid-template-columns:var(--rail) minmax(0,1fr) var(--inspector)}
   .sidebar{display:none}
   body.sidebar-open .sidebar{display:flex;position:fixed;z-index:30;top:var(--topbar);bottom:var(--status);left:var(--rail);width:min(320px,calc(100vw - var(--rail)));box-shadow:12px 0 40px rgba(0,0,0,.6)}
-  .project-chip{display:none}
+  .project-chip,.brand-word{display:none}
+  .tool-group .tool > span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 }
 @media (max-width:1100px) and (max-height:760px),(max-width:900px){
   body{overflow:auto}

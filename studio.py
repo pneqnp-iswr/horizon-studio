@@ -451,7 +451,10 @@ class Handler(BaseHTTPRequestHandler):
             return self.response(200, 'application/json; charset=utf-8', json_bytes({'token': session_token(self.server)}))
         if self.path == '/api/journey':
             from studio_core.journey import view
-            return self.response(200, 'application/json; charset=utf-8', json_bytes(view()))
+            try:
+                return self.response(200, 'application/json; charset=utf-8', json_bytes(view()))
+            except (OSError, ValueError, KeyError) as exc:  # a broken bundle must answer, not drop the connection
+                return self.response(500, 'application/json; charset=utf-8', json_bytes({'error': f'Journey data unavailable: {exc}'}))
         root = Path(__file__).parent
         if self.path in ('/', '/index.html'):
             self.response(200, 'text/html; charset=utf-8', (root / 'index.html').read_bytes())
