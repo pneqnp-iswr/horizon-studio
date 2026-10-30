@@ -7,6 +7,7 @@ import unittest
 from http.server import ThreadingHTTPServer
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parents[1]))
 from studio import Handler
+from security.request_policy import session_token
 
 class VoxelHttpTests(unittest.TestCase):
     @classmethod
@@ -19,7 +20,7 @@ class VoxelHttpTests(unittest.TestCase):
         cls.server.shutdown();cls.server.server_close();cls.thread.join()
     def post(self,payload):
         conn=http.client.HTTPConnection('127.0.0.1',self.server.server_address[1],timeout=5)
-        conn.request('POST','/api/structure-preview',json.dumps(payload),{'Content-Type':'application/json'})
+        conn.request('POST','/api/structure-preview',json.dumps(payload),{'Content-Type':'application/json','X-Studio-Token':session_token(self.server)})
         response=conn.getresponse();status=response.status;body=response.read();conn.close()
         return status,json.loads(body)
     def test_preview_route(self):

@@ -14,6 +14,7 @@ import struct
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from studio import create_project_files, project_zip, hmod_zip, inspect_project, validated_png, Handler, ThreadingHTTPServer
+from security.request_policy import session_token
 
 EXAMPLE = {
  'id': 'rafig_test', 'name': 'Test Content', 'author': 'Creator', 'version':'0.2.0',
@@ -179,7 +180,8 @@ class HttpTests(unittest.TestCase):
         cls.server.shutdown();cls.server.server_close();cls.thread.join()
     def post(self,path,payload):
         con=http.client.HTTPConnection('127.0.0.1',self.server.server_address[1],timeout=5)
-        con.request('POST',path,body=json.dumps(payload),headers={'Content-Type':'application/json'})
+        token=self.server._studio_session_token if hasattr(self.server,'_studio_session_token') else session_token(self.server)
+        con.request('POST',path,body=json.dumps(payload),headers={'Content-Type':'application/json','X-Studio-Token':token})
         res=con.getresponse();code=res.status;headers=dict(res.getheaders());data=res.read();con.close()
         return code,headers,data
     def test_preview_route(self):

@@ -65,7 +65,7 @@
   }
   async function reloadFiles(){
     if(busy)return;busy=true;try{
-      const response=await fetch('/api/source',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload())});
+      const response=await window.HorizonStudioPost('/api/source',JSON.stringify(payload()));
       const result=await response.json();if(!response.ok)throw Error(result.error||'Source API failed');
       files=result.files;if(selected&&!files[selected])selected='';
       if(!selected){selected=Object.keys(files).find(p=>p.includes('/models/block/'))||Object.keys(files).find(p=>p.includes('/models/item/'))||Object.keys(files).find(p=>p.endsWith('.json'))||'';}
@@ -81,7 +81,7 @@
     const prev=state.source_overrides||{};
     state.source_overrides={...prev,[selected]:contents};
     try {
-      const response=await fetch('/api/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload())});
+      const response=await window.HorizonStudioPost('/api/preview',JSON.stringify(payload()));
       const result=await response.json();if(!response.ok)throw Error(result.error||'Invalid content');
       files[selected]=contents;persist();showModel();renderFileList();stat(text('saved'));
     }catch(e){state.source_overrides=prev;stat(e.message,true);}
@@ -89,7 +89,7 @@
   async function loadPack(){
     const file=$('resourcePackInput').files?.[0];if(!file)return;
     try{
-      const response=await fetch('/api/resourcepack',{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:file});
+      const response=await window.HorizonStudioPost('/api/resourcepack',file,'application/octet-stream');
       const result=await response.json();if(!response.ok)throw Error(result.error||'Invalid pack');
       packTextures=result.textures||{};window.HorizonPackTextures=packTextures;
       render();showModel();stat(text('packReady').replace('{count}',result.count));
