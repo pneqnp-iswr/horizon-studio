@@ -1,11 +1,24 @@
 name: Official Horizon content-mod check
 
 on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/official-content-check.yml'
+      - 'horizon_compat/**'
+      - 'studio_core/**'
+      - 'horizon_cli.py'
+      - 'studio.py'
+      - 'source_workbench.py'
+      - 'voxel_architect.py'
+      - 'examples/**'
+      - 'scripts/record_official_evidence.py'
   pull_request:
     branches: [master]
     paths:
       - '.github/workflows/official-content-check.yml'
       - 'horizon_compat/**'
+      - 'studio_core/**'
       - 'horizon_cli.py'
       - 'studio.py'
       - 'source_workbench.py'
@@ -19,7 +32,7 @@ permissions:
 
 jobs:
   official-content-mod:
-    name: Pinned Rust validator against generated Ruby mod
+    name: Pinned Rust validator against generated example mods
     runs-on: ubuntu-latest
     timeout-minutes: 50
     env:
@@ -63,24 +76,24 @@ jobs:
           test -x _horizon_upstream/target/debug/cargo-horizon-mod
           sha256sum _horizon_upstream/target/debug/cargo-horizon-mod | tee dist/official/checker-binary.sha256
 
-      - name: Validate generated .hmod using genuine official CLI
+      - name: Validate every example .hmod with the genuine official CLI and attest it
         shell: bash
         run: |
-          python horizon_cli.py verify examples/ruby_demo.hstudio.json \
-            --direct-validator \
-            --validator-bin "$PWD/_horizon_upstream/target/debug/cargo-horizon-mod" \
-            --validator-revision "$HORIZON_SHA" \
-            --evidence dist/official/ruby-check.json \
-            --json
-
-      - name: Record independently inspectable provenance
-        shell: bash
-        run: |
-          python scripts/record_official_evidence.py \
-            --checker _horizon_upstream/target/debug/cargo-horizon-mod \
-            --checker-revision "$HORIZON_SHA" \
-            --official-result dist/official/ruby-check.json \
-            --output dist/official/attestation.json
+          checker="$PWD/_horizon_upstream/target/debug/cargo-horizon-mod"
+          for project in examples/*.hstudio.json; do
+            name="$(basename "$project" .hstudio.json)"
+            python horizon_cli.py verify "$project" \
+              --direct-validator \
+              --validator-bin "$checker" \
+              --validator-revision "$HORIZON_SHA" \
+              --evidence "dist/official/$name-check.json" \
+              --json
+            python scripts/record_official_evidence.py \
+              --checker "$checker" \
+              --checker-revision "$HORIZON_SHA" \
+              --official-result "dist/official/$name-check.json" \
+              --output "dist/official/$name-attestation.json"
+          done
 
       - name: Upload official checker logs and reports
         if: always()

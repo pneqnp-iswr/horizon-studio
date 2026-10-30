@@ -39,16 +39,29 @@ Do not supply untrusted executables as validators. The program is executed as an
 - `command` records the invocation; the temporary directory path expires at process exit.
 - A missing, timed-out, crashed, incompatible or rejecting validator returns `ok=false` and a nonzero CLI exit code.
 
-## Remaining work
-
-- Install/build the pinned upstream checker in an independent CI integration job and save a real execution log and package hash.
-- Execute a controlled Horizon game-load test with legally obtained game resources (HS-002).
-- Make supported engine profiles and provenance part of project metadata before declaring game compatibility.
-
 ## Pinned checker in GitHub Actions
 
-The workflow [Official Horizon content-mod check](../.github/workflows/official-content-check.yml) checks out the audited engine revision `d2186eb9aa022a64a8b26e6989a04e44fba99ee7`, **verifies Git HEAD against that immutable SHA**, compiles the actual `cargo-horizon-mod` package from that source, and invokes `horizon_cli.py verify` against `examples/ruby_demo.hstudio.json`. It uploads `dist/official/` as a GitHub Actions artifact containing the toolchain versions, checker binary hash, raw JSON report and an attestation if successful.
+The workflow [Official Horizon content-mod check](../.github/workflows/official-content-check.yml) checks out the audited engine revision `d2186eb9aa022a64a8b26e6989a04e44fba99ee7`, **verifies Git HEAD against that immutable SHA**, compiles the actual `cargo-horizon-mod` package from that source, and invokes `horizon_cli.py verify` on **every** `examples/*.hstudio.json`. It runs on pull requests and pushes to `master` that touch the generator, and uploads `dist/official/` as a GitHub Actions artifact containing the toolchain versions, checker binary hash, one raw JSON report and one attestation per example.
 
 The normal Python CI remains fast and does not substitute for this Rust-tooling integration. The pinned workflow intentionally fails rather than reporting unsupported or invalid content as verified. It does not need Minecraft assets and does not run a game.
 
 Only completed, successful workflow execution demonstrates an actual official checker run. A green Python unit-test matrix alone does not.
+
+Recorded results, by engine revision and package hash, are kept in [COMPATIBILITY_EVIDENCE.md](COMPATIBILITY_EVIDENCE.md).
+
+## Reproducing locally
+
+```sh
+git clone https://github.com/horizon-rust/horizon && cd horizon
+git checkout d2186eb9aa022a64a8b26e6989a04e44fba99ee7
+cargo build --locked --package cargo-horizon-mod
+cd /path/to/horizon-studio
+python horizon_cli.py verify examples/workshop_showcase.hstudio.json --json \
+  --direct-validator --validator-bin /path/to/horizon/target/debug/cargo-horizon-mod \
+  --validator-revision d2186eb9aa022a64a8b26e6989a04e44fba99ee7
+```
+
+## Remaining work
+
+- Execute a controlled Horizon game-load test with legally obtained game resources (HS-002, [GAME_CONTENT_SMOKE.md](GAME_CONTENT_SMOKE.md)).
+- Make supported engine profiles and provenance part of project metadata before declaring game compatibility (HS-008).
