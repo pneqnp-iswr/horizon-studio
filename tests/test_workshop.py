@@ -185,6 +185,7 @@ class DoctorHttp04(unittest.TestCase):
         import threading
         from http.server import ThreadingHTTPServer
         from studio import Handler
+        from security.request_policy import session_token
         server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
         t=threading.Thread(target=server.serve_forever,daemon=True)
         t.start()
@@ -192,7 +193,7 @@ class DoctorHttp04(unittest.TestCase):
             for req,ok in ((project(items=[{'id':'a','name':'A'}]),True),
                            (project(items=[{'id':'not-good','name':'A'}]),False)):
                 connection=http.client.HTTPConnection('127.0.0.1',server.server_address[1],timeout=5)
-                connection.request('POST','/api/doctor',json.dumps(req),{'Content-Type':'application/json'})
+                connection.request('POST','/api/doctor',json.dumps(req),{'Content-Type':'application/json','X-Studio-Token':session_token(server)})
                 r=connection.getresponse()
                 self.assertEqual(r.status,200)
                 response=json.loads(r.read())

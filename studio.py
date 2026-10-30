@@ -21,6 +21,7 @@ import zlib
 import zipfile
 from source_workbench import safe_overrides, import_resource_pack, MAX_PACK_BYTES
 from voxel_architect import generate_structure, serialize_structure, preview_structure, MAX_STRUCTURES
+from security.request_policy import session_token, trusted_request, authorized_post, content_type_allowed
 
 HOST = '127.0.0.1'
 PORT = 8787
@@ -394,6 +395,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Cache-Control', 'no-store')
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('X-Frame-Options', 'DENY')
+        self.send_header('Referrer-Policy', 'no-referrer')
         self.send_header('Content-Security-Policy', "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'")
         if filename:
             self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
@@ -401,6 +403,10 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(content)
 
     def do_GET(self):
+        if not trusted_request(self.headers, self.server.server_address[1]):
+            return self.response(403, 'application/json; charset=utf-8', b'{"error":"Untrusted request origin or host"}')
+        if self.path == '/api/session':
+            return self.response(200, 'application/json; charset=utf-8', json_bytes({'token': session_token(self.server)}))
         root = Path(__file__).parent
         if self.path in ('/', '/index.html'):
             self.response(200, 'text/html; charset=utf-8', (root / 'index.html').read_bytes())
@@ -427,6 +433,12 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path not in ('/api/export', '/api/hmod', '/api/preview', '/api/source', '/api/structure-preview', '/api/doctor', '/api/resourcepack'):
             return self.response(404, 'application/json', b'{"error":"Not found"}')
+        if not trusted_request(self.headers, self.server.server_address[1]):
+            return self.response(403, 'application/json; charset=utf-8', b'{"error":"Untrusted request origin or host"}')
+        if not authorized_post(self.headers, self.server):
+            return self.response(403, 'application/json; charset=utf-8', b'{"error":"Missing or invalid Studio session token"}')
+        if not content_type_allowed(self.headers, self.path):
+            return self.response(415, 'application/json; charset=utf-8', b'{"error":"Unsupported content type"}')
         try:
             raw_len = self.headers.get('Content-Length', '0')
             length = int(raw_len)
