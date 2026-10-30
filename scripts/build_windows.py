@@ -20,6 +20,7 @@ def build() -> None:
         "--add-data", f"{root / 'index.html'}{sep}.",
         "--add-data", f"{root / 'i18n.js'}{sep}.",
         "--add-data", f"{root / 'model_viewer.js'}{sep}.",
+        "--add-data", f"{root / 'editor_history.js'}{sep}.",
         "--add-data", f"{root / 'source_workbench_ui.js'}{sep}.",
         "--add-data", f"{root / 'VERSION'}{sep}.",
         "--add-data", f"{root / 'assets' / 'horizon-studio.ico'}{sep}assets",

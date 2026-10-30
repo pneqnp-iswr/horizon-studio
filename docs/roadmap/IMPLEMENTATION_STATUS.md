@@ -56,3 +56,9 @@ Last updated: 2026-10-30. Master before this update: `156192db2d8abc3b2cef55bad8
 4. HS-002 evidence: run the harness on an authorized installation and add the result to the ledger.
 
 Do not treat a CI-only pass as real Horizon game compatibility.
+
+## Current development branch — HS-006
+
+- Initial implementation: optimistic-revision workspace store, canonical disk snapshots with one previous-known-good copy, crash recovery, request-scoped security and HTTP tests.
+- Current HS-006 branch adds browser Undo/Redo and a debounced local-disk autosave client. It requires an explicit conflict decision instead of overwriting another workspace version. Verify CI and browser interactions before marking complete.
+- Conflict is explicit (HTTP 409). Files are confined to `~/.horizon-studio/workspaces/` using hashed project IDs; no arbitrary client path is used.
