@@ -87,6 +87,41 @@ class RoadmapValidationTests(unittest.TestCase):
         self.assertEqual(roadmap.phase_status(data, "F0"), "done")
 
 
+class ReleaseDataTests(unittest.TestCase):
+    RELEASES = json.loads((ROOT / "docs" / "releases" / "releases.json").read_text(encoding="utf-8"))
+    VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+
+    def problems(self, mutate):
+        releases = copy.deepcopy(self.RELEASES)
+        mutate(releases["releases"][0])
+        return roadmap.validate_releases(DATA, releases, self.VERSION)
+
+    def test_repository_release_data_is_valid(self):
+        self.assertEqual(roadmap.validate_releases(DATA, self.RELEASES, self.VERSION), [])
+
+    def test_rejects_development_features_claimed_for_an_older_release(self):
+        found = self.problems(lambda r: r["capabilities"].append({"en": "x", "ru": "x", "milestone": "HS-005"}))
+        self.assertTrue(any("landed after PR #0" in p for p in found), found)
+
+    def test_rejects_inconsistent_release_metadata(self):
+        for mutate, expected in (
+                (lambda r: r.update(tag="v9.9.9"), "tag must be"),
+                (lambda r: r["executable"].update(name="HorizonStudio-0.5.0-Windows-x64.exe"), "executable name"),
+                (lambda r: r["executable"].update(sha256="xyz"), "SHA-256"),
+                (lambda r: r.update(version="99.0.0", tag="v99.0.0"), "newer than VERSION"),
+                (lambda r: r.update(commit="63a313f"), "full SHA")):
+            with self.subTest(expected):
+                self.assertTrue(any(expected in p for p in self.problems(mutate)))
+
+    def test_panel_lists_newer_work_as_not_released(self):
+        section = roadmap.release_section(DATA, self.RELEASES, "en")
+        latest = roadmap.latest_release(self.RELEASES)
+        self.assertIn(latest["executable"]["sha256"], section)
+        self.assertIn(f"/releases/download/{latest['tag']}/{latest['executable']['name']}", section)
+        if latest["last_pr"] < 7:
+            self.assertIn("HS-005", section.split("not in this executable", 1)[1])
+
+
 class GeneratedOutputTests(unittest.TestCase):
     def test_committed_roadmap_outputs_are_current(self):
         self.assertEqual(roadmap.main(["--check"]), 0)

@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="version" src="https://img.shields.io/badge/version-0.6.0-blue" />
+  <img alt="version" src="https://img.shields.io/badge/version-0.7.0-blue" />
   <img alt="status" src="https://img.shields.io/badge/status-alpha-orange" />
   <img alt="tests" src="https://github.com/pneqnp-iswr/horizon-studio/actions/workflows/tests.yml/badge.svg" />
   <img alt="official check" src="https://github.com/pneqnp-iswr/horizon-studio/actions/workflows/official-content-check.yml/badge.svg" />
@@ -22,13 +22,32 @@
 
 > **Неофициальный проект.** Не связан с Mojang, Microsoft или разработчиками Horizon. Игровые бинарники, обход авторизации и игровые ресурсы не включены.
 
+## Последний релиз для Windows
+
+<!-- roadmap:release:start -->
+**[Horizon Studio v0.6.0 — Source Workbench](https://github.com/pneqnp-iswr/horizon-studio/releases/tag/v0.6.0)** · альфа-предрелиз · опубликован 2026-10-30  
+⬇ **[HorizonStudio-0.6.0-Windows-x64.exe](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.6.0/HorizonStudio-0.6.0-Windows-x64.exe)** · 11,5 МБ · [SHA256SUMS.txt](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.6.0/SHA256SUMS.txt)  
+SHA-256 `67d70703aa2180369c26cb212ce9277601cc3c7befd715e3e3b57d09d7bcc793` · собран из [`63a313f`](https://github.com/pneqnp-iswr/horizon-studio/commit/63a313f50b08ddccf55e331c99a6e25b7f72d8ad) · без подписи
+
+**В этой сборке** (Модульные тесты Python и smoke-тест собранного EXE в workflow v0.6.0; проверено через GitHub API 2026-10-31):
+
+- Блоки, предметы, рецепты с формой и без, PNG-текстуры, имена EN/RU
+- Voxel Architect: шесть генераторов структур с seed, поворотом и отражением
+- Source Workbench: JSON-правки и 3D-превью кубоидов
+- Проверки Mod Doctor, ZIP исходников и экспериментальный экспорт .hmod
+
+**Есть в `master`, но не в этом EXE:** HS-003 Защита локального API; HS-004 Согласованность метаданных релизов; HS-005 Канонический studio.project/1 и миграция; HS-006 Надёжное рабочее пространство, undo/redo, восстановление; HS-007 Браузерные E2E в CI и модули UI.
+<!-- roadmap:release:end -->
+
+Правила и проверка релизов: [docs/RELEASING.md](docs/RELEASING.md). У каждого релиза есть `SHA256SUMS.txt`; начиная с 0.7.0 — ещё и `build-manifest.json`.
+
 ## Где мы сейчас
 
 <p align="center">
   <img src="assets/roadmap/current-phase.svg" alt="Текущая фаза: F3 Visual Scripting. Реестр возможностей движка HS-008 в работе; HS-010 и HS-012 запланированы." width="100%" />
 </p>
 
-- **Выпущено:** Версия **0.6 — Source Workbench** (предрелиз Windows EXE). `master` опережает этот релиз: канонический формат проекта, рабочие пространства на диске и Undo/Redo ещё не упакованы в EXE.
+- **В разработке:** Версия **0.7 — Project Core** (`VERSION` в `master`). Панель выше показывает новейший релиз, чей EXE проверен через GitHub API; версия считается выпущенной только после этого.
 - **Доказано:** примеры модов проходят официальный `cargo-horizon-mod check`, собранный из закреплённой ревизии Horizon, — в CI и локально.
 - **Доказано в браузере:** 13 сценариев редактора выполняются в Chromium на каждом pull request (Ubuntu CI), включая автосохранение, восстановление, конфликты ревизий и байты экспортируемого пакета.
 - **Ещё не доказано:** загрузка мода Studio в запущенной игре и любое игровое поведение.

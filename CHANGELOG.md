@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Engineering hardening
+## 0.7.0 — Project Core (2026-10-31)
 
 - HS-003: protect local API POST operations with per-process session tokens and same-origin Host/Origin/Fetch-Metadata checks; add API security regression tests and update all built-in clients.
 - HS-004: correct versioned release documents and enforce release metadata consistency using an automated test.
@@ -11,7 +11,9 @@
 - Fixed: `.hmod`/source ZIPs built on Windows differed byte-for-byte from Linux builds (ZIP "made by" field); every OS now writes the officially checked bytes.
 - Fixed: at 1280×720 and similar short screens the editor form covered the entry list, making entries unreachable.
 - GitHub presentation: original pixel-art banner and mark, an evidence-backed roadmap map generated from `docs/roadmap/roadmap.json` (validated, with derived phase states and separate verification levels), real editor screenshots, redesigned English and Russian READMEs, and a design system. Replaces the old `docs/banner.svg` and the 0.4 screenshot.
-- These post-0.6.0 development changes do not imply a newly published Windows binary.
+- HS-007: browser E2E suite (13 Chromium scenarios) in CI; editor split into tested modules (`editor_api`, `editor_workspace`, `editor_model`, `editor_render`).
+- Fixed: narrow windows (≤1100 px) hid the whole project sidebar; phones pushed the workspace off screen; missing favicon; ambiguous Source Workbench file labels; stale "0.5" window title.
+- Release engineering: gated, idempotent Windows release workflow (same-commit test gates, draft-then-verify publication, `build-manifest.json`), corrected v0.6.0 release notes, `docs/RELEASING.md`.
 
 ## 0.6.0 — Source Workbench and model preview (2026-10-30)
 
