@@ -14,7 +14,7 @@ from horizon_cli import main
 from studio import hmod_zip
 
 PACKAGE = hmod_zip({"id":"official_probe","name":"Probe","version":"0.1.0","author":"Test",
-                    "blocks":[],"items":[],"recipes":[],"structures":[]})
+                    "blocks":[],"items":[{"id":"probe","name":"Probe","template":"minecraft:diamond"}],"recipes":[],"structures":[]})
 
 
 class OfficialValidatorTests(unittest.TestCase):
