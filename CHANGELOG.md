@@ -10,6 +10,7 @@
 - Fixed: the CLI dropped editor `source_overrides`, so CLI builds differed from editor exports.
 - Fixed: `.hmod`/source ZIPs built on Windows differed byte-for-byte from Linux builds (ZIP "made by" field); every OS now writes the officially checked bytes.
 - Fixed: at 1280×720 and similar short screens the editor form covered the entry list, making entries unreachable.
+- GitHub presentation: original pixel-art banner and mark, an evidence-backed roadmap map generated from `docs/roadmap/roadmap.json` (validated, with derived phase states and separate verification levels), real editor screenshots, redesigned English and Russian READMEs, and a design system. Replaces the old `docs/banner.svg` and the 0.4 screenshot.
 - These post-0.6.0 development changes do not imply a newly published Windows binary.
 
 ## 0.6.0 — Source Workbench and model preview (2026-10-30)

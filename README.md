@@ -1,258 +1,144 @@
 <p align="center">
-  <img src="docs/banner.svg" alt="Horizon Studio banner" width="100%" />
+  <img src="assets/branding/horizon-studio-banner.svg" alt="Horizon Studio — pixel-art banner: a floating voxel workshop where a block is forged and edited. Build worlds. Create systems. Shape the impossible." width="100%" />
 </p>
-
-<h1 align="center">Horizon Studio</h1>
-<p align="center"><strong>Visual mod authoring toolkit for Horizon</strong><br/>Offline-first editor, experimental <code>.hmod</code> packaging, procedural structures, diagnostics, and a developer CLI.</p>
 
 <p align="center">
   <a href="README.ru.md">Русская версия</a> ·
+  <a href="docs/ROADMAP_VISUAL.md">Roadmap</a> ·
+  <a href="docs/COMPATIBILITY_EVIDENCE.md">Compatibility evidence</a> ·
   <a href="CHANGELOG.md">Changelog</a> ·
-  <a href="CONTRIBUTING.md">Contributing</a> ·
-  <a href="SECURITY.md">Security</a>
+  <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
 <p align="center">
   <img alt="version" src="https://img.shields.io/badge/version-0.6.0-blue" />
   <img alt="status" src="https://img.shields.io/badge/status-alpha-orange" />
-  <img alt="ui" src="https://img.shields.io/badge/ui-English%20default%20%2B%20Russian-111827" />
   <img alt="tests" src="https://github.com/pneqnp-iswr/horizon-studio/actions/workflows/tests.yml/badge.svg" />
+  <img alt="official check" src="https://github.com/pneqnp-iswr/horizon-studio/actions/workflows/official-content-check.yml/badge.svg" />
   <img alt="license" src="https://img.shields.io/badge/license-MIT-16a34a" />
 </p>
 
-> **Important:** Horizon Studio is an **unofficial** open-source tool. It is **not affiliated** with Mojang, Microsoft, or the Horizon developers. No proprietary game binaries, authentication bypasses, or bundled game assets are included.
+**Horizon Studio** is an open-source visual workshop for making content mods for [Horizon](https://github.com/horizon-rust/horizon), the Rust re-implementation of Minecraft Java Edition. You design blocks, items, crafting recipes and procedural structures in a local editor; Studio packages them as `.hmod` files that the **official Horizon checker accepts**. The long-term goal is one project that serves beginners (forms), creators (visual logic) and professionals (Rust), with every capability shown together with the evidence that it works.
 
-## What is Horizon Studio?
+> **Unofficial project.** Not affiliated with Mojang, Microsoft or the Horizon developers. No game binaries, account bypasses or game assets are included.
 
-Horizon Studio is a local toolchain for creating and packaging content-style Horizon mods without forcing the user to write Rust or manually build JSON/NBT archives by hand.
+## Where we are now
 
-Version **0.6 — Source Workbench** adds bounded JSON source editing, a local 3D model preview and resource-pack import on top of the Recipe Lab workflow.
+<p align="center">
+  <img src="assets/roadmap/current-phase.svg" alt="Current phase: F1 Project Core. HS-005 done, HS-006 partially verified, HS-007 in progress." width="100%" />
+</p>
 
-### Core goals
+- **Released:** Version **0.6 — Source Workbench** (Windows EXE prerelease). `master` is ahead of that release with the canonical project format, disk workspaces and Undo/Redo, which have not been packaged yet.
+- **Proven:** the example mods pass the official `cargo-horizon-mod check` built from a pinned Horizon revision, in CI and locally.
+- **Not yet proven:** loading a Studio mod in the running game, and any gameplay behaviour. Browser end-to-end tests are being added now (HS-007).
 
-- **Visual authoring** for blocks, items, recipes, and procedural structures.
-- **Offline-first workflow** with no cloud requirement.
-- **Developer tooling** for repeatable builds and validation.
-- **EN default / RU optional** localization for the editor and exported names.
-- **Honest scope**: content workflows now, deeper engine/native integration later.
+## Roadmap
 
----
+<p align="center">
+  <img src="assets/roadmap/roadmap-overview.svg" alt="Development journey from F0 Foundation to F8 Creative Platform. F0 partially verified, F1 in progress, later phases planned. Verification levels: unit and CI verified, official check verified, browser E2E in progress, game load blocked, gameplay planned." width="100%" />
+</p>
 
-## Highlights in 0.6 — Source Workbench and Recipe Lab
+<!-- roadmap:status:start -->
+| Phase | Focus | Status | Milestones done |
+|---|---|---|---|
+| F0 Foundation | Official validator, secure local API, release metadata, real-game smoke harness | Partially verified | 3 / 4 |
+| F1 Project Core | Canonical project document, migrations, durable workspace, undo, browser E2E | **In progress** | 1 / 3 |
+| F2 Creative Editor | Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bridge (HS-011) | Planned | 0 / 2 |
+| F3 Visual Scripting | Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (HS-010) | Planned | 0 / 3 |
+| F4 Gameplay Systems | Entities, components, AI behaviour trees, events, RPG and automation | Planned | 0 / 1 |
+| F5 World & VFX | Shader graph over .hshader, particles, physics sandbox, dimensions | Planned | 0 / 3 |
+| F6 Engine Bridge | Upstream-accepted engine capabilities: entities, server events, worldgen, physics, rendering | Planned | — |
+| F7 Ecosystem | Secure plugin SDK, templates, signed releases, publishing | Planned | 0 / 2 |
+| F8 Creative Platform | Advanced animation, procedural worlds, team assets, eight end-to-end demos | Planned | — |
 
-### New source editing and preview
-- Source Workbench: validated JSON overrides included in `.hmod` exports.
-- WebGL cuboid model preview and fallback rendering.
-- Selective import from user-owned local resource pack ZIP/JAR archives; no proprietary assets bundled.
+**Verification levels:** Unit/CI — verified → Official check — verified → Browser E2E — in progress → Game load — blocked → Gameplay — planned
+<!-- roadmap:status:end -->
 
-### Recipe Lab UI direction
-- Large **recipe gallery** presentation inspired by your target design language.
-- New **left rail + explorer + workspace** layout.
-- Better project presentation for GitHub/open-source publishing.
-- English UI by default, Russian switch preserved.
+Phase states are derived from milestone states in [`docs/roadmap/roadmap.json`](docs/roadmap/roadmap.json); every *done* or *partially verified* milestone links its evidence. Details, dependencies and evidence: **[docs/ROADMAP_VISUAL.md](docs/ROADMAP_VISUAL.md)**. Strategy: [Master Engineering Roadmap](docs/roadmap/master-2026-10-30.md).
 
-### Preserved functionality from earlier releases
-- Custom **blocks** and **items** with vanilla templates.
-- **Shaped** and **shapeless** crafting recipes.
-- Optional custom **PNG textures**.
-- **Bilingual names** for `en_us` and `ru_ru`.
-- **Mining tool** and **minimum tier** tag generation.
-- **Voxel Architect** with six deterministic structure generators:
-  - Sky Dome
-  - Spiral Tower
-  - Seeded Labyrinth
-  - Floating Island
-  - Crystal Grove
-  - Battle Arena
-- Structure export transforms:
-  - rotation `0° / 90° / 180° / 270°`
-  - mirroring on `X / Z`
-- **Mod Doctor** static diagnostics.
-- **CLI** for inspection, validation and build automation.
+## What works today
 
----
+| Capability | State | Strongest evidence |
+|---|---|---|
+| Blocks and items from vanilla templates, custom PNG textures, EN/RU names | Works in Studio | Unit tests; official check of examples |
+| Shaped and shapeless recipes, mining tool tags, loot tables | Works in Studio | Unit tests; official check of examples |
+| Voxel Architect: six seeded structure generators, rotation and mirroring, NBT export | Works in Studio | Unit tests; official check of `voxel_showcase` |
+| `.hmod` packaging, byte-identical on every OS | Works | Official `cargo-horizon-mod check` (pinned engine) |
+| Canonical `studio.project/1` with stable IDs; migration of older projects | Works | Golden migration tests, byte-identical builds |
+| Disk workspace with crash recovery, revision conflicts, Undo/Redo | Works in Studio | Python and Node tests; browser E2E pending |
+| Source Workbench: validated JSON overrides, cuboid 3D preview | Works in Studio | Unit tests |
+| Mod Doctor static diagnostics, CLI (`build`, `verify`, `migrate`, `graph`…) | Works | Unit tests |
+| Loading in the Horizon game | **Not verified** | Harness ready, needs an authorized installation |
+| Visual scripting, entities/AI, native Rust mods, shaders | **Not implemented** | Planned in F2–F5 |
 
-## Current capability map
+## Screenshots
 
-| Area | Status |
-|---|---|
-| Visual editor | Implemented |
-| Recipe authoring | Implemented |
-| Block/item authoring | Implemented |
-| Procedural structure generation | Implemented |
-| Local `.hmod` packaging | Implemented (experimental) |
-| Static diagnostics | Implemented |
-| CLI automation | Implemented |
-| In-game verification | Not yet confirmed |
-| Official `cargo horizon-mod check` verification | Not yet run in this repo |
-| Native engine/server behavior editing | Not implemented yet |
+Captured from the running editor (Playwright, 1440×900, built-in Ruby demo) — not mock-ups.
 
----
+<p align="center">
+  <img src="docs/screenshots/recipes-en.png" alt="Recipe gallery with a shaped and a shapeless recipe, the recipe editor below, and the project sidebar with Save, Open, Undo and Redo" width="49%" />
+  <img src="docs/screenshots/source-workbench-en.png" alt="Source Workbench editing generated block model JSON next to a WebGL reference-cube preview" width="49%" />
+</p>
 
 ## Quick start
 
-Requires **Python 3.11+**.
+**Windows (no Python needed):** download `HorizonStudio-<version>-Windows-x64.exe` from [Releases](https://github.com/pneqnp-iswr/horizon-studio/releases), optionally check it against `SHA256SUMS.txt`, and run it. The executable is portable and unsigned, so SmartScreen may warn. The latest release predates the features above that are marked as newer than 0.6.
 
-### Run the editor
-
-**Windows**
-```bat
-start_windows.bat
-```
-
-**Linux / macOS**
-```sh
-./start_linux_macos.sh
-# or
-python3 studio.py
-```
-
-Then open:
-```text
-http://127.0.0.1:8787
-```
-
-The local server binds only to loopback.
-
----
-
-## CLI
+**From source (Python 3.11+, standard library only):**
 
 ```sh
-python horizon_cli.py doctor examples/workshop_showcase.hstudio.json
-python horizon_cli.py doctor examples/workshop_showcase.hstudio.json --json
-python horizon_cli.py inspect examples/workshop_showcase.hstudio.json
-python horizon_cli.py build examples/workshop_showcase.hstudio.json --output dist/workshop_showcase.hmod
-python horizon_cli.py source examples/workshop_showcase.hstudio.json --output dist/workshop_showcase-source.zip
-python horizon_cli.py migrate examples/ruby_demo.hstudio.json --output my_project.hstudio.json
-python horizon_cli.py graph examples/workshop_showcase.hstudio.json
+python3 studio.py            # or start_windows.bat / ./start_linux_macos.sh
+# open http://127.0.0.1:8787 — the server listens on loopback only
 ```
 
-Every command accepts both the canonical `studio.project/1` format and older `.hstudio.json` files (schemas 2–4); see [docs/PROJECT_FORMAT.md](docs/PROJECT_FORMAT.md). `migrate` writes the canonical format (in place only with an automatic backup); `graph` lists which recipes use which blocks/items and reports broken references.
-
-### Intended use cases
-- CI validation
-- scripted build/export pipelines
-- regression testing for sample projects
-- quick packaging without opening the browser UI
-
----
-
-## Testing
+**Command line:**
 
 ```sh
-python -m unittest discover -s tests -v
+python horizon_cli.py build   examples/workshop_showcase.hstudio.json -o dist/workshop_showcase.hmod
+python horizon_cli.py doctor  examples/workshop_showcase.hstudio.json
+python horizon_cli.py migrate examples/ruby_demo.hstudio.json -o my_project.hstudio.json
+python horizon_cli.py graph   examples/workshop_showcase.hstudio.json
+python horizon_cli.py verify  examples/ruby_demo.hstudio.json --direct-validator --validator-bin /path/to/cargo-horizon-mod
 ```
 
-CI runs the full test suite across Python 3.11/3.12 on Windows and Ubuntu. See the live status badge rather than relying on an outdated hard-coded test count.
+Every command reads both `studio.project/1` and older `.hstudio.json` files — see [PROJECT_FORMAT.md](docs/PROJECT_FORMAT.md). Workspaces and recovery: [WORKSPACE_DURABILITY.md](docs/WORKSPACE_DURABILITY.md).
 
-Coverage includes:
-- packaging
-- recipes
-- languages
-- mining tags
-- structure generation
-- geometry transforms
-- doctor checks
-- HTTP endpoints
-- CLI behavior
+## Compatibility and verification
 
----
+Each level is separate evidence; passing one never implies the next.
 
-## Project layout
+| Level | Meaning | Status |
+|---|---|---|
+| Unit / CI | Studio's own tests on Ubuntu and Windows, Python 3.11/3.12, Node 22 | Verified on every PR |
+| Official static check | Real `cargo-horizon-mod check --json` from Horizon `d2186eb` accepts the exact package bytes | Verified for all examples ([ledger](docs/COMPATIBILITY_EVIDENCE.md)) |
+| Browser end-to-end | Editor workflows driven in a real browser | In progress (HS-007) |
+| Game content load | A real Horizon client loads the package | Not verified — [procedure](docs/GAME_CONTENT_SMOKE.md) |
+| Gameplay | Behaviour asserted in a running game | Not verified |
+
+## Development
+
+```sh
+python -m unittest discover -s tests -v          # Python suite (CI: Ubuntu + Windows)
+node --test tests/test_editor_history.cjs        # editor history (CI: Node 22)
+python scripts/roadmap.py                        # re-render roadmap images and tables from roadmap.json
+python scripts/render_branding.py                # re-render the pixel-art banner and mark
+```
+
+The banner, mark and roadmap are drawn pixel by pixel by these scripts (no external images or fonts); tests fail if a committed image is stale. Visual language: [DESIGN_SYSTEM.md](docs/branding/DESIGN_SYSTEM.md).
 
 ```text
-index.html           Frontend UI
-studio.py            Local editor server + export API
-i18n.js              EN/RU localization
-voxel_architect.py   Deterministic procedural structure engine
-mod_doctor.py        Static diagnostics
-horizon_cli.py       Headless build / inspect / doctor / migrate / graph CLI
-studio_core/         Project document (studio.project/1), migration, asset graph, atomic storage
-examples/            Demo projects and generated examples
-tests/               Regression suite
+studio.py            local editor server and API      studio_core/   project document, migration, graph, workspaces
+index.html, *.js     browser editor (EN/RU)           horizon_compat/ official checker adapter
+voxel_architect.py   structure generators             scripts/       CLI helpers, evidence, smoke, image renderers
+mod_doctor.py        static diagnostics               tests/         Python and Node tests
 ```
 
----
-
-## Examples
-
-- `examples/ruby_demo.hstudio.json` — minimal starter sample
-- `examples/voxel_showcase.hstudio.json` — structure showcase
-- `examples/workshop_showcase.hstudio.json` — broad sample using multiple features
-- `.hmod` files are built locally and remain unverified in the running Horizon game
-
----
-
-## Boundaries and honesty
-
-Horizon Studio is meant to stay technically honest.
-
-### What it does **not** claim
-- It does **not** claim that Java can never implement similar tooling.
-- It does **not** claim official compatibility until real in-game validation is done.
-- It does **not** bundle default Minecraft/Horizon assets.
-- It does **not** provide new arbitrary gameplay behavior through content-only packaging alone.
-
-### What likely requires deeper Rust / engine work later
-- native hooks
-- live server-side behavior systems
-- gameplay scripting runtime
-- event graph execution inside Horizon
-- “MCreator-like” high-level gameplay logic authoring beyond content packs
-
----
+Releases: the `VERSION` file is canonical; changing it on `master` builds, smoke-tests and publishes a Windows prerelease without overwriting existing tags.
 
 ## Contributing
 
-This project is intended to grow into a serious open-source toolkit.
-
-If you contribute, please read:
-- [CONTRIBUTING.md](CONTRIBUTING.md)
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-- [SECURITY.md](SECURITY.md)
-
----
+Read [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) and [SECURITY.md](SECURITY.md). Compatibility claims need evidence: update [`roadmap.json`](docs/roadmap/roadmap.json) together with the code and its tests.
 
 ## License
 
-MIT License.
-
----
-
-## Roadmap ideas
-
-- richer recipe workstation support
-- visual icon/texture browser
-- better asset import pipeline
-- node/event logic editor for future native extensions
-- schema/version migration helpers
-- polished GitHub Releases packaging
-- screenshots and official branding assets for the repository
-
-Development continues against the versioned [Master Engineering Roadmap](docs/roadmap/master-2026-10-30.md) and [Implementation Status](docs/roadmap/IMPLEMENTATION_STATUS.md).
-
-## Windows downloads — GitHub Releases
-
-**No Python installation required for Windows users.** Each release has a standalone x64 executable, for example:
-
-[**Browse versioned Windows `.exe` downloads**](https://github.com/pneqnp-iswr/horizon-studio/releases)
-
-1. Open the relevant GitHub release (for example `v0.6.0`).
-2. Download `HorizonStudio-<version>-Windows-x64.exe` from **Assets**.
-3. Optionally check its SHA-256 using the release's `SHA256SUMS.txt`.
-4. Double-click to start, use **Open Studio**, then **Stop & Exit** to shut down.
-
-The application serves the editor locally at `http://127.0.0.1:8787`; keeping that port stable preserves browser-local projects and language settings. A second copy cannot use the same port at the same time. The app is **portable, not an installer**, and currently unsigned: Windows may show SmartScreen warnings.
-
-### Release engineering
-
-The `VERSION` file is the canonical release version. On `master`, changing `VERSION` triggers a Windows GitHub Actions job that runs tests, builds with PyInstaller, smoke-tests the **actual compiled `.exe`**, calculates SHA-256, and publishes an immutable-by-convention GitHub **prerelease**. Existing versions are not overwritten. You can also run it manually using **Actions → Windows EXE / versioned Release → Run workflow**.
-
-For a new release, update `VERSION`, `RELEASE_NOTES.md`, `CHANGELOG.md` and the displayed version in the README before pushing. Do not bump only the README badge.
-
-## Engineering roadmap and legal policy (2026-10-30)
-
-The [full Master Engineering Roadmap](docs/roadmap/master-2026-10-30.md) describes the verified source audit, capability registry, phased IDE/asset/visual programming development, AI/VFX plans, release gates, prioritized backlog and first three concrete iterations. [Research index and PDF](docs/roadmap/README.md) · [Legal policy](docs/roadmap/LEGAL_AND_DISTRIBUTION.md).
-
-Current implementation focus: **Studio only**. The separate companion fork is not modified. In-game compatibility must still be proven with official validator and runtime tests.
+MIT. Horizon Studio is an independent, unofficial project; Minecraft is a trademark of Mojang Synergies AB, and Horizon belongs to its developers. See [LEGAL_AND_DISTRIBUTION.md](docs/roadmap/LEGAL_AND_DISTRIBUTION.md).
