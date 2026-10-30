@@ -69,7 +69,7 @@ class MigrationGoldenTests(unittest.TestCase):
                 migrated = hmod_zip(to_generator_request(upgrade(example(name))))
                 self.assertEqual(migrated, hmod_zip(legacy_request(example(name))))
                 self.assertEqual(sha(migrated), OFFICIALLY_CHECKED[name])
-                golden = json.loads((ROOT / "tests" / "fixtures" / "migration" / f"{name}.studio.json").read_text())
+                golden = json.loads((ROOT / "tests" / "fixtures" / "migration" / f"{name}.studio.json").read_text(encoding="utf-8"))
                 self.assertEqual(sha(hmod_zip(to_generator_request(golden))), OFFICIALLY_CHECKED[name])
 
     def test_package_bytes_do_not_depend_on_the_operating_system(self):
@@ -298,7 +298,7 @@ class CommandLineTests(unittest.TestCase):
         self.assertEqual(code, 0, out)
         backup = self.root / "ruby.hstudio.json.schema2.bak"
         self.assertEqual(backup.read_bytes(), original)
-        self.assertEqual(json.loads(self.legacy.read_text())["schema"], SCHEMA)
+        self.assertEqual(json.loads(self.legacy.read_text(encoding="utf-8"))["schema"], SCHEMA)
         code, out, _ = self.run_cli("migrate", self.legacy, "-o", self.legacy)
         self.assertEqual(code, 0)
         self.assertIn("already", out)
