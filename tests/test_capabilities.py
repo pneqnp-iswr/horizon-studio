@@ -57,8 +57,33 @@ class CapabilityTests(unittest.TestCase):
         caps["shader.pack"] = {"status": "engine-only"}
         broken["default"] = "0" * 40
         problems = " | ".join(validate_registry(broken))
-        for expected in ("unsupported status", "needs an evidence document", "needs a note", "default must name"):
+        for expected in ("unsupported status", "docs/NOPE.md does not exist", "needs a note", "default must name",
+                         "content.item: missing api, stability, side, backend, permissions, contract, source"):
             self.assertIn(expected, problems)
+
+    def test_registry_fields_follow_horizon_api_levels(self):
+        broken = copy.deepcopy(REGISTRY)
+        caps = broken["profiles"][0]["capabilities"]
+        caps["content.block"]["stability"] = "beta"
+        caps["content.item"]["side"] = "everywhere"
+        caps["content.lang"]["backend"] = "jar"
+        caps["content.recipe"]["permissions"] = "registries"
+        caps["content.loot_table"]["backend"] = None
+        problems = " | ".join(validate_registry(broken))
+        for expected in ("content.block: stability must be one of", "content.item: side must be one of",
+                         "content.lang: unknown backend 'jar'", "content.recipe: permissions must be a list",
+                         "content.loot_table: official-static needs the backend"):
+            self.assertIn(expected, problems)
+        native = REGISTRY["profiles"][0]["capabilities"]["native.hook_mod"]
+        self.assertEqual((native["backend"], native["stability"]), ("hnmod", "experimental"))
+        self.assertIn("not sandboxed", native["permissions"][0])
+
+    def test_frozen_app_loads_the_registry_without_its_evidence_docs(self):
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as empty:
+            self.assertEqual(validate_registry(REGISTRY, None), [])
+            self.assertTrue(validate_registry(REGISTRY, Path(empty)), "the repository check still needs the documents")
 
     def test_cli_capabilities(self):
         out = io.StringIO()

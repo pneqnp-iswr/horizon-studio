@@ -1,6 +1,6 @@
 # Browser end-to-end tests (HS-007)
 
-`tests/e2e/editor.e2e.cjs` drives the real editor in Chromium against a real local Studio server. Each test starts its own `python studio.py 0` on a free loopback port with a fresh temporary `HOME`, so disk workspaces are isolated and the developer's own `~/.horizon-studio` is never touched.
+`tests/e2e/editor.e2e.cjs` and `tests/e2e/workbench.e2e.cjs` drive the real editor in Chromium against a real local Studio server. Each test starts its own `python studio.py 0` on a free loopback port with a fresh temporary `HOME`, so disk workspaces are isolated and the developer's own `~/.horizon-studio` is never touched.
 
 ## Running
 
@@ -28,7 +28,14 @@ Set `PYTHON` to choose the interpreter that runs `studio.py` (default `python3`,
 | Source Workbench | Unique file labels; invalid JSON is refused; a valid override is applied, appears in the exported `.hmod`, and Undo removes it |
 | Export | The unedited demo exports exactly the `.hmod` bytes the official checker accepted (SHA-256 `ee3e1c87…`) |
 | Error states | An invalid mod ID pauses disk autosave and makes export fail with a visible message and no download |
-| Small screens | 1280×720, 1024×640 and 390×844: project controls are reachable (drawer on narrow windows, Escape closes it and returns focus), the Configure button is not covered, no horizontal scrolling |
+| Small screens | 1280×720, 1024×640 and 390×844: top-bar actions are always visible, the project explorer is a drawer on narrow windows (Escape closes it and returns focus), the Configure button is not covered, the inspector form is reachable, no horizontal scrolling |
+| Empty states | Every kind shows its own empty state; only kinds the demo fills offer it; loading the demo fills the explorer counts and the project chip |
+| Development journey | The plan (phases, current phase, evidence ladder) and *In this build* (capabilities by status) are separate; Escape closes the dialog and returns focus; Russian re-renders it |
+| Engine target | After loading the demo the card lists the capabilities the project needs; the status bar shows `Horizon d2186eb · API 0.2` |
+| Export gate | When the capability check reports a missing capability, export is refused with the reason, nothing is downloaded and the project is unchanged |
+| Russian UI | No English interface words remain in visible text, labels, placeholders or titles (product names, formats and commands excepted) |
+| Keyboard | Rail kinds follow the ARIA tabs pattern (one tab stop; arrows, Home and End move and select); Tab stays inside the modal journey dialog |
+| Accessibility | axe-core 4.10.3 WCAG 2.0/2.1 A and AA rules report no violations on the empty project, the demo and the Russian journey (with reduced motion, which also stops the card fade-in) |
 
 Any uncaught page error, console error, failed static asset request or HTTP 5xx fails the test. Expected API answers (404 "no workspace yet", 409 conflict, 400 validation) are part of the protocol and each test asserts how the UI handles them.
 

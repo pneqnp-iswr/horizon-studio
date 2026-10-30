@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "splash",
+  "description": "The bundled splash page needs no commands; editor commands are granted at runtime to the core's loopback origin only.",
+  "windows": ["main"],
+  "permissions": []
+}

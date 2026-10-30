@@ -4,133 +4,56 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Horizon Studio 0.7 — Project Core</title>
 <link rel="icon" type="image/png" href="/assets/branding/horizon-studio-mark.png">
-<style>
-:root{--bg:#05070b;--bg2:#0b1018;--panel:#0b1117;--panel2:#101722;--line:#202a37;--line2:#273345;--text:#eef5fb;--muted:#8da0b8;--accent:#6ae3ff;--accent2:#73a0ff;--green:#7ff0c8;--red:#ff8ea2;--slot:#121820;--shadow:0 18px 60px rgba(0,0,0,.45);color-scheme:dark}
-*{box-sizing:border-box}[hidden]{display:none !important}html,body{height:100%}body{margin:0;background:radial-gradient(circle at top right, rgba(77,191,255,.16), transparent 24%),linear-gradient(180deg,#06080c,#080c14 25%, #05070b);color:var(--text);font:14px/1.45 "Segoe UI",Inter,system-ui,-apple-system,sans-serif;overflow:hidden}
-a{color:#9fe7ff}button,input,select,textarea{font:inherit}button{cursor:pointer}
-.app{height:100vh;display:grid;grid-template-columns:72px 260px minmax(0,1fr);gap:14px;padding:12px}
-.panelish{background:linear-gradient(180deg, rgba(15,20,29,.96), rgba(9,12,18,.96));border:1px solid #171d27;border-radius:20px;box-shadow:var(--shadow)}
-.rail{padding:10px 0;display:flex;flex-direction:column;align-items:center;justify-content:space-between}
-.rail-group,.rail-top,.rail-bottom{display:flex;flex-direction:column;gap:12px;align-items:center;width:100%}
-.rail-btn{width:44px;height:44px;border-radius:14px;border:1px solid transparent;background:rgba(255,255,255,.02);color:#dbe8f8;display:grid;place-items:center;transition:.18s ease;font-size:18px}
-.rail-btn:hover{border-color:#2b4453;background:rgba(63,122,160,.16)}
-.rail-btn.selected{background:linear-gradient(180deg, rgba(31,71,99,.75), rgba(20,34,46,.92));border-color:#326d8e;box-shadow:inset 0 0 0 1px rgba(110,226,255,.25)}
-.sidebar{padding:18px;display:flex;flex-direction:column;gap:16px;overflow:auto}
-.sidebar-head{display:flex;gap:12px;align-items:center;padding:8px 6px 14px;border-bottom:1px solid var(--line)}
-.app-icon{width:42px;height:42px;border-radius:12px;background:linear-gradient(180deg,#1a2232,#0f131c);display:grid;place-items:center;border:1px solid var(--line2);font-size:18px}
-.sidebar-head h1{margin:0;font-size:24px;line-height:1} .sidebar-head p{margin:4px 0 0;color:var(--muted);font-size:12px}
-.side-section{display:grid;gap:10px}
-.side-section h3{margin:0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#5d6f86}
-.side-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:10px}
-label{font-size:12px;color:#c8d6e7;display:grid;gap:6px}input,select,textarea{background:#0a0f16;border:1px solid #283241;color:var(--text);padding:10px 11px;border-radius:12px;width:100%} textarea{resize:vertical;min-height:70px}
-input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid #69dbff;outline-offset:1px}
-.small-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px} .toolbar{display:flex;gap:8px;flex-wrap:wrap} .stack{display:grid;gap:10px}
-button{background:#161f2b;border:1px solid #29364a;color:#ecf5ff;border-radius:12px;padding:10px 12px;font-weight:600}button:hover{border-color:#4b627d} .primary{background:linear-gradient(180deg,#77e4ff,#55c2ff);color:#051826;border-color:#77e4ff} .green{background:linear-gradient(180deg,#7cebc8,#53d3b0);color:#03261d;border-color:#7cebc8} .danger{color:#ff9db1;border-color:#5a3241} .ghost{padding:10px 11px;min-width:42px}
-.workspace{padding:18px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:14px;overflow:hidden}
-.workspace-head{padding:6px 4px 0;display:grid;gap:10px} .workspace-kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#667b92} .workspace-title{font-size:52px;line-height:.9;font-weight:900;letter-spacing:-.05em} .workspace-sub{color:var(--muted);font-size:13px}
-.head-row{display:flex;justify-content:space-between;gap:16px;align-items:flex-start} .top-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap} .badge{padding:6px 10px;border-radius:999px;background:#0b1118;border:1px solid #223040;color:#9cb0c6;font-size:12px}
-.language-switch{display:flex;gap:6px;border:1px solid #223040;border-radius:999px;padding:4px;background:#0a1016} .language-switch button{padding:7px 11px;border-radius:999px;border:0;background:transparent} .language-switch button[aria-pressed='true']{background:linear-gradient(180deg,#74e8ff,#5cc7ff);color:#061622}
-.search-shell{max-width:420px} .search-shell input{padding-left:38px;background:#0a0f16 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%238296b0' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 12px center}
-.entries-wrap{overflow:auto;padding-right:4px} .entries{display:grid;gap:16px} .recipe-gallery{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))} .card-gallery{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
-.recipe-card,.entry-card{background:linear-gradient(180deg,rgba(12,16,22,.96),rgba(7,10,15,.98));border:1px solid #1f2630;border-radius:18px;padding:14px;display:grid;gap:14px;box-shadow:0 10px 30px rgba(0,0,0,.26)}
-.recipe-visual{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center} .recipe-grid-card{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#0b1016;border:1px solid #283140;border-radius:14px;padding:10px} .recipe-arrow{font-size:34px;color:#f1f6fb} .recipe-output{width:66px;height:66px;border:1px solid #334152;border-radius:14px;background:#0d1218;display:grid;place-items:center;position:relative}
-.recipe-card-footer{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px} .recipe-text b,.entry-copy b{display:block;font-size:14px} .recipe-text small,.entry-copy small{display:block;color:var(--muted);font-size:11px}
-.config-button{min-width:112px} .count-badge{position:absolute;right:8px;bottom:6px;font-size:11px;background:#081017;border:1px solid #223245;border-radius:999px;padding:2px 6px}
-.recipe-slot{height:36px;border-radius:10px;border:1px solid #2a3442;background:#111723;display:grid;place-items:center;overflow:hidden} .recipe-slot.empty{opacity:.22} .recipe-slot.custom img,.preview-image.large img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
-.preview-image{width:42px;height:42px;display:grid;place-items:center;background:#121a23;border:1px solid #2f3b4d;border-radius:10px} .preview-image.large{width:72px;height:72px;border-radius:18px} .symbol{font-size:22px;color:#a4c0de} .entry-card{grid-template-columns:auto 1fr;align-items:center} .entry-actions{grid-column:1 / -1;display:flex;gap:8px;justify-content:flex-end} .entry-visual{display:grid;place-items:center}
-.sprite{width:24px;height:24px;display:block;position:relative;image-rendering:pixelated} .large .sprite{transform:scale(1.7)} .structure-badge{font-size:28px}
-.sprite::before,.sprite::after{content:'';position:absolute;inset:0}
-.sprite.generic{background:linear-gradient(180deg,#60748b,#2d3948);clip-path:polygon(50% 0,100% 28%,100% 72%,50% 100%,0 72%,0 28%)}
-.sprite.block{background:linear-gradient(180deg,#8aa0b0,#4e5b68);clip-path:polygon(50% 0,100% 28%,100% 72%,50% 100%,0 72%,0 28%)}
-.sprite.diamond{background:#4fe0f2;transform:rotate(45deg);border-radius:4px;box-shadow:0 0 0 3px rgba(159,250,255,.15)}
-.sprite.emerald{background:#2dd36f;clip-path:polygon(20% 0,80% 0,100% 20%,100% 80%,80% 100%,20% 100%,0 80%,0 20%)}
-.sprite.amethyst{background:#a97bff;clip-path:polygon(50% 0,82% 18%,100% 55%,77% 100%,24% 100%,0 55%,18% 18%)}
-.sprite.gold{background:#f0bf43;border-radius:6px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18)}
-.sprite.iron{background:#cfd3da;border-radius:6px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18)}
-.sprite.copper{background:#d67a4d;border-radius:6px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18)}
-.sprite.prismarine{background:#6ccbc6;clip-path:polygon(12% 20%,55% 0,88% 20%,100% 55%,70% 100%,25% 88%,0 48%)}
-.sprite.redstone{background:#db4c58;border-radius:999px} .sprite.coal{background:#353c48;border-radius:7px} .sprite.glowstone{background:#f1d679;border-radius:7px} .sprite.stick{width:6px;height:24px;background:#8e653d;transform:rotate(35deg)}
-.sprite.furnace{background:#737c86;border-radius:4px} .sprite.furnace::before{inset:4px;background:linear-gradient(180deg,#50565d 0 35%,#2b2f35 35% 100%);border-radius:2px} .sprite.furnace::after{content:'';position:absolute;left:7px;top:13px;width:10px;height:7px;background:#15171a;border-radius:2px}
-.sprite.crafting{background:linear-gradient(180deg,#8f6847,#5f4127);border-radius:4px} .sprite.crafting::before{inset:3px;border:1px solid rgba(255,255,255,.22);background:linear-gradient(90deg,transparent 33%,rgba(255,255,255,.08) 33% 36%,transparent 36% 66%,rgba(255,255,255,.08) 66% 69%,transparent 69%),linear-gradient(transparent 33%,rgba(255,255,255,.08) 33% 36%,transparent 36% 66%,rgba(255,255,255,.08) 66% 69%,transparent 69%)}
-.side-nav{display:grid;gap:6px} .filter-btn{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:12px;background:#0b1117;border:1px solid transparent;color:#d4dfec} .filter-btn.active,.filter-btn:hover{background:#101722;border-color:#223040} .tiny-badge{padding:2px 7px;border-radius:999px;background:#0f1823;color:#7f93ab;font-size:11px;border:1px solid #223040}
-.editor-stack{display:grid;gap:14px} .editor{background:rgba(8,12,18,.96);border:1px solid #1d2735;border-radius:18px;padding:16px;display:grid;gap:14px} .editor h3{margin:0 0 4px} .edit-fields{display:grid;gap:12px} .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;max-width:560px} .grid3 select{min-height:52px;padding:10px 6px} .grid-guide,.smallnote{color:var(--muted);font-size:12px} .preview-tree{font:12px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow:auto;background:#070c12;border:1px solid #222b38;border-radius:14px;padding:13px;max-height:280px}
-.notice{background:#101923;border:1px solid #283240;border-left:3px solid #6ae3ff;padding:12px 13px;border-radius:12px;font-size:13px;color:#c8d5e5} .warn{border-left-color:#f3cb73;color:#f0dfba;background:#241d10} .status{min-height:18px;font-size:13px;color:var(--green)} .status.error{color:var(--red)} .empty-hint{color:var(--muted);padding:14px 4px}
-.footer{position:fixed;left:16px;bottom:10px;color:#5e6f84;font-size:11px}
-@media (max-width:1320px){.app{grid-template-columns:72px 230px minmax(0,1fr)}} @media (max-width:1100px){body{overflow:auto}.app{height:auto;min-height:100vh;grid-template-columns:72px minmax(0,1fr)}.sidebar{display:none}.workspace{grid-column:2}.footer{position:static;padding:0 16px 12px}} @media (max-width:760px){.app{grid-template-columns:1fr;padding:10px}.rail{display:none}.workspace-title{font-size:34px}.small-grid{grid-template-columns:1fr}.recipe-gallery,.card-gallery{grid-template-columns:1fr}}
-
-/* Studio Pro visual system: legible, crisp and deliberately non-neon */
-:root{--accent:#93c57a;--accent2:#70a6b4;--line:#394047;--line2:#52606a;--shadow:0 8px 24px rgba(0,0,0,.22)}
-body{background:#0b0f12} .panelish{background:#171d21;border-color:#303a42;border-radius:8px;box-shadow:none}
-.recipe-card,.entry-card,.editor,.side-card{border-radius:6px;background:#1a2025;border-color:#374049;box-shadow:none}
-button,input,select,textarea{border-radius:5px}
-button{background:#293239;border-color:#49565f}button:hover{background:#35434a;border-color:#b2d3a4}
-.primary{background:#71945e;border-color:#92b57e;color:#effced}.primary:hover{background:#86a872}
-.green{background:#558a69;border-color:#78c395;color:#fff}.green:hover{background:#6da880}
-.workspace-title,.sidebar-head h1{font-family:'Monocraft','Cascadia Mono',Consolas,monospace;text-transform:uppercase;letter-spacing:.025em}
-.workspace-title{font-size:clamp(28px,3vw,42px);line-height:1.1}
-.rail-btn{border-radius:6px;font-family:'Segoe UI Symbol',sans-serif}
-.rail-btn.selected{background:#314539;border-color:#a6ce95;box-shadow:none}
-.recipe-slot{border-radius:3px;background:#1d252b}
-.source-workbench{position:fixed;z-index:100;inset:4vh 3vw 4vh auto;width:min(1180px,92vw);background:#161d22;border:1px solid #60707a;box-shadow:0 24px 90px rgba(0,0,0,.75);border-radius:8px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:16px;gap:12px}
-.source-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;border-bottom:1px solid #39464e;padding-bottom:10px}
-.source-head h2{margin:0;font:700 19px 'Monocraft',Consolas,monospace}
-.source-head p{margin:5px 0 0;color:#b9c9cd;font-size:12px}
-.source-main{display:grid;grid-template-columns:220px minmax(0,1fr) minmax(320px,.9fr);gap:12px;min-height:0}
-.source-files-list{overflow:auto;display:grid;align-content:start;gap:3px;border:1px solid #39464e;background:#0f1519;padding:8px}
-.source-file{width:100%;text-align:left;border:0;background:transparent;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#b9c7cb;font:12px Consolas,monospace;padding:8px}
-.source-file.active{background:#35473c;color:#fff}
-.source-edit{display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0}
-.source-edit textarea{flex:1;resize:none;font:13px/1.65 'Cascadia Code','Consolas',monospace;background:#0c1319;color:#d8e9d5;tab-size:2;min-height:200px}
-.source-path{font:12px 'Cascadia Code',Consolas,monospace;color:#9fc58b;overflow:hidden;text-overflow:ellipsis}
-.source-preview{display:flex;flex-direction:column;min-height:0;gap:10px}
-.source-preview canvas{width:100%;height:clamp(250px,50vh,570px);background:#0a1117;cursor:grab;touch-action:none;border:1px solid #3f515b}
-.source-footer{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-top:1px solid #39464e;padding-top:10px}
-.source-footer input{max-width:300px}.source-status{color:#91ddb0;font-size:12px}.source-status.error{color:#ff9caa}
-.source-files-tools{display:grid;gap:8px}.source-subtitle{color:#96aab1;font-size:12px}
-@media(max-width:1120px){.source-main{grid-template-columns:180px 1fr}.source-preview{grid-column:1/-1}.source-workbench{overflow:auto}.source-preview canvas{height:330px}}
-@media(max-width:650px){.source-workbench{inset:2vh 2vw;width:96vw}.source-main{grid-template-columns:1fr}.source-files-list{max-height:150px}}
-
-/* No fake interactive controls: incomplete recipe stations are visibly disabled. */
-.filter-btn:disabled{opacity:.34;cursor:not-allowed}
-body.sidebar-collapsed .app{grid-template-columns:72px minmax(0,1fr)}
-body.sidebar-collapsed .sidebar{display:none}
-body.sidebar-collapsed .workspace{grid-column:2}
-.rail-btn{font-family:'Cascadia Mono',Consolas,monospace;font-weight:800}
-/* Short viewports (e.g. 1280x720): the editor form would squeeze the entry list to zero height, so let the whole workspace scroll instead. */
-@media (max-height:900px){.workspace{grid-template-rows:auto auto auto;overflow:auto}.entries-wrap{overflow:visible}}
-/* The fixed footer must not cover the last sidebar controls. */
-.sidebar{padding-bottom:40px}
-/* Narrow windows: the project sidebar (metadata, save/open, undo, export) becomes a drawer
-   opened from the rail, instead of disappearing. Phones get the rail as a top bar. */
-@media (max-width:1100px){body.sidebar-open .sidebar{display:flex;position:fixed;top:12px;bottom:12px;left:96px;width:min(340px,calc(100vw - 112px));z-index:30;box-shadow:0 18px 60px rgba(0,0,0,.65)}}
-@media (max-width:760px){.workspace{grid-column:1;padding:12px}.head-row,.top-controls{flex-wrap:wrap}.rail{display:flex;flex-direction:row;justify-content:flex-start;gap:8px;padding:6px 8px;position:sticky;top:0;z-index:25;overflow-x:auto}.rail-group,.rail-top,.rail-bottom{flex-direction:row;width:auto}body.sidebar-open .sidebar{top:72px;left:10px;width:calc(100vw - 20px)}}
-</style>
+<link rel="stylesheet" href="/assets/editor/workbench.css">
 </head>
-<body>
+<body data-tab="recipe">
 <div class="app">
-  <aside class="rail panelish" aria-label="Primary navigation">
+  <header class="topbar">
+    <div class="brand"><img class="brand-mark" src="/assets/branding/horizon-studio-mark.png" width="28" height="28" alt=""><img class="brand-word" src="/assets/branding/horizon-studio-wordmark.svg" width="154" height="16" alt="Horizon Studio"></div>
+    <div class="project-chip" aria-live="polite"><b id="topProjectName">My First Mod</b><code id="topProjectId">my_first_mod</code></div>
+    <div class="tool-group" role="toolbar" aria-label="Project" data-i18n-aria-label="projectToolbar">
+      <button class="tool i-open" id="loadProject" type="button" data-i18n-aria-label="loadProject" aria-label="Open project"><span data-i18n="loadProject">Open project</span></button>
+      <button class="tool i-save" id="saveProject" type="button" data-i18n-aria-label="saveProject" aria-label="Save project"><span data-i18n="saveProject">Save project</span></button>
+      <button class="tool i-undo" id="undoEdit" type="button" data-i18n-aria-label="undoEdit" aria-label="Undo" aria-keyshortcuts="Control+Z" disabled><span data-i18n="undoEdit">Undo</span></button>
+      <button class="tool i-redo" id="redoEdit" type="button" data-i18n-aria-label="redoEdit" aria-label="Redo" aria-keyshortcuts="Control+Shift+Z" disabled><span data-i18n="redoEdit">Redo</span></button>
+    </div>
+    <div class="topbar-spacer"></div>
+    <button type="button" id="openWorkbench" class="tool i-cube">Source &amp; 3D</button>
+    <button class="tool gold i-export" id="exportHmod" type="button" data-i18n-aria-label="downloadHmod" aria-label="Export .hmod"><span data-i18n="downloadHmod">Export .hmod</span></button>
+    <nav class="language-switch" aria-label="Language" data-i18n-aria-label="languageName"><button id="lang-en" type="button" lang="en" aria-label="English" aria-pressed="true">EN</button><button id="lang-ru" type="button" lang="ru" aria-label="Русский" aria-pressed="false">RU</button></nav>
+  </header>
+
+  <nav class="rail" aria-label="Primary navigation" data-i18n-aria-label="primaryNavigation">
     <div class="rail-top">
-      <button class="rail-btn" type="button" id="toggleExplorer" aria-label="Toggle explorer" aria-controls="projectSidebar" aria-expanded="true">☰</button>
-      <div class="rail-group">
-        <button class="rail-btn" id="blockTab" role="tab" aria-label="Blocks"><span aria-hidden="true">▦</span></button>
-        <button class="rail-btn" id="itemTab" role="tab" aria-label="Items"><span aria-hidden="true">◆</span></button>
-        <button class="rail-btn selected" id="recipeTab" role="tab" aria-label="Recipes"><span aria-hidden="true">▥</span></button>
-        <button class="rail-btn" id="structureTab" role="tab" aria-label="Structures"><span aria-hidden="true">⬡</span></button>
+      <button class="rail-btn i-menu" type="button" id="toggleExplorer" aria-label="Toggle project explorer" data-i18n-aria-label="toggleExplorer" aria-controls="projectSidebar" aria-expanded="true"></button>
+      <div class="rail-group" role="tablist" aria-label="Content" data-i18n-aria-label="contentKinds">
+        <button class="rail-btn i-block" id="blockTab" role="tab" type="button" aria-label="Blocks" data-i18n-aria-label="blocks" data-i18n-title="blocks" title="Blocks"></button>
+        <button class="rail-btn i-item" id="itemTab" role="tab" type="button" aria-label="Items" data-i18n-aria-label="items" data-i18n-title="items" title="Items"></button>
+        <button class="rail-btn i-recipe selected" id="recipeTab" role="tab" type="button" aria-label="Recipes" data-i18n-aria-label="recipes" data-i18n-title="recipes" title="Recipes"></button>
+        <button class="rail-btn i-structure" id="structureTab" role="tab" type="button" aria-label="Structures" data-i18n-aria-label="structures" data-i18n-title="structures" title="Structures"></button>
       </div>
     </div>
-    <div class="rail-bottom"><button class="rail-btn" type="button" id="quickExport" aria-label="Export mod">↓</button></div>
-  </aside>
-
-  <aside class="sidebar panelish" id="projectSidebar">
-    <div class="sidebar-head">
-      <div class="app-icon">📦</div>
-      <div><h1 id="explorerTitle">Recipes</h1><p>Horizon Studio 0.7 · Project Core</p></div>
+    <div class="rail-bottom">
+      <button class="rail-btn i-journey" type="button" id="openJourney" aria-label="Development journey" data-i18n-aria-label="journeyTitle" aria-haspopup="dialog"></button>
+      <button class="rail-btn i-export" type="button" id="quickExport" aria-label="Export .hmod" data-i18n-aria-label="downloadHmod"></button>
     </div>
+  </nav>
+
+  <aside class="sidebar" id="projectSidebar" aria-label="Project explorer" data-i18n-aria-label="projectExplorer">
+    <section class="side-section">
+      <h2 class="pane-title" data-i18n="projectExplorer">Project explorer</h2>
+      <nav class="outline" aria-label="Project contents" data-i18n-aria-label="projectContents">
+        <button class="outline-btn i-block" type="button" data-kind="block"><span data-i18n="blocks">Blocks</span><span class="tiny-badge" id="countBlock">0</span></button>
+        <button class="outline-btn i-item" type="button" data-kind="item"><span data-i18n="items">Items</span><span class="tiny-badge" id="countItem">0</span></button>
+        <button class="outline-btn i-recipe" type="button" data-kind="recipe"><span data-i18n="recipes">Recipes</span><span class="tiny-badge" id="countRecipe">0</span></button>
+        <button class="outline-btn i-structure" type="button" data-kind="structure"><span data-i18n="structures">Structures</span><span class="tiny-badge" id="countStructure">0</span></button>
+      </nav>
+    </section>
 
     <section class="side-section">
-      <h3 data-i18n="projectSettings">Mod project</h3>
+      <h3 class="pane-title" data-i18n="projectSettings">Mod project</h3>
       <div class="side-card stack">
-        <label>Mod ID<input id="modId" value="my_first_mod" maxlength="64" spellcheck="false" placeholder="my_first_mod"></label>
+        <label><span data-i18n="modIdLabel">Mod ID</span><input id="modId" value="my_first_mod" maxlength="64" spellcheck="false" placeholder="my_first_mod"></label>
         <label><span data-i18n="modName">Name</span><input id="modName" value="My First Mod" maxlength="100"></label>
         <div class="small-grid"><label><span data-i18n="version">Version</span><input id="version" value="0.1.0" maxlength="40"></label><label><span data-i18n="author">Author</span><input id="author" value="Creator" maxlength="100"></label></div>
         <label><span data-i18n="description">Description</span><textarea id="description" rows="2" maxlength="300" data-i18n-placeholder="descriptionPlaceholder" placeholder="What does your mod add?"></textarea></label>
@@ -138,78 +61,73 @@ body.sidebar-collapsed .workspace{grid-column:2}
     </section>
 
     <section class="side-section">
-      <h3 data-i18n="explore">Explore</h3>
-      <div class="side-card">
-        <div class="side-nav">
-          <button class="filter-btn active" type="button"><span data-i18n="allLabel">All</span><span class="tiny-badge" id="counter">0</span></button>
-          <button class="filter-btn" disabled type="button" title="Planned for a future version"><span data-i18n="updated">Updated</span><span class="tiny-badge">∞</span></button>
-          <button class="filter-btn" type="button"><span data-i18n="craftingTable">Crafting table</span><span class="tiny-badge">⌘</span></button>
-          <button class="filter-btn" disabled type="button" title="This recipe station is not yet supported"><span data-i18n="furnace">Furnace</span><span class="tiny-badge">·</span></button>
-          <button class="filter-btn" disabled type="button" title="This recipe station is not yet supported"><span data-i18n="blastFurnace">Blast furnace</span><span class="tiny-badge">·</span></button>
-          <button class="filter-btn" disabled type="button" title="This recipe station is not yet supported"><span data-i18n="smoker">Smoker</span><span class="tiny-badge">·</span></button>
-          <button class="filter-btn" disabled type="button" title="This recipe station is not yet supported"><span data-i18n="stonecutter">Stonecutter</span><span class="tiny-badge">·</span></button>
-          <button class="filter-btn" disabled type="button" title="This recipe station is not yet supported"><span data-i18n="smithingTable">Smithing table</span><span class="tiny-badge">·</span></button>
-          <button class="filter-btn" disabled type="button" title="This recipe station is not yet supported"><span data-i18n="campfire">Campfire</span><span class="tiny-badge">·</span></button>
-        </div>
-      </div>
-    </section>
-
-    <section class="side-section">
-      <h3 data-i18n="saveOrLoad">Save or load</h3>
+      <h3 class="pane-title" data-i18n="workspaceSection">Workspace</h3>
       <div class="side-card stack">
-        <div class="small-grid"><button id="saveProject" data-i18n="saveProject">Save project</button><button id="loadProject" data-i18n="loadProject">Open project</button></div>
-        <div class="small-grid"><button id="undoEdit" type="button" data-i18n="undoEdit" disabled>Undo</button><button id="redoEdit" type="button" data-i18n="redoEdit" disabled>Redo</button></div>
-        <div class="small-grid"><button id="restoreWorkspace" type="button" data-i18n="restoreWorkspace" hidden>Restore disk</button><button id="keepEditor" type="button" data-i18n="keepEditor" hidden>Keep editor</button></div>
-        <small id="workspaceSaveStatus" role="status" aria-live="polite"></small>
         <input id="projectFile" type="file" accept=".json,application/json" hidden>
-        <button id="demo" data-i18n="loadDemo">Load Ruby demo</button>
-        <small data-i18n="saveNote">Projects are saved as .hstudio.json (studio.project/1 with stable object IDs; older files open and migrate automatically) and kept in this browser when space permits. Data stays local.</small>
+        <button id="demo" type="button" data-i18n="loadDemo">Load Ruby demo</button>
+        <details class="about"><summary data-i18n="aboutSaving">How saving works</summary><p><small id="workspaceSaveNote" data-i18n="saveNote">Projects are saved as .hstudio.json.</small></p></details>
       </div>
     </section>
 
     <section class="side-section">
-      <h3 data-i18n="export">Export</h3>
+      <h3 class="pane-title" data-i18n="export">Package</h3>
       <div class="side-card stack">
-        <button id="exportHmod" class="green" data-i18n="downloadHmod">Download .hmod</button>
-        <button id="exportSource" data-i18n="downloadZip">Download source .zip</button>
-        <button id="preview" data-i18n="inspect">Inspect package</button>
-        <button id="doctor" data-i18n="runDoctor">Run Mod Doctor</button>
-        <pre id="doctorPanel" class="preview-tree" hidden aria-live="polite"></pre>
-        <div class="notice warn" data-i18n="hmodWarning">Direct .hmod export is experimental. Before installing or publishing, validate the package with the official cargo horizon-mod check command. In-game compatibility has not been verified.</div>
-        <div id="status" class="status" aria-live="polite"></div>
+        <button id="exportSource" class="i-package" type="button" data-i18n="downloadZip">Download source .zip</button>
+        <button id="preview" type="button" data-i18n="inspect">Inspect package</button>
+        <button id="doctor" class="i-doctor" type="button" data-i18n="runDoctor">Run Mod Doctor</button>
+        <div class="notice warn" data-i18n="hmodWarning">Direct .hmod export is experimental.</div>
       </div>
     </section>
+
+    <section class="side-section" aria-live="polite">
+      <h3 class="pane-title" data-i18n="engineTarget">Engine target</h3>
+      <div class="side-card stack" id="engineCard">
+        <small id="engineProfile">—</small>
+        <ul class="capability-list" id="engineCapabilities"></ul>
+        <button type="button" id="openCapabilities" class="i-engine" data-i18n="whatThisBuildSupports">What this build supports</button>
+      </div>
+    </section>
+    <p class="footer" data-i18n="footer">Unofficial open-source editor. Not affiliated with Mojang, Microsoft, or the Horizon developers. Original game assets are not distributed.</p>
   </aside>
 
-  <main class="workspace panelish">
+  <main class="workspace" id="canvas">
     <section class="workspace-head">
       <div class="head-row">
         <div>
-          <div class="workspace-kicker" id="workspaceMode">RECIPE</div>
-          <div class="workspace-title" id="workspaceTitle">ALL</div>
+          <div class="workspace-kicker" id="workspaceMode">RECIPES</div>
+          <h1 class="workspace-title"><span id="workspaceTitle">RECIPES</span><span class="tiny-badge" id="counter">0</span></h1>
           <div class="workspace-sub" id="workspaceSubtitle" data-i18n="counter">Blocks: 0 · Items: 0 · Recipes: 0</div>
         </div>
-        <div class="top-controls">
-          <button type="button" id="openWorkbench" class="primary" aria-label="Open source workbench">Source &amp; 3D</button>
-          <nav class="language-switch" aria-label="Language" data-i18n-aria-label="languageName"><button id="lang-en" type="button" lang="en" aria-label="English" aria-pressed="true">🇬🇧 EN</button><button id="lang-ru" type="button" lang="ru" aria-label="Русский" aria-pressed="false">🇷🇺 RU</button></nav>
-          <div class="badge">Offline-first · .hmod · EN/RU</div>
+        <div class="head-tools">
+          <div class="search-shell"><span class="ico i-search" aria-hidden="true"></span><input id="entrySearch" type="search" data-i18n-placeholder="searchPlaceholder" data-i18n-aria-label="searchPlaceholder" aria-label="Search entries" placeholder="Search entries..."></div>
         </div>
       </div>
-      <div class="search-shell"><input id="entrySearch" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search entries..."></div>
+      <div class="stations" aria-label="Recipe stations" data-i18n-aria-label="recipeStations">
+        <button class="filter-btn active" type="button" aria-pressed="true"><span data-i18n="craftingTable">Crafting table</span></button>
+        <span class="planned-note"><span class="ico i-lock" aria-hidden="true"></span><span data-i18n="stationsPlanned">Furnace, smoker, stonecutter, smithing and campfire recipes are planned.</span></span>
+      </div>
     </section>
 
-    <section class="entries-wrap"><div id="entries" class="entries recipe-gallery"></div></section>
+    <section class="entries-wrap" aria-live="polite"><div id="entries" class="entries recipe-gallery"></div></section>
+      <div id="structureCanvas" hidden><div class="small-grid"><label><span data-i18n="sliceY">Slice Y</span><input type="number" min="0" max="31" id="sliceY" value="0"></label><div><small id="structureStats"></small></div></div><div class="toolbar" style="margin:12px 0"><button id="rotateStructure" data-i18n="rotateView">Rotate 90°</button><span class="badge" data-i18n="isoLabel">Isometric voxel render · local</span></div><canvas id="structureIso" width="900" height="520" aria-label="Isometric preview of generated block structure"></canvas><details><summary data-i18n="sliceText">Text slice</summary><pre id="structureAscii" class="preview-tree" style="line-height:1.05;font-size:13px;overflow:auto;max-height:none"></pre></details></div>
+    <section class="bottom-panel" aria-label="Output" data-i18n-aria-label="output">
+      <div class="editor" id="inspectPanel" hidden><div class="toolbar" style="justify-content:space-between"><h3 data-i18n="modFiles">Mod files</h3><button id="closeInspect" data-i18n="close">Close</button></div><pre id="manifestPreview" class="preview-tree"></pre><pre id="filePreview" class="preview-tree"></pre></div>
+        <pre id="doctorPanel" class="preview-tree" hidden aria-live="polite"></pre>
+    </section>
+  </main>
 
+  <aside class="inspector" id="inspector" aria-label="Properties" data-i18n-aria-label="properties">
+    <h2 class="pane-title" data-i18n="properties">Properties</h2>
     <section class="editor-stack">
       <div class="editor" id="objectEditor"><h3 id="editorTitle">New block</h3><div class="edit-fields">
-      <div class="small-grid"><label>ID<input id="entryId" value="ruby_block" maxlength="64" spellcheck="false"></label><label><span data-i18n="modName">Name (English)</span><input id="entryName" value="Ruby Block" maxlength="100"></label></div><label><span data-i18n="russianName">Russian name (optional)</span><input id="entryNameRu" maxlength="100" data-i18n-placeholder="russianFallback" placeholder="Fallback to English"></label>
+      <div class="small-grid"><label><span data-i18n="entryIdLabel">ID</span><input id="entryId" value="ruby_block" maxlength="64" spellcheck="false"></label><label><span data-i18n="modName">Name (English)</span><input id="entryName" value="Ruby Block" maxlength="100"></label></div><label><span data-i18n="russianName">Russian name (optional)</span><input id="entryNameRu" maxlength="100" data-i18n-placeholder="russianFallback" placeholder="Fallback to English"></label>
       <label><span data-i18n="vanillaTemplate">Vanilla template</span><select id="template"></select></label>
       <div id="blockControls" class="edit-fields">
-      <div class="small-grid"><label>Hardness<input type="number" id="hardness" min="-1" max="50" value="5" step="0.1"></label><label><span data-i18n="light">Light level (0–15)</span><input type="number" id="light" min="0" max="15" value="0" step="1"></label></div>
+      <div class="small-grid"><label><span data-i18n="hardness">Hardness</span><input type="number" id="hardness" min="-1" max="50" value="5" step="0.1"></label><label><span data-i18n="light">Light level (0–15)</span><input type="number" id="light" min="0" max="15" value="0" step="1"></label></div>
       <div class="small-grid"><label><span data-i18n="explosion">Explosion resistance</span><input type="number" id="explosion" min="0" max="3600000" step="0.1" data-i18n-placeholder="fromTemplate" placeholder="From template"></label><label><span data-i18n="friction">Friction</span><input type="number" id="friction" min="0" max="1" step="0.01" data-i18n-placeholder="fromTemplate" placeholder="From template"></label></div>
-      <div class="small-grid"><label><span data-i18n="mapColor">Map color (0–61)</span><input type="number" id="mapColor" min="0" max="61" step="1" data-i18n-placeholder="fromTemplate" placeholder="From template"></label><label><span data-i18n="sounds">Sounds</span><select id="sounds"><option value="" data-i18n="fromTemplate">From template</option></select></label></div><label style="display:flex;align-items:center;gap:9px"><input id="requiresTool" type="checkbox"><span data-i18n="requiresTool">Requires the correct mining tool</span></label><div class="small-grid"><label><span data-i18n="miningTool">Mining tool</span><select id="miningTool"><option value="none" data-i18n="noTool">None</option><option value="pickaxe" data-i18n="pickaxe">Pickaxe</option><option value="axe" data-i18n="axe">Axe</option><option value="shovel" data-i18n="shovel">Shovel</option><option value="hoe" data-i18n="hoe">Hoe</option></select></label><label><span data-i18n="toolTier">Minimum tool tier</span><select id="toolTier"><option value="none" data-i18n="noTier">None</option><option value="stone" data-i18n="tierStone">Stone</option><option value="iron" data-i18n="tierIron">Iron</option><option value="diamond" data-i18n="tierDiamond">Diamond</option></select></label></div>
+      <div class="small-grid"><label><span data-i18n="mapColor">Map color (0–61)</span><input type="number" id="mapColor" min="0" max="61" step="1" data-i18n-placeholder="fromTemplate" placeholder="From template"></label><label><span data-i18n="sounds">Sounds</span><select id="sounds"><option value="" data-i18n="fromTemplate">From template</option></select></label></div><label class="check-row"><input id="requiresTool" type="checkbox"><span data-i18n="requiresTool">Requires the correct mining tool</span></label><div class="small-grid"><label><span data-i18n="miningTool">Mining tool</span><select id="miningTool"><option value="none" data-i18n="noTool">None</option><option value="pickaxe" data-i18n="pickaxe">Pickaxe</option><option value="axe" data-i18n="axe">Axe</option><option value="shovel" data-i18n="shovel">Shovel</option><option value="hoe" data-i18n="hoe">Hoe</option></select></label><label><span data-i18n="toolTier">Minimum tool tier</span><select id="toolTier"><option value="none" data-i18n="noTier">None</option><option value="stone" data-i18n="tierStone">Stone</option><option value="iron" data-i18n="tierIron">Iron</option><option value="diamond" data-i18n="tierDiamond">Diamond</option></select></label></div>
       </div>
-      <div id="itemControls" hidden><div class="small-grid"><label><span data-i18n="rarity">Rarity</span><select id="rarity"><option>common</option><option>uncommon</option><option>rare</option><option>epic</option></select></label><label><span data-i18n="stackSize">Stack size</span><input type="number" id="maxStack" min="1" max="99" step="1" value="64"></label></div></div>
+      <div id="itemControls" hidden><div class="small-grid"><label><span data-i18n="rarity">Rarity</span><select id="rarity"><option value="common" data-i18n="rarityCommon">common</option><option value="uncommon" data-i18n="rarityUncommon">uncommon</option><option value="rare" data-i18n="rarityRare">rare</option><option value="epic" data-i18n="rarityEpic">epic</option></select></label><label><span data-i18n="stackSize">Stack size</span><input type="number" id="maxStack" min="1" max="99" step="1" value="64"></label></div></div>
       <label><span data-i18n="texture">Custom PNG texture (up to 1 MiB)</span><input type="file" id="texture" accept="image/png"></label><small id="textureHint">Without a PNG, the template texture is used.</small>
       <div class="toolbar"><button id="addObject" class="primary">Add</button><button id="cancelObject" hidden data-i18n="cancel">Cancel</button></div>
       </div></div>
@@ -222,7 +140,6 @@ body.sidebar-collapsed .workspace{grid-column:2}
       <div class="small-grid"><label><span data-i18n="theme">Material palette</span><select id="structureTheme"><option value="stone" data-i18n="stone">Stone</option><option value="prismarine" data-i18n="prismarine">Prismarine</option><option value="copper" data-i18n="copper">Copper</option><option value="nether" data-i18n="nether">Nether</option><option value="end" data-i18n="endPalette">End</option><option value="quartz" data-i18n="quartz">Quartz</option></select></label><label><span data-i18n="structureSize">Footprint (odd, 7–29)</span><input type="number" id="structureSize" min="7" max="29" step="2" value="19"></label></div>
       <label><span data-i18n="structureSeed">Deterministic seed (0–2147483647)</span><input type="number" id="structureSeed" min="0" max="2147483647" step="1" value="42"></label><div class="small-grid"><label><span data-i18n="rotateExport">Rotate exported structure</span><select id="structureRotation"><option value="0">0°</option><option value="90">90°</option><option value="180">180°</option><option value="270">270°</option></select></label><label><span data-i18n="mirrorExport">Mirror exported structure</span><select id="structureMirror"><option value="none" data-i18n="noMirror">None</option><option value="x">X</option><option value="z">Z</option></select></label></div>
       <div class="toolbar"><button id="addStructure" class="primary" data-i18n="addStructure">Add structure</button><button id="cancelStructure" hidden data-i18n="cancel">Cancel</button><button id="previewStructure" data-i18n="previewStructure">Preview 2D slice</button></div>
-      <div id="structureCanvas" hidden><div class="small-grid"><label><span data-i18n="sliceY">Slice Y</span><input type="number" min="0" max="31" id="sliceY" value="0"></label><div><small id="structureStats"></small></div></div><div class="toolbar" style="margin:12px 0"><button id="rotateStructure" data-i18n="rotateView">Rotate 90°</button><span class="badge" data-i18n="isoLabel">Isometric voxel render · local</span></div><canvas id="structureIso" width="900" height="520" aria-label="Isometric preview of generated block structure" style="width:100%;height:auto;background:#0a1421;border:1px solid var(--line);border-radius:12px"></canvas><details><summary data-i18n="sliceText">Text slice</summary><pre id="structureAscii" class="preview-tree" style="line-height:1.05;font-size:13px;overflow:auto;max-height:none"></pre></details></div>
       <div class="notice warn" data-i18n="structureWarning">Experimental: structure .nbt files are included in the .hmod. This does not automatically spawn buildings in new worlds; placement requires in-game commands or compatible structure/worldgen data.</div>
       </div></div>
 
@@ -233,11 +150,20 @@ body.sidebar-collapsed .workspace{grid-column:2}
       <div class="toolbar"><button class="primary" id="addRecipe">Add recipe</button><button id="cancelRecipe" hidden data-i18n="cancel">Cancel</button></div>
       </div></div>
 
-      <div class="editor" id="inspectPanel" hidden><div class="toolbar" style="justify-content:space-between"><h3 data-i18n="modFiles">Mod files</h3><button id="closeInspect" data-i18n="close">Close</button></div><pre id="manifestPreview" class="preview-tree"></pre><pre id="filePreview" class="preview-tree"></pre></div>
     </section>
-  </main>
+  </aside>
+
+  <footer class="statusbar">
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <span class="status-item"><small id="workspaceSaveStatus" role="status" aria-live="polite"></small><button id="restoreWorkspace" type="button" data-i18n="restoreWorkspace" hidden>Restore disk</button><button id="keepEditor" type="button" data-i18n="keepEditor" hidden>Keep editor</button></span>
+    <span class="status-item" id="engineStatus" data-i18n-title="engineTarget" title="Engine target"></span>
+    <span class="status-item" id="shellStatus" data-i18n="browserMode">Browser</span>
+  </footer>
 </div>
-<div class="footer" data-i18n="footer">Unofficial open-source editor. Not affiliated with Mojang, Microsoft, or the Horizon developers. Original game assets are not distributed.</div>
+<section id="journeyDialog" class="journey" hidden role="dialog" aria-modal="true" aria-labelledby="journeyHeading">
+  <div class="source-head"><div><h2 id="journeyHeading" data-i18n="journeyTitle">Development journey</h2><p data-i18n="journeyIntro">Where Horizon Studio is going, and exactly what this build can already do.</p></div><button id="closeJourney" type="button" data-i18n="close">Close</button></div>
+  <div class="journey-body" id="journeyBody" tabindex="0" role="region" aria-labelledby="journeyHeading"><p class="journey-note" data-i18n="loading">Loading…</p></div>
+</section>
 <section id="sourceWorkbench" class="source-workbench" hidden role="dialog" aria-modal="true" aria-label="Source and 3D workspace">
   <div class="source-head"><div><h2 data-source-i18n="title">SOURCE WORKBENCH</h2><p data-source-i18n="description">Edit generated JSON; validate changes before export.</p></div><button id="closeWorkbench" type="button" data-source-i18n="close">Close</button></div>
   <div class="source-main"><div class="source-files-tools"><label data-source-i18n="choose">Select a file to edit</label><input id="sourceFileSearch" type="search" placeholder="Filter source files"/><div id="sourceFiles" class="source-files-list" aria-label="Generated source files"></div><button id="refreshSources" type="button" data-source-i18n="reload">Reload generated files</button></div>
@@ -252,6 +178,8 @@ body.sidebar-collapsed .workspace{grid-column:2}
 <script src="/editor_render.js"></script>
 <script src="/editor_api.js"></script>
 <script src="/editor_workspace.js"></script>
+<script src="/desktop_bridge.js"></script>
+<script src="/workbench_ui.js"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -275,6 +203,7 @@ const workspaceSync=window.HorizonStudioWorkspace.createWorkspaceSync({
   post:studioPost,snapshot:editorState,projectId:()=>meta().id,isValidId:id=>VALID.test(id),
   apply:state=>applyProject(state,{skipWorkspaceCheck:true}),notify:workspaceNotice,
 });
+const workbench=window.HorizonWorkbench.init({t,post:studioPost,snapshot:editorState,chooseTab});
 function historyButtons(){ $('undoEdit').disabled=!editJournal.canUndo; $('redoEdit').disabled=!editJournal.canRedo; }
 function workspaceNotice(key,values={},mode=workspaceSync.mode){
   const label=$('workspaceSaveStatus');
@@ -321,15 +250,16 @@ function renderContext(){return {entries:allEntries(),packTextures:window.Horizo
 function recipeCardMarkup(e,i){return HorizonStudioRender.recipeCardMarkup(e,i,renderContext());}
 function entryCardMarkup(e,i){return HorizonStudioRender.entryCardMarkup(e,i,state.tab,renderContext());}
 function updateWorkspaceMeta(){
-  const modeMap={recipe:t('recipes'),block:t('blocks'),item:t('items'),structure:t('structures')};
-  const titleMap={recipe:'ALL',block:t('blocks').toUpperCase(),item:t('items').toUpperCase(),structure:t('structures').toUpperCase()};
-  if($('workspaceMode'))$('workspaceMode').textContent=(modeMap[state.tab]||'').toUpperCase();
-  if($('workspaceTitle'))$('workspaceTitle').textContent=titleMap[state.tab]||'';
-  if($('workspaceSubtitle'))$('workspaceSubtitle').textContent=t('counter',{blocks:state.blocks.length,items:state.items.length,recipes:state.recipes.length});
-  if($('explorerTitle'))$('explorerTitle').textContent=modeMap[state.tab]||'Explore';
+  const kind={recipe:t('recipes'),block:t('blocks'),item:t('items'),structure:t('structures')}[state.tab]||'';
+  const m=meta();
+  $('workspaceMode').textContent=(m.name||m.id).toUpperCase();
+  $('workspaceTitle').textContent=kind.toUpperCase();
+  $('workspaceSubtitle').textContent=t('counter',{blocks:state.blocks.length,items:state.items.length,recipes:state.recipes.length});
+  workbench.update({meta:m,tab:state.tab,counts:{block:state.blocks.length,item:state.items.length,recipe:state.recipes.length,structure:state.structures.length}});
 }
+function emptyState(){$('entries').innerHTML=HorizonWorkbench.emptyStateMarkup(state.tab,t);if($('emptyDemo'))$('emptyDemo').onclick=example;}
 
-function render(){if(state.tab==='structure'){renderStructures();updateWorkspaceMeta();return;}const group=state[state.tab==='block'?'blocks':state.tab==='item'?'items':'recipes'];const visible=group.map((e,i)=>[e,i]).filter(([e])=>matchesSearch(e));$('counter').textContent=String(group.length);updateWorkspaceMeta();$('entries').className=state.tab==='recipe'?'entries recipe-gallery':'entries card-gallery';$('entries').innerHTML=visible.length?visible.map(([e,i])=>state.tab==='recipe'?recipeCardMarkup(e,i):entryCardMarkup(e,i)).join(''):`<p class="empty-hint">${esc(t('searchNothing'))}</p>`;for(const b of $('entries').querySelectorAll('[data-edit]'))b.onclick=()=>editEntry(Number(b.dataset.edit));for(const b of $('entries').querySelectorAll('[data-remove]'))b.onclick=()=>removeEntry(Number(b.dataset.remove));}
+function render(){if(state.tab==='structure'){renderStructures();updateWorkspaceMeta();return;}const group=state[state.tab==='block'?'blocks':state.tab==='item'?'items':'recipes'];const visible=group.map((e,i)=>[e,i]).filter(([e])=>matchesSearch(e));$('counter').textContent=String(group.length);updateWorkspaceMeta();$('entries').className=state.tab==='recipe'?'entries recipe-gallery':'entries card-gallery';if(!group.length)return emptyState();$('entries').innerHTML=visible.length?visible.map(([e,i])=>state.tab==='recipe'?recipeCardMarkup(e,i):entryCardMarkup(e,i)).join(''):`<p class="empty-hint">${esc(t('searchNothing'))}</p>`;for(const b of $('entries').querySelectorAll('[data-edit]'))b.onclick=()=>editEntry(Number(b.dataset.edit));for(const b of $('entries').querySelectorAll('[data-remove]'))b.onclick=()=>removeEntry(Number(b.dataset.remove));}
 function editEntry(i){state.editing=i;const e=state[state.tab==='block'?'blocks':state.tab==='item'?'items':'recipes'][i];if(state.tab==='recipe'){$('recipeEditorTitle').textContent=t('editRecipe');$('recipeId').value=e.id;$('recipeType').value=e.type;$('recipeCount').value=e.count;fillOptions($('recipeResult'),Object.fromEntries(allEntries().map(x=>['@'+x.id,x.name])),e.result);renderGrid(e.grid);$('addRecipe').textContent=t('saveChanges');$('cancelRecipe').hidden=false;}else{$('editorTitle').textContent=t(state.tab==='block'?'editBlock':'editItem');$('entryId').value=e.id;$('entryName').value=e.name;$('entryNameRu').value=e.name_ru||'';$('template').value=e.template;$('miningTool').value=e.mining_tool||(e.requires_tool?'pickaxe':'none');$('toolTier').value=e.tool_tier||'none';$('hardness').value=e.hardness??5;$('light').value=e.light??0;$('explosion').value=e.explosion_resistance??'';$('friction').value=e.friction??'';$('mapColor').value=e.map_color??'';$('sounds').value=e.sounds||'';$('requiresTool').checked=!!e.requires_tool;$('rarity').value=e.rarity||'common';$('maxStack').value=e.max_stack_size||64;$('texture').value='';$('textureHint').textContent=t(e.texture?'textureKeep':'textureTemplate');$('addObject').textContent=t('saveChanges');$('cancelObject').hidden=false;}}
 function removeEntry(i){const collection=state[state.tab==='block'?'blocks':state.tab==='item'?'items':'recipes'];const entry=collection[i];if(state.tab!=='recipe'){const affected=HorizonStudioModel.recipesUsing(state.recipes,entry.id);if(affected.length&&!confirm(t('deleteReferences',{count:affected.length})))return;state.recipes=state.recipes.filter(r=>!affected.includes(r));}collection.splice(i,1);if(state.tab==='recipe')resetRecipe();else resetObject();persist();render();}
 async function addObject(){const id=$('entryId').value.trim(),name=$('entryName').value.trim(),collection=state[state.tab==='block'?'blocks':'items'];if(!VALID.test(id)||!name){status(t('invalidEntry'),true);return;}if(allEntries().some(e=>e.id===id&&e!==collection[state.editing])){status(t('duplicateId'),true);return;}if(state.editing<0&&collection.length>=32){status(t('entryLimit'),true);return;}
@@ -337,12 +267,18 @@ const e={id,name,template:$('template').value};if($('entryNameRu').value.trim())
 const file=$('texture').files[0];if(file){if(file.size>1024*1024||file.type!=='image/png'){status(t('invalidTexture'),true);return;}try{e.texture=await new Promise((resolve,reject)=>{const reader=new FileReader;reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file);});}catch(_){status(t('readTexture'),true);return;}}else if(state.editing>=0&&collection[state.editing].texture){e.texture=collection[state.editing].texture;}
 e.uid=state.editing>=0?collection[state.editing].uid:newUid();if(state.editing<0)collection.push(e);else{const old=collection[state.editing];collection[state.editing]=e;if(old.id!==id)HorizonStudioModel.renameReferences(state.recipes,old.id,id);}resetObject();persist();render();status(t('savedEntry'));}
 function addRecipe(){const e={id:$('recipeId').value.trim(),type:$('recipeType').value,result:$('recipeResult').value,count:Number($('recipeCount').value),grid:Array.from({length:9},(_,i)=>$('slot'+i).value)};if(!VALID.test(e.id)||!e.result||!Number.isInteger(e.count)||e.count<1||e.count>64||!e.grid.some(Boolean)){status(t('invalidRecipe'),true);return;}if(state.recipes.some((x,i)=>x.id===e.id&&i!==state.editing)){status(t('duplicateRecipe'),true);return;}if(state.editing<0&&state.recipes.length>=64){status(t('recipeLimit'),true);return;}e.uid=state.editing>=0?state.recipes[state.editing].uid:newUid();if(state.editing<0)state.recipes.push(e);else state.recipes[state.editing]=e;resetRecipe();render();persist();status(t('savedRecipe'));}
-function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+const desktop=window.HorizonDesktop;
+/** Resolves false when a native "Save as" dialog was cancelled. */
+async function download(blob,name){
+  if(desktop.available())return (await desktop.saveFile(blob,name)).saved;
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  return true;
+}
 
 async function api(path){const response=await studioPost(path,JSON.stringify(payload()));if(!response.ok){const data=await response.json();throw new Error(data.error||t('apiError'));}return response;}
-async function exportFile(path,extension){const b=$(extension==='hmod'?'exportHmod':'exportSource');b.disabled=true;try{status(t('exporting'));const result=await api(path);download(await result.blob(),meta().id+(extension==='hmod'?'.hmod':'-source.zip'));status(extension==='hmod'?t('hmodExported'):t('zipExported'));}catch(e){status(e.message,true);}finally{b.disabled=false;}}
+async function exportFile(path,extension){const b=$(extension==='hmod'?'exportHmod':'exportSource');b.disabled=true;try{const blocked=await workbench.exportGate();if(blocked){status(blocked,true);return;}status(t('exporting'));const result=await api(path);if(!await download(await result.blob(),meta().id+(extension==='hmod'?'.hmod':'-source.zip'))){status(t('saveCancelled'));return;}status(extension==='hmod'?t('hmodExported'):t('zipExported'));}catch(e){status(e.message,true);}finally{b.disabled=false;}}
 async function inspect(){try{const result=await (await api('/api/preview')).json();$('inspectPanel').hidden=false;$('manifestPreview').textContent=result.manifest;$('filePreview').textContent=result.files.join('\n');status(t('inspectSuccess',{count:result.file_count,bytes:result.bytes_raw}));}catch(e){status(e.message,true);}}
-async function saveProject(){try{const response=await studioPost('/api/project/save',JSON.stringify(editorState()));if(!response.ok){const data=await response.json();throw new Error(data.error||t('apiError'));}download(await response.blob(),(meta().id||'project')+'.hstudio.json');status(t('projectSaved'));}catch(e){status(e.message,true);}}
+async function saveProject(){try{const response=await studioPost('/api/project/save',JSON.stringify(editorState()));if(!response.ok){const data=await response.json();throw new Error(data.error||t('apiError'));}if(!await download(await response.blob(),(meta().id||'project')+'.hstudio.json')){status(t('saveCancelled'));return;}status(t('projectSaved'));}catch(e){status(e.message,true);}}
 function applyProject(data,{preserveHistory=false,skipWorkspaceCheck=false}={}){const problem=HorizonStudioModel.projectProblem(data);if(problem)throw new Error(t(problem));const m=data.metadata;for(const [target,key] of [['modId','id'],['modName','name'],['version','version'],['author','author'],['description','description']])$(target).value=m[key]??'';state.blocks=data.blocks;state.items=data.items;state.recipes=data.recipes;state.structures=data.structures||[];state.source_overrides=data.source_overrides||{};state.carry=data.carry||{};HorizonStudioModel.assignMissingUids(state,newUid);chooseTab(preserveHistory?state.tab:'block');persist({record:false,disk:false});if(!preserveHistory)editJournal.reset(editorState());historyButtons();render();if(!skipWorkspaceCheck)beginWorkspaceSession();document.dispatchEvent(new Event('studio:state-changed'));}
 function example(){const d={metadata:{id:'ruby_demo',name:'Ruby Demo',version:'0.1.0',author:'Creator',description:'Example with two recipes, a block and a gem'},blocks:[{id:'ruby_block',name:'Block of Ruby',template:'minecraft:iron_block',hardness:4,light:3}],items:[{id:'ruby',name:'Ruby',template:'minecraft:diamond',rarity:'rare',max_stack_size:64}],recipes:[{id:'ruby_block',type:'shaped',result:'@ruby_block',count:1,grid:Array(9).fill('@ruby')},{id:'ruby_from_block',type:'shapeless',result:'@ruby',count:9,grid:['@ruby_block',...Array(8).fill('')]}]};applyProject(d);status(t('demoLoaded'));}
 function refreshLanguage(){
@@ -362,6 +298,7 @@ function refreshLanguage(){
     renderGrid(grid);
   }
   render();if($('workspaceSaveStatus').dataset.key)workspaceNotice($('workspaceSaveStatus').dataset.key);status('');
+  workbench.refreshLanguage();
 }
 window.HorizonStudioRefreshLanguage=refreshLanguage;
 async function runDoctor(){
@@ -377,7 +314,7 @@ async function runDoctor(){
 let isoRotation=0, lastStructurePreview=null;
 function structureSpec(){return {id:$('structureId').value.trim(),kind:$('structureKind').value,theme:$('structureTheme').value,size:Number($('structureSize').value),seed:Number($('structureSeed').value),rotation:Number($('structureRotation').value),mirror:$('structureMirror').value};}
 function resetStructure(){state.editing=-1;$('structureEditorTitle').textContent=t('newStructure');$('addStructure').textContent=t('addStructure');$('cancelStructure').hidden=true;$('structureId').value='my_sky_dome';$('structureKind').value='sky_dome';$('structureTheme').value='stone';$('structureSize').value=19;$('structureSeed').value=42;$('structureRotation').value='0';$('structureMirror').value='none';}
-function renderStructures(){ $('counter').textContent=String(state.structures.length);updateWorkspaceMeta();const visible=state.structures.map((e,i)=>[e,i]).filter(([e])=>matchesSearch({id:e.id,name:e.kind+' '+e.theme,name_ru:'',template:e.kind}));$('entries').className='entries card-gallery';$('entries').innerHTML=visible.length?visible.map(([e,i])=>`<article class="entry-card structure"><div class="entry-visual"><span class="preview-image large symbol structure-badge">⬡</span></div><div class="entry-copy"><b>${esc(e.id)}</b><small>${esc(e.kind)} · ${e.size}³</small><small>${esc(e.theme)} · ${e.rotation||0}° · ${esc(e.mirror||'none')}</small></div><div class="entry-actions"><button data-edit="${i}">${esc(t('configure'))}</button><button data-remove="${i}" class="danger ghost">${esc(t('remove'))}</button></div></article>`).join(''):`<p class="empty-hint">${esc(t('emptyStructures'))}</p>`;for(const b of $('entries').querySelectorAll('[data-edit]'))b.onclick=()=>{const e=state.structures[Number(b.dataset.edit)];state.editing=Number(b.dataset.edit);$('structureId').value=e.id;$('structureKind').value=e.kind;$('structureTheme').value=e.theme;$('structureSize').value=e.size;$('structureSeed').value=e.seed;$('structureRotation').value=String(e.rotation||0);$('structureMirror').value=e.mirror||'none';$('structureEditorTitle').textContent=t('editStructure');$('addStructure').textContent=t('saveChanges');$('cancelStructure').hidden=false;};for(const b of $('entries').querySelectorAll('[data-remove]'))b.onclick=()=>{state.structures.splice(Number(b.dataset.remove),1);resetStructure();renderStructures();persist();};}
+function renderStructures(){ $('counter').textContent=String(state.structures.length);updateWorkspaceMeta();const visible=state.structures.map((e,i)=>[e,i]).filter(([e])=>matchesSearch({id:e.id,name:e.kind+' '+e.theme,name_ru:'',template:e.kind}));$('entries').className='entries card-gallery';if(!state.structures.length)return emptyState();$('entries').innerHTML=visible.length?visible.map(([e,i])=>`<article class="entry-card structure"><div class="entry-visual"><span class="preview-image large symbol structure-badge">⬡</span></div><div class="entry-copy"><b>${esc(e.id)}</b><small>${esc(e.kind)} · ${e.size}³</small><small>${esc(e.theme)} · ${e.rotation||0}° · ${esc(e.mirror||'none')}</small></div><div class="entry-actions"><button data-edit="${i}">${esc(t('configure'))}</button><button data-remove="${i}" class="danger ghost">${esc(t('remove'))}</button></div></article>`).join(''):`<p class="empty-hint">${esc(t('emptyStructures'))}</p>`;for(const b of $('entries').querySelectorAll('[data-edit]'))b.onclick=()=>{const e=state.structures[Number(b.dataset.edit)];state.editing=Number(b.dataset.edit);$('structureId').value=e.id;$('structureKind').value=e.kind;$('structureTheme').value=e.theme;$('structureSize').value=e.size;$('structureSeed').value=e.seed;$('structureRotation').value=String(e.rotation||0);$('structureMirror').value=e.mirror||'none';$('structureEditorTitle').textContent=t('editStructure');$('addStructure').textContent=t('saveChanges');$('cancelStructure').hidden=false;};for(const b of $('entries').querySelectorAll('[data-remove]'))b.onclick=()=>{state.structures.splice(Number(b.dataset.remove),1);resetStructure();renderStructures();persist();};}
 function addStructure(){const e=structureSpec();if(!VALID.test(e.id)||!Number.isInteger(e.size)||e.size<7||e.size>29||e.size%2!==1||!Number.isInteger(e.seed)||e.seed<0||e.seed>2147483647){status(t('badStructure'),true);return;}if(state.structures.some((x,i)=>x.id===e.id&&i!==state.editing)){status(t('duplicateId'),true);return;}if(state.editing===-1&&state.structures.length>=8){status(t('structureLimit'),true);return;}e.uid=state.editing>=0?state.structures[state.editing].uid:newUid();if(state.editing===-1)state.structures.push(e);else state.structures[state.editing]=e;resetStructure();renderStructures();persist();status(t('savedStructure'));}
 async function previewStructure(){try{const response=await studioPost('/api/structure-preview',JSON.stringify({structure:structureSpec(),layer:Number($('sliceY').value)}));const info=await response.json();if(!response.ok)throw new Error(info.error);$('structureCanvas').hidden=false;$('structureStats').textContent=t('previewStats',{blocks:info.blocks,dimensions:info.size.join(' × ')});$('structureAscii').textContent=info.top_down;lastStructurePreview=info;drawIsometric(info);status(t('previewReady'));}catch(e){status(e.message,true);}}
 function drawIsometric(info){
@@ -417,9 +354,17 @@ compactLayout.addEventListener('change',()=>{document.body.classList.remove('sid
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&document.body.classList.contains('sidebar-open')){document.body.classList.remove('sidebar-open');$('toggleExplorer').setAttribute('aria-expanded','false');$('toggleExplorer').focus();}});
 $('toggleExplorer').setAttribute('aria-expanded',String(sidebarVisible()));$('quickExport').onclick=()=>exportFile('/api/hmod','hmod');
 window.addEventListener('keydown',event=>{if(!(event.ctrlKey||event.metaKey)||event.altKey)return;const tag=event.target?.tagName;if(['INPUT','TEXTAREA','SELECT'].includes(tag)||event.target?.isContentEditable||!$('sourceWorkbench').hidden)return;const key=event.key.toLowerCase();if(key==='z'&&!event.shiftKey){event.preventDefault();undoProject();}else if(key==='y'||(key==='z'&&event.shiftKey)){event.preventDefault();redoProject();}});
-for(const id of META)$(id).addEventListener('change',()=>{persist();if(workspaceSync.id!==meta().id)beginWorkspaceSession();}); if($('entrySearch'))$('entrySearch').addEventListener('input',render);
+for(const id of META)$(id).addEventListener('change',()=>{persist();if(workspaceSync.id!==meta().id)beginWorkspaceSession();});
+for(const id of ['modId','modName'])$(id).addEventListener('input',updateWorkspaceMeta); if($('entrySearch'))$('entrySearch').addEventListener('input',render);
 try{const cached=JSON.parse(localStorage.getItem('horizonStudio_v02')||'null');if(cached)applyProject(cached); else {chooseTab('recipe');editJournal.reset(editorState());beginWorkspaceSession();}}catch(_){chooseTab('recipe');editJournal.reset(editorState());beginWorkspaceSession();}
-window.HorizonI18n.init(); updateWorkspaceMeta();historyButtons();
+window.HorizonI18n.init(); updateWorkspaceMeta();historyButtons();workbench.shell(null);
+if(desktop.available()){
+  document.body.classList.add('desktop');
+  desktop.ready({title:document.title,lang:document.documentElement.lang,scripts:document.scripts.length,
+    entries:state.blocks.length+state.items.length+state.recipes.length+state.structures.length})
+    .then(info=>{document.body.dataset.shell=info.shell;workbench.shell(info);})
+    .catch(error=>status(error.message,true));
+}
 </script>
 <script src="/source_workbench_ui.js"></script>
 </body></html>

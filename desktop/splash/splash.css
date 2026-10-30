@@ -1,0 +1,22 @@
+:root{--bg:#0b0f12;--panel:#171d21;--line:#394047;--text:#e8eef0;--muted:#9fb0b6;--gold:#e0b04c;--cyan:#5fd3e6;--red:#ff9caa;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.5 "Segoe UI",system-ui,sans-serif;display:grid;grid-template-rows:1fr auto;place-items:center;user-select:none;
+  background-image:linear-gradient(rgba(95,211,230,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(95,211,230,.035) 1px,transparent 1px);background-size:16px 16px}
+.splash{display:grid;justify-items:center;gap:18px;padding:24px}
+.mark,.wordmark{image-rendering:pixelated;image-rendering:crisp-edges}
+.mark{width:128px;height:128px;animation:rise 640ms steps(8) both}
+.wordmark{width:308px;max-width:80vw;height:auto}
+.meter{display:grid;grid-template-columns:repeat(8,14px);gap:4px;padding:4px;border:2px solid var(--line);background:var(--panel)}
+.meter i{height:10px;background:#26313a;animation:pulse 1.6s steps(1) infinite}
+.meter i:nth-child(1){animation-delay:0s}.meter i:nth-child(2){animation-delay:.2s}.meter i:nth-child(3){animation-delay:.4s}.meter i:nth-child(4){animation-delay:.6s}
+.meter i:nth-child(5){animation-delay:.8s}.meter i:nth-child(6){animation-delay:1s}.meter i:nth-child(7){animation-delay:1.2s}.meter i:nth-child(8){animation-delay:1.4s}
+#status{margin:0;color:var(--muted);font:13px "Cascadia Mono",Consolas,monospace}
+.failure{max-width:560px;border:2px solid #5a3241;border-left-width:6px;background:#1e1519;padding:14px 16px;user-select:text}
+.failure h1{margin:0 0 6px;font:700 15px "Cascadia Mono",Consolas,monospace;color:var(--red)}
+.failure p{margin:4px 0;color:#f0d9de;font-size:13px;overflow-wrap:anywhere}
+.note{margin:0 0 14px;color:#6d7d84;font-size:11px;text-align:center;padding:0 16px}
+body.failed .meter{display:none}
+@keyframes pulse{0%{background:var(--cyan)}12%{background:#2c8fa0}25%,100%{background:#26313a}}
+@keyframes rise{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.mark,.meter i{animation:none}.meter i{background:#2c8fa0}}

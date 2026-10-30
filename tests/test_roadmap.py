@@ -131,7 +131,7 @@ class GeneratedOutputTests(unittest.TestCase):
 
     def test_svgs_are_static_crisp_and_self_contained(self):
         files = list((ROOT / "assets" / "branding").glob("*.svg")) + list((ROOT / "assets" / "roadmap").glob("*.svg"))
-        self.assertEqual(len(files), 4)
+        self.assertEqual(len(files), 5)  # banner, mark, wordmark, two roadmap images
         for path in files:
             with self.subTest(path.name):
                 raw = path.read_text(encoding="utf-8")

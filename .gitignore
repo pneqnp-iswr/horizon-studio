@@ -24,3 +24,9 @@ Thumbs.db
 # Browser E2E failure artifacts
 test-results/
 node_modules/
+
+# Desktop shell (Rust/Tauri) build outputs
+desktop/target/
+desktop/gen/
+build/
+dist/

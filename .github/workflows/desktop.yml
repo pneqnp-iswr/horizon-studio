@@ -1,0 +1,197 @@
+name: Desktop shell
+
+# Builds and exercises the Tauri desktop shell (desktop/) with the frozen project core.
+# Preview artifacts only: publishing releases stays in windows-release.yml until the
+# desktop build reaches parity (docs/adr/0002-desktop-shell.md).
+on:
+  push:
+    branches: [master]
+    paths:
+      - desktop/**
+      - launcher.py
+      - studio.py
+      - index.html
+      - '*.js'
+      - assets/**
+      - studio_core/**
+      - security/**
+      - scripts/build_desktop.py
+      - scripts/desktop_probe.py
+      - .github/workflows/desktop.yml
+  pull_request:
+    branches: [master]
+    paths:
+      - desktop/**
+      - launcher.py
+      - studio.py
+      - index.html
+      - '*.js'
+      - assets/**
+      - studio_core/**
+      - security/**
+      - scripts/build_desktop.py
+      - scripts/desktop_probe.py
+      - .github/workflows/desktop.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  TAURI_CLI: '@tauri-apps/cli@2.12.4'
+
+jobs:
+  linux:
+    name: Shell tests and smoke (Linux, WebKitGTK)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install WebKitGTK and a virtual display
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libsoup-3.0-dev librsvg2-dev xvfb imagemagick
+          python -m pip install psutil==7.2.2
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            desktop/target
+          key: desktop-linux-${{ hashFiles('desktop/Cargo.lock') }}
+      - name: Rust unit tests and lints
+        working-directory: desktop
+        run: |
+          cargo test --locked
+          cargo clippy --locked --all-targets -- -D warnings
+      - name: Start the shell with the development core and record a smoke report
+        run: |
+          cargo build --locked --manifest-path desktop/Cargo.toml
+          xvfb-run -a -s "-screen 0 1600x1000x24" env WEBKIT_DISABLE_DMABUF_RENDERER=1 \
+            python scripts/desktop_probe.py --exe desktop/target/debug/horizon-studio \
+              --out desktop-evidence --label linux-1440x900 --window-size 1440x900
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-linux-evidence
+          path: desktop-evidence/
+          retention-days: 14
+
+  windows:
+    name: Windows build, packaging and smoke
+    runs-on: windows-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned build tools
+        run: python -m pip install pyinstaller==6.16.0 pillow==11.3.0 psutil==7.2.2
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            desktop/target
+          key: desktop-windows-${{ hashFiles('desktop/Cargo.lock') }}
+      - name: Freeze the project core and smoke-test it
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          New-Item -ItemType Directory -Force desktop-evidence | Out-Null
+          python scripts/build_desktop.py
+          build/desktop-core/horizon-studio-core/horizon-studio-core.exe --smoke-test --smoke-report desktop-evidence/core-smoke.json
+      - name: Build the shell and the NSIS installer
+        working-directory: desktop
+        run: npx --yes ${{ env.TAURI_CLI }} build --ci --bundles nsis --config tauri.release.conf.json
+      - name: Assemble the portable folder
+        shell: python
+        run: |
+          import json, os, shutil
+          from pathlib import Path
+          version = Path("VERSION").read_text(encoding="utf-8").strip()
+          name = f"HorizonStudio-Desktop-{version}-preview-{os.environ['GITHUB_SHA'][:7]}-Windows-x64"
+          release = Path("desktop/target/release")
+          portable = Path("dist") / name
+          portable.mkdir(parents=True)
+          shutil.copy2(release / "HorizonStudio.exe", portable / "HorizonStudio.exe")
+          shutil.copytree(release / "core", portable / "core")
+          archive = shutil.make_archive(str(portable), "zip", portable.parent, name)
+          installers = sorted(Path("desktop/target/release/bundle/nsis").glob("*.exe"))
+          assert len(installers) == 1, installers
+          installer = Path("dist") / f"{name}-setup.exe"
+          shutil.copy2(installers[0], installer)
+          def mb(path):
+              size = sum(p.stat().st_size for p in path.rglob("*") if p.is_file()) if path.is_dir() else path.stat().st_size
+              return round(size / 2**20, 2)
+          sizes = {"shell_exe_mb": mb(portable / "HorizonStudio.exe"), "core_dir_mb": mb(portable / "core"),
+                   "portable_zip_mb": mb(Path(archive)), "installer_mb": mb(installer)}
+          Path("desktop-evidence").mkdir(exist_ok=True)
+          Path("desktop-evidence/sizes.json").write_text(json.dumps(sizes, indent=2) + "\n", encoding="utf-8")
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
+              env.write(f"PORTABLE={portable}\nINSTALLER={installer}\n")
+          print(sizes)
+      - name: Smoke the portable build (cold, warm, minimum window)
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          python scripts/desktop_probe.py --exe "$env:PORTABLE/HorizonStudio.exe" --out desktop-evidence --label portable-cold-1280x720 --window-size 1280x720
+          python scripts/desktop_probe.py --exe "$env:PORTABLE/HorizonStudio.exe" --out desktop-evidence --label portable-warm-1280x720 --window-size 1280x720
+          python scripts/desktop_probe.py --exe "$env:PORTABLE/HorizonStudio.exe" --out desktop-evidence --label portable-960x600 --window-size 960x600
+      - name: Install silently, smoke the installed app, uninstall
+        run: |
+          $installer = Resolve-Path $env:INSTALLER
+          Start-Process -FilePath $installer -ArgumentList '/S' -Wait
+          $installed = Get-ChildItem "$env:LOCALAPPDATA" -Recurse -Filter HorizonStudio.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $installed) { throw "The installer did not install HorizonStudio.exe under LOCALAPPDATA" }
+          Write-Output "Installed at $($installed.FullName)"
+          if (-not (Test-Path (Join-Path $installed.DirectoryName 'core/horizon-studio-core.exe'))) { throw "The installed app has no core" }
+          python scripts/desktop_probe.py --exe $installed.FullName --out desktop-evidence --label installed-1280x720 --window-size 1280x720
+          if ($LASTEXITCODE -ne 0) { throw "The installed app failed its smoke run" }
+          $uninstaller = Join-Path $installed.DirectoryName 'uninstall.exe'
+          Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait
+          Start-Sleep -Seconds 5
+          if (Test-Path $installed.FullName) { throw "The uninstaller left HorizonStudio.exe behind" }
+          Write-Output "Uninstalled cleanly"
+      - name: Summarize measurements
+        if: always()
+        shell: python
+        run: |
+          import json, os
+          from pathlib import Path
+          evidence = Path("desktop-evidence")
+          lines = ["## Desktop shell evidence (Windows)", "", "| Run | OK | Core ready | Editor ready | Tree RSS | Screenshot |", "|---|---|---|---|---|---|"]
+          for path in sorted(evidence.glob("*.metrics.json")):
+              m = json.loads(path.read_text(encoding="utf-8"))
+              t = (m.get("report") or {}).get("timings_ms") or {}
+              lines.append(f"| {m['label']} | {m['ok']} | {t.get('core_ready')} ms | {t.get('editor_ready')} ms | "
+                           f"{(m.get('memory') or {}).get('total_rss_mb')} MB | {(m.get('screenshot') or {}).get('size')} |")
+          sizes = evidence / "sizes.json"
+          if sizes.is_file():
+              lines += ["", "Sizes: `" + sizes.read_text(encoding="utf-8").replace(chr(10), " ") + "`"]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("\n".join(lines) + "\n")
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-windows-evidence
+          path: desktop-evidence/
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows-preview-build
+          path: |
+            dist/*.zip
+            dist/*-setup.exe
+          retention-days: 14

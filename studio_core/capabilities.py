@@ -17,19 +17,27 @@ from studio_core.project_schema import validate_document
 
 REGISTRY = Path(__file__).with_name("engine_profiles.json")
 STATUSES = ("official-static", "engine-only", "unsupported")
+# Horizon's own API stability levels (docs/api/stability.md upstream), plus "not-started".
+STABILITY = ("experimental", "preview", "stable", "not-started")
+SIDES = ("both", "client", "server")
+BACKENDS = ("hmod", "hnmod", "hshader", None)
+FIELDS = ("status", "api", "stability", "side", "backend", "permissions", "contract", "source")
 BUILDABLE = "official-static"
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def load_registry(path: Path = REGISTRY) -> dict:
+def load_registry(path: Path = REGISTRY, evidence_root: Path | None = None) -> dict:
+    """Read and validate the registry. Evidence documents are checked only when
+    ``evidence_root`` is given (the repository and its tests); a frozen app ships
+    the registry without the docs it cites."""
     registry = json.loads(Path(path).read_text(encoding="utf-8"))
-    problems = validate_registry(registry)
+    problems = validate_registry(registry, evidence_root)
     if problems:
         raise ValueError("Invalid engine capability registry: " + "; ".join(problems))
     return registry
 
 
-def validate_registry(registry) -> list[str]:
+def validate_registry(registry, evidence_root: Path | None = ROOT) -> list[str]:
     if not isinstance(registry, dict) or registry.get("schema") != "horizon-studio.engine-profiles/1":
         return ["expected a horizon-studio.engine-profiles/1 document"]
     problems, revisions = [], set()
@@ -39,11 +47,28 @@ def validate_registry(registry) -> list[str]:
             problems.append(f"profile revision {revision!r} must be a unique full SHA")
         revisions.add(revision)
         for name, capability in profile.get("capabilities", {}).items():
+            where = f"{revision[:7]} {name}"
+            missing = [field for field in FIELDS if field not in capability]
+            if missing:
+                problems.append(f"{where}: missing {', '.join(missing)}")
             status = capability.get("status")
             if status not in STATUSES:
-                problems.append(f"{revision[:7]} {name}: unsupported status {status!r}")
-            if status == BUILDABLE and not (ROOT / capability.get("evidence", "")).is_file():
-                problems.append(f"{revision[:7]} {name}: official-static needs an evidence document")
+                problems.append(f"{where}: unsupported status {status!r}")
+            if capability.get("stability") not in STABILITY:
+                problems.append(f"{where}: stability must be one of {', '.join(STABILITY)}")
+            if capability.get("side") not in SIDES:
+                problems.append(f"{where}: side must be one of {', '.join(SIDES)}")
+            if capability.get("backend") not in BACKENDS:
+                problems.append(f"{where}: unknown backend {capability.get('backend')!r}")
+            permissions = capability.get("permissions")
+            if not isinstance(permissions, list) or not all(isinstance(p, str) and p for p in permissions):
+                problems.append(f"{where}: permissions must be a list of names")
+            if status == BUILDABLE and capability.get("backend") is None:
+                problems.append(f"{where}: official-static needs the backend Studio builds it with")
+            if status == BUILDABLE and not capability.get("evidence"):
+                problems.append(f"{where}: official-static needs an evidence document")
+            elif status == BUILDABLE and evidence_root is not None and not (evidence_root / capability["evidence"]).is_file():
+                problems.append(f"{where}: evidence document {capability['evidence']} does not exist")
             if status != BUILDABLE and not capability.get("note"):
                 problems.append(f"{revision[:7]} {name}: {status} needs a note explaining why")
     if registry.get("default") not in revisions:

@@ -58,7 +58,7 @@ Canonical project document, migrations, durable workspace, undo, browser E2E.
 | HS-006 Durable workspace, undo/redo, recovery | Done | HS-005 | browser-e2e: [PR #10: autosave, fresh-browser recovery, 409 conflicts, undo/redo in Chromium](https://github.com/pneqnp-iswr/horizon-studio/pull/10)<br>unit: [PR #8; CI run 41128196057 (Python + Node)](https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41128196057)<br>docs: [Workspace durability](../docs/WORKSPACE_DURABILITY.md) |  |
 | HS-007 Browser E2E in CI + UI modules | Done | HS-006 | browser-e2e: [PR #10: 13 Chromium scenarios in CI; workspace sync and API client extracted](https://github.com/pneqnp-iswr/horizon-studio/pull/10)<br>unit: [PR #14: editor_model.js and editor_render.js extracted with Node tests; inline script reduced to DOM wiring](https://github.com/pneqnp-iswr/horizon-studio/pull/14)<br>docs: [Browser E2E scope and limits](../docs/BROWSER_E2E.md) |  |
 
-### F2 — Creative Editor · Planned
+### F2 — Creative Editor · Partially verified
 
 Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bridge (HS-011).  
 **Gate:** Edit a Rust file with diagnostics; model round-trip with a declared loss report.
@@ -67,6 +67,7 @@ Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bri
 |---|---|---|---|---|
 | HS-009 Blockbench adapter with loss reports | Planned | HS-005 | — |  |
 | HS-011 Monaco + rust-analyzer + Cargo | Planned | HS-007 | — |  |
+| HS-019 Native desktop shell (Tauri 2) and workbench UI | Partially verified | HS-007 | desktop-smoke: [Windows: frozen core, NSIS install, smoke run, uninstall; portable cold/warm runs (CI run 41143213331)](https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41143213331)<br>unit: [Rust shell tests, core protocol and lifecycle tests (desktop/src, tests/test_launcher.py, tests/test_desktop.py)](../tests/test_desktop.py)<br>browser-e2e: [Workbench layout, empty states, journey, Russian UI without English leftovers](../tests/e2e/workbench.e2e.cjs)<br>docs: [ADR 0002: decision matrix and measurements](../docs/adr/0002-desktop-shell.md) | Release pipeline for the desktop artifacts, an E2E run that drives the shell's own window, a code-signing decision; the verified 0.7 EXE stays the released product until then |
 
 ### F3 — Visual Scripting · In progress
 
@@ -75,7 +76,7 @@ Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (H
 
 | Milestone | Status | Depends on | Evidence | Notes |
 |---|---|---|---|---|
-| HS-008 Engine capability registry per SHA | In progress | HS-005 | unit: [First slice: registry, project requirements, CLI capabilities (tests/test_capabilities.py)](../docs/ENGINE_CAPABILITIES.md) | **Active.** |
+| HS-008 Engine capability registry per SHA | In progress | HS-005 | unit: [First slice: registry, project requirements, CLI capabilities (tests/test_capabilities.py)](../docs/ENGINE_CAPABILITIES.md)<br>unit: [Registry fields from Horizon's API levels: API version, stability, side, backend, permissions, contract](../studio_core/engine_profiles.json)<br>browser-e2e: [In the editor: engine card, the journey's 'In this build', export blocked with the reason and data kept](../tests/e2e/workbench.e2e.cjs) | **Active.** |
 | HS-010 Trusted native .hnmod build | Planned | HS-008 | — |  |
 | HS-012 Gameplay IR v1 + event graph | Planned | HS-008 | — |  |
 

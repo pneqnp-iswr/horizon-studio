@@ -1,14 +1,24 @@
 # Horizon Studio — Implementation Status
 
-Last updated: 2026-10-31. Master before this update: `957eec0b8956933b6805444354446cef46ccd634` (PR #12). Roadmap data: [`roadmap.json`](roadmap.json) → [visual roadmap](../ROADMAP_VISUAL.md).
+Last updated: 2026-10-31. Master before this update: `05ede74` (PR #18). Roadmap data: [`roadmap.json`](roadmap.json) → [visual roadmap](../ROADMAP_VISUAL.md).
 
 ## Roadmap position
 
 - **F0 — Foundation:** code complete; gate still lacks a real-game load record (HS-002 blocked on an authorized Horizon installation).
 - **F1 — Project Core:** done — HS-005, HS-006, HS-007.
-- **F3 — Visual Scripting (current):** **HS-008 engine capability registry in progress** (F2 has not started; HS-008 unblocks F3 and later F5).
-- **Release engineering (PR #12):** gated, idempotent Windows release pipeline with build manifest; v0.6.0 notes repaired (run 41135915512, assets unchanged).
-- **Latest release: v0.7.0** (PR #15 → tag on `c816211`, run 41136925994): `HorizonStudio-0.7.0-Windows-x64.exe`, 12 170 186 bytes, SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9`, unsigned; verified through the API. The frozen Windows build exported the officially checked `.hmod` bytes and recovered its workspace on relaunch.
+- **F2 — Creative Editor:** **HS-019 native desktop shell and workbench UI, partial** (slice A of the desktop transformation, PR #19). Missing: desktop release pipeline, an E2E run driving the shell's own window, a signing decision.
+- **F3 — Visual Scripting (current):** **HS-008 engine capability registry in progress**: registry with Horizon's API levels, editor diagnostics and export gate are in; project target selection and a second profile remain.
+- **Latest release: v0.7.0** (PR #15 → tag on `c816211`, run 41136925994): `HorizonStudio-0.7.0-Windows-x64.exe`, 12 170 186 bytes, SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9`, unsigned; verified through the API. It stays the released product until the desktop build meets the gates in [ADR 0002](../adr/0002-desktop-shell.md).
+
+## Desktop transformation (cycle 4, PR #19)
+
+| Slice | State | Evidence |
+|---|---|---|
+| A: ADR, working desktop shell, pixel workbench, open/save, navigation, EN/RU, lifecycle, no browser, Windows packaging test | **done as a preview** | [ADR 0002](../adr/0002-desktop-shell.md); `desktop.yml` run 41143213331: NSIS install → smoke → uninstall, portable cold 3 239 ms / warm 928 ms to editor ready, ~350–370 MB process tree; Linux Xvfb smoke; `cargo test` + clippy; 19 browser E2E |
+| B: parity (shell-driven E2E, release pipeline for desktop artifacts) | next | — |
+| C: docking, tabs, command palette | planned | — |
+| D: engine-aware editing (target selection, graph IR) | started through HS-008 | — |
+| E: 3D editing, Blockbench interchange | planned (HS-009) | — |
 
 | ID | State | Evidence |
 |---|---|---|
@@ -19,13 +29,15 @@ Last updated: 2026-10-31. Master before this update: `957eec0b8956933b6805444354
 | HS-005 project document + migration | **done** | PR #7; migrated fixtures pass the pinned checker (run `41124192941`) |
 | HS-006 durable workspace + undo | **done** | PR #8 (Python fault injection, Node journal); PR #10 browser E2E: autosave, fresh-browser recovery, 409 conflicts, undo/redo |
 | HS-007 browser E2E + UI modules | **done** | PR #10: 13 Chromium scenarios in CI; PR #14: `editor_model.js` and `editor_render.js` (state logic and card markup) join `editor_api.js`/`editor_workspace.js`, 22 Node tests; the inline script only wires the DOM |
-| HS-008 engine capability registry | **in progress** | — |
+| HS-008 engine capability registry | **in progress** | PR #16 (registry, CLI); PR #19 (API levels, editor card, export gate, journey; browser E2E) |
+| HS-019 desktop shell + workbench UI | **partial** | PR #19; `desktop.yml` run 41143213331; [DESKTOP.md](../DESKTOP.md) |
 
 ## Compatibility status (by level)
 
 - `unit`: Python 3.11/3.12 on Ubuntu and Windows; Node 22 editor-module tests.
 - `official-static`: **pass** for all three examples and their `studio.project/1` migrations on Horizon `d2186eb9` (CI) and upstream `main` `3a5ac7ff` (local drift probe).
-- `browser-e2e`: **pass** — 13 scenarios, Chromium on Ubuntu CI ([BROWSER_E2E.md](../BROWSER_E2E.md)). Firefox, WebKit and Windows browsers are not covered.
+- `browser-e2e`: **pass** — 19 scenarios (editor, workbench, PixelChat), Chromium on Ubuntu CI ([BROWSER_E2E.md](../BROWSER_E2E.md)). Firefox, WebKit and Windows browsers are not covered.
+- `desktop-smoke`: **pass** — the real desktop application starts, reports the editor ready and stops its core cleanly: Windows portable and installed (WebView2), Linux (WebKitGTK, Xvfb). This proves the shell, not game compatibility.
 - `game-content-load`: **not verified** — needs a legally installed client, prepared resources and a GPU session (owner-run or self-hosted runner; decision pending).
 - `gameplay`: **not verified**.
 
@@ -37,17 +49,20 @@ Last updated: 2026-10-31. Master before this update: `957eec0b8956933b6805444354
 - Source Workbench listed identical file names (`ruby_block.json` ×5) and an untranslated status line.
 - `keepEditor` failed when the disk copy disappeared during a conflict.
 
-## Verification of this change (PR #10)
+## Verification of this change (PR #19)
 
-- Python: 157 tests on 3.11 and 3.12 (local Linux) + CI matrix on Ubuntu and Windows.
-- Node: 15 tests (`editor_history`, `editor_workspace`).
-- Browser E2E: 13/13 locally (Chromium, Linux) and in the new GitHub Actions job (first green run on PR head `6dc6e61`); mutation-checked (breaking uid preservation fails the rename scenario).
+- Python: unit, API, launcher (core `--serve` protocol and EOF shutdown), journey, capability and desktop contract tests on 3.11/3.12, Ubuntu and Windows.
+- Node: 28 tests (history, workspace, model, desktop bridge, workbench markup with both real catalogs).
+- Browser E2E: 19/19 locally and in CI.
+- Rust: `cargo test` (7) and `cargo clippy -D warnings` on Linux.
+- Desktop: `desktop.yml` builds the frozen core and checks its standalone smoke test (officially checked `.hmod` bytes), then installs, runs and uninstalls the NSIS build and runs the portable build three times on Windows; the frozen-core smoke test now also fetches every bundled asset and the journey data. It caught a real defect before release: the registry validation looked for documentation files that a frozen build does not contain.
 
 ## Known open issues
 
 - The inline script still wires forms to the DOM (~170 lines); further UI work belongs to F2.
 - Undo/Redo history is in memory only; one previous-good disk snapshot is kept.
-- Windows EXE is unsigned and older than the features above; no release since 0.6.0.
+- Windows EXE and the desktop preview are unsigned.
+- The desktop shell's own window is exercised by smoke runs and scripted screenshots, not yet by a full E2E suite.
 
 ## Architectural decisions in force
 
@@ -59,9 +74,9 @@ Last updated: 2026-10-31. Master before this update: `957eec0b8956933b6805444354
 
 ## Next recommended tasks
 
-1. HS-008 (continue): show capability diagnostics in the editor and block export on missing capabilities; first slice (registry, requirements, CLI) is in.
-2. HS-010 / HS-012 after HS-008.
-3. HS-009: Blockbench interchange with loss reports (F2).
+1. HS-019 slice B: drive the shell's own window in E2E (WebDriver for WebView2 / WebKitGTK) and add the desktop artifacts to the gated release pipeline; record a code-signing decision.
+2. HS-008: let a project choose its target revision in the editor; add a profile for the next audited pin.
+3. HS-009: Blockbench `.bbmodel` cuboid import with a loss report (F2); [research note](../research/EDITOR_ECOSYSTEM_COMPARISON.md).
 4. HS-002: run the content-load harness on an authorized installation and record the result.
 
 Do not treat a CI-only pass as real Horizon game compatibility.

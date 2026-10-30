@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Horizon Studio</title>
+<link rel="stylesheet" href="splash.css">
+</head>
+<body>
+<main class="splash" aria-busy="true">
+  <img class="mark" src="mark.png" width="128" height="128" alt="">
+  <img class="wordmark" src="wordmark.svg" width="308" height="32" alt="Horizon Studio">
+  <div class="meter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <p id="status" role="status" aria-live="polite" data-en="Starting the project core…" data-ru="Запуск ядра проекта…">Starting the project core…</p>
+  <section id="failure" class="failure" hidden role="alert">
+    <h1 data-en="The project core did not start" data-ru="Ядро проекта не запустилось">The project core did not start</h1>
+    <p id="failureMessage"></p>
+    <p id="failureLog" hidden></p>
+  </section>
+</main>
+<p class="note" data-en="Unofficial open-source editor. Not affiliated with Mojang, Microsoft or the Horizon developers." data-ru="Неофициальный редактор с открытым кодом. Не связан с Mojang, Microsoft и разработчиками Horizon.">Unofficial open-source editor. Not affiliated with Mojang, Microsoft or the Horizon developers.</p>
+<script src="splash.js"></script>
+</body>
+</html>
