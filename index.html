@@ -252,6 +252,7 @@ body.sidebar-collapsed .workspace{grid-column:2}
 <script src="/editor_render.js"></script>
 <script src="/editor_api.js"></script>
 <script src="/editor_workspace.js"></script>
+<script src="/desktop_bridge.js"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -337,12 +338,18 @@ const e={id,name,template:$('template').value};if($('entryNameRu').value.trim())
 const file=$('texture').files[0];if(file){if(file.size>1024*1024||file.type!=='image/png'){status(t('invalidTexture'),true);return;}try{e.texture=await new Promise((resolve,reject)=>{const reader=new FileReader;reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file);});}catch(_){status(t('readTexture'),true);return;}}else if(state.editing>=0&&collection[state.editing].texture){e.texture=collection[state.editing].texture;}
 e.uid=state.editing>=0?collection[state.editing].uid:newUid();if(state.editing<0)collection.push(e);else{const old=collection[state.editing];collection[state.editing]=e;if(old.id!==id)HorizonStudioModel.renameReferences(state.recipes,old.id,id);}resetObject();persist();render();status(t('savedEntry'));}
 function addRecipe(){const e={id:$('recipeId').value.trim(),type:$('recipeType').value,result:$('recipeResult').value,count:Number($('recipeCount').value),grid:Array.from({length:9},(_,i)=>$('slot'+i).value)};if(!VALID.test(e.id)||!e.result||!Number.isInteger(e.count)||e.count<1||e.count>64||!e.grid.some(Boolean)){status(t('invalidRecipe'),true);return;}if(state.recipes.some((x,i)=>x.id===e.id&&i!==state.editing)){status(t('duplicateRecipe'),true);return;}if(state.editing<0&&state.recipes.length>=64){status(t('recipeLimit'),true);return;}e.uid=state.editing>=0?state.recipes[state.editing].uid:newUid();if(state.editing<0)state.recipes.push(e);else state.recipes[state.editing]=e;resetRecipe();render();persist();status(t('savedRecipe'));}
-function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+const desktop=window.HorizonDesktop;
+/** Resolves false when a native "Save as" dialog was cancelled. */
+async function download(blob,name){
+  if(desktop.available())return (await desktop.saveFile(blob,name)).saved;
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  return true;
+}
 
 async function api(path){const response=await studioPost(path,JSON.stringify(payload()));if(!response.ok){const data=await response.json();throw new Error(data.error||t('apiError'));}return response;}
-async function exportFile(path,extension){const b=$(extension==='hmod'?'exportHmod':'exportSource');b.disabled=true;try{status(t('exporting'));const result=await api(path);download(await result.blob(),meta().id+(extension==='hmod'?'.hmod':'-source.zip'));status(extension==='hmod'?t('hmodExported'):t('zipExported'));}catch(e){status(e.message,true);}finally{b.disabled=false;}}
+async function exportFile(path,extension){const b=$(extension==='hmod'?'exportHmod':'exportSource');b.disabled=true;try{status(t('exporting'));const result=await api(path);if(!await download(await result.blob(),meta().id+(extension==='hmod'?'.hmod':'-source.zip'))){status(t('saveCancelled'));return;}status(extension==='hmod'?t('hmodExported'):t('zipExported'));}catch(e){status(e.message,true);}finally{b.disabled=false;}}
 async function inspect(){try{const result=await (await api('/api/preview')).json();$('inspectPanel').hidden=false;$('manifestPreview').textContent=result.manifest;$('filePreview').textContent=result.files.join('\n');status(t('inspectSuccess',{count:result.file_count,bytes:result.bytes_raw}));}catch(e){status(e.message,true);}}
-async function saveProject(){try{const response=await studioPost('/api/project/save',JSON.stringify(editorState()));if(!response.ok){const data=await response.json();throw new Error(data.error||t('apiError'));}download(await response.blob(),(meta().id||'project')+'.hstudio.json');status(t('projectSaved'));}catch(e){status(e.message,true);}}
+async function saveProject(){try{const response=await studioPost('/api/project/save',JSON.stringify(editorState()));if(!response.ok){const data=await response.json();throw new Error(data.error||t('apiError'));}if(!await download(await response.blob(),(meta().id||'project')+'.hstudio.json')){status(t('saveCancelled'));return;}status(t('projectSaved'));}catch(e){status(e.message,true);}}
 function applyProject(data,{preserveHistory=false,skipWorkspaceCheck=false}={}){const problem=HorizonStudioModel.projectProblem(data);if(problem)throw new Error(t(problem));const m=data.metadata;for(const [target,key] of [['modId','id'],['modName','name'],['version','version'],['author','author'],['description','description']])$(target).value=m[key]??'';state.blocks=data.blocks;state.items=data.items;state.recipes=data.recipes;state.structures=data.structures||[];state.source_overrides=data.source_overrides||{};state.carry=data.carry||{};HorizonStudioModel.assignMissingUids(state,newUid);chooseTab(preserveHistory?state.tab:'block');persist({record:false,disk:false});if(!preserveHistory)editJournal.reset(editorState());historyButtons();render();if(!skipWorkspaceCheck)beginWorkspaceSession();document.dispatchEvent(new Event('studio:state-changed'));}
 function example(){const d={metadata:{id:'ruby_demo',name:'Ruby Demo',version:'0.1.0',author:'Creator',description:'Example with two recipes, a block and a gem'},blocks:[{id:'ruby_block',name:'Block of Ruby',template:'minecraft:iron_block',hardness:4,light:3}],items:[{id:'ruby',name:'Ruby',template:'minecraft:diamond',rarity:'rare',max_stack_size:64}],recipes:[{id:'ruby_block',type:'shaped',result:'@ruby_block',count:1,grid:Array(9).fill('@ruby')},{id:'ruby_from_block',type:'shapeless',result:'@ruby',count:9,grid:['@ruby_block',...Array(8).fill('')]}]};applyProject(d);status(t('demoLoaded'));}
 function refreshLanguage(){
@@ -420,6 +427,13 @@ window.addEventListener('keydown',event=>{if(!(event.ctrlKey||event.metaKey)||ev
 for(const id of META)$(id).addEventListener('change',()=>{persist();if(workspaceSync.id!==meta().id)beginWorkspaceSession();}); if($('entrySearch'))$('entrySearch').addEventListener('input',render);
 try{const cached=JSON.parse(localStorage.getItem('horizonStudio_v02')||'null');if(cached)applyProject(cached); else {chooseTab('recipe');editJournal.reset(editorState());beginWorkspaceSession();}}catch(_){chooseTab('recipe');editJournal.reset(editorState());beginWorkspaceSession();}
 window.HorizonI18n.init(); updateWorkspaceMeta();historyButtons();
+if(desktop.available()){
+  document.body.classList.add('desktop');
+  desktop.ready({title:document.title,lang:document.documentElement.lang,scripts:document.scripts.length,
+    entries:state.blocks.length+state.items.length+state.recipes.length+state.structures.length})
+    .then(info=>{document.body.dataset.shell=info.shell;})
+    .catch(error=>status(error.message,true));
+}
 </script>
 <script src="/source_workbench_ui.js"></script>
 </body></html>

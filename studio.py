@@ -41,6 +41,7 @@ WEB_SCRIPTS = {
     'editor_api.js': b'HorizonStudioApi',
     'editor_workspace.js': b'createWorkspaceSync',
     'source_workbench_ui.js': b'source_overrides',
+    'desktop_bridge.js': b'HorizonDesktop',
 }
 # Every file the packaged application needs at runtime, relative to the repository root.
 BUNDLED_FILES = ('index.html', 'VERSION', *WEB_SCRIPTS, 'assets/branding/horizon-studio-mark.png')
@@ -417,8 +418,9 @@ def workspace_for(server):
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
-        if sys.stdout is not None:
-            print('[studio]', fmt % args)
+        stream = getattr(self.server, 'studio_log', sys.stdout)  # the desktop core keeps stdout for its protocol
+        if stream is not None:
+            print('[studio]', fmt % args, file=stream)
 
     def response(self, code, mime, content: bytes, filename=None):
         self.send_response(code)
@@ -428,7 +430,9 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('X-Frame-Options', 'DENY')
         self.send_header('Referrer-Policy', 'no-referrer')
-        self.send_header('Content-Security-Policy', "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'")
+        # Inside the desktop shell the page also reaches the shell's IPC endpoint.
+        ipc = ' ipc: http://ipc.localhost' if getattr(self.server, 'studio_desktop', False) else ''
+        self.send_header('Content-Security-Policy', "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'" + ipc)
         if filename:
             self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
         self.end_headers()

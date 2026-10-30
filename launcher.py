@@ -6,6 +6,7 @@ lifetime of the local server, so the frozen app does not need a console window.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import threading
 import urllib.error
@@ -185,6 +186,48 @@ def smoke_test(report_path: Path | None = None, workspace_dir: Path | None = Non
     return 0 if error is None else 1
 
 
+CORE_PROTOCOL = "horizon-studio.core/1"
+
+
+def serve_core(stdin=None, stdout=None) -> int:
+    """Headless core for the desktop shell (``--serve``).
+
+    Binds an ephemeral loopback port, announces itself with one JSON line on stdout and
+    runs until stdin reaches end-of-file or receives ``shutdown``. The shell owns the
+    other end of that pipe, so the core also stops when the shell exits or crashes.
+    """
+    stdin = sys.stdin if stdin is None else stdin
+    stdout = sys.stdout if stdout is None else stdout
+    if stdin is None or stdout is None:
+        return 2  # a windowed build has no pipes to talk to the shell
+    server = start_server(smoke_test=True)
+    server.studio_log = sys.stderr
+    server.studio_desktop = True
+    worker = threading.Thread(target=server.serve_forever, daemon=True)
+    worker.start()
+
+    def announce(event: str, **fields) -> None:
+        stdout.write(json.dumps({"protocol": CORE_PROTOCOL, "event": event, **fields}) + "\n")
+        stdout.flush()
+
+    announce("ready", url=f"http://{HOST}:{server.server_port}/", version=app_version(), pid=os.getpid())
+    try:
+        for line in stdin:
+            if line.strip() == "shutdown":
+                break
+    except (OSError, ValueError):
+        pass  # a broken pipe means the shell is gone
+    finally:
+        server.shutdown()
+        server.server_close()
+        worker.join(timeout=5)
+    try:
+        announce("stopped")
+    except (OSError, ValueError):
+        pass
+    return 0
+
+
 def launch_gui() -> None:
     import tkinter as tk
     from tkinter import messagebox
@@ -279,6 +322,8 @@ def main() -> int:
         def option(flag):
             return Path(sys.argv[sys.argv.index(flag) + 1]) if flag in sys.argv[:-1] else None
         return smoke_test(option("--smoke-report"), option("--smoke-workspace"))
+    if "--serve" in sys.argv:
+        return serve_core()
     launch_gui()
     return 0
 

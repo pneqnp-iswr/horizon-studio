@@ -380,6 +380,15 @@ def mark() -> Canvas:
 
 # -- output -------------------------------------------------------------------
 
+def wordmark() -> Canvas:
+    """One-line pixel wordmark for the editor and the desktop splash: HORIZON in gold, STUDIO in cyan."""
+    gap = 4
+    c = Canvas(Canvas.text_width("HORIZON") + gap + Canvas.text_width("STUDIO") + 1, 8)
+    c.text(0, 0, "HORIZON", P["gold2"], shadow=P["dirt0"], highlight=P["gold3"])
+    c.text(Canvas.text_width("HORIZON") + gap, 0, "STUDIO", P["cyan2"], shadow=P["void"], highlight=P["cyan3"])
+    return c
+
+
 def outputs() -> dict[str, tuple[Canvas, int, str, str]]:
     return {
         "horizon-studio-banner": (banner(), BANNER_SCALE, "Horizon Studio",
@@ -388,6 +397,8 @@ def outputs() -> dict[str, tuple[Canvas, int, str, str]]:
                                   "Tagline: Build worlds. Create systems. Shape the impossible. Unofficial, open source, alpha."),
         "horizon-studio-mark": (mark(), 8, "Horizon Studio mark",
                                 "Pixel-art mark: a cyan block rising in front of a golden sun on a green horizon."),
+        "horizon-studio-wordmark": (wordmark(), 4, "Horizon Studio",
+                                    "Pixel wordmark: HORIZON in gold, STUDIO in cyan."),
     }
 
 
