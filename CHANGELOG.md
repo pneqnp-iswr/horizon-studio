@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased — Engineering hardening
+
+- HS-003: protect local API POST operations with per-process session tokens and same-origin Host/Origin/Fetch-Metadata checks; add API security regression tests and update all built-in clients.
+- HS-004: correct versioned release documents and enforce release metadata consistency using an automated test.
+- These post-0.6.0 development changes do not imply a newly published Windows binary.
+
+## 0.6.0 — Source Workbench and model preview (2026-10-30)
+
+- Added Source Workbench for bounded JSON overrides of generated content files, with validation and export integration.
+- Added WebGL model preview and software fallback, plus local user-supplied resource-pack texture selection.
+- Continued the 0.5 Recipe Lab, Voxel Architect, Mod Doctor and CLI workflows.
+- `.hmod` exports remain experimental pending official checker and real-game validation.
+
 ## 0.5.0 — Recipe Lab + portable Windows release (2026-10-30)
 
 - Standalone Windows x64 `.exe` launcher, local desktop control window, EN/RU toggle, no Python installation required.
