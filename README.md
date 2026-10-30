@@ -224,18 +224,21 @@ MIT License.
 
 If you continue the repo manually, this README is already structured to be easy to extend with banners, screenshots, badges, release downloads, and roadmap sections.
 
+## Windows downloads — GitHub Releases
 
-## Windows executable downloads — GitHub Releases
+**No Python installation required for Windows users.** Each release has a standalone x64 executable, for example:
 
-**No Python installation is needed on Windows.** Download each version as its own standalone portable application from [GitHub Releases](https://github.com/pneqnp-iswr/horizon-studio/releases).
+[**Browse versioned Windows `.exe` downloads**](https://github.com/pneqnp-iswr/horizon-studio/releases)
 
-1. Choose the version you need (for example `v0.5.0` or `v0.5.1`).
-2. Download `HorizonStudio-<version>-Windows-x64.exe` from its Assets.
-3. Optionally compare the file SHA-256 with the attached `SHA256SUMS.txt`.
-4. Double-click the executable, open the browser editor, and use **Stop & Exit** when finished.
+1. Open the relevant GitHub release (`v0.5.0`, `v0.5.1`, etc.).
+2. Download `HorizonStudio-<version>-Windows-x64.exe` from **Assets**.
+3. Optionally check its SHA-256 using the release's `SHA256SUMS.txt`.
+4. Double-click to start, use **Open Studio**, then **Stop & Exit** to shut down.
 
-The app is **portable, not an installer**. It runs a loopback-only local server at `127.0.0.1:8787`; keeping a stable port preserves browser-local projects and language settings. It is currently **unsigned** and might trigger Windows SmartScreen warnings.
+The application serves the editor locally at `http://127.0.0.1:8787`; keeping that port stable preserves browser-local projects and language settings. A second copy cannot use the same port at the same time. The app is **portable, not an installer**, and currently unsigned: Windows may show SmartScreen warnings.
 
 ### Release engineering
 
-`VERSION` is the canonical numeric version. Changing it on `master` triggers a GitHub Actions Windows build, tests the actual frozen `.exe`, publishes SHA-256, and creates a versioned GitHub prerelease. Existing versions are not overwritten. Run it manually from **Actions → Windows EXE / versioned Release → Run workflow** when needed. For each new version, update `VERSION`, release notes, changelog and README badge together.
+The `VERSION` file is the canonical release version. On `master`, changing `VERSION` triggers a Windows GitHub Actions job that runs tests, builds with PyInstaller, smoke-tests the **actual compiled `.exe`**, calculates SHA-256, and publishes an immutable-by-convention GitHub **prerelease**. Existing versions are not overwritten. You can also run it manually using **Actions → Windows EXE / versioned Release → Run workflow**.
+
+For a new release, update `VERSION`, `RELEASE_NOTES.md`, `CHANGELOG.md` and the displayed version in the README before pushing. Do not bump only the README badge.

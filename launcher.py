@@ -1,4 +1,8 @@
-"""Desktop entry point for Horizon Studio portable Windows executable."""
+"""Desktop entry point for the bundled Windows Horizon Studio executable.
+
+The UI is served exclusively on loopback. The small native window controls the
+lifetime of the local server, so the frozen app does not need a console window.
+"""
 from __future__ import annotations
 
 import json
@@ -20,9 +24,10 @@ def app_version() -> str:
 
 
 def start_server(*, smoke_test: bool = False) -> ThreadingHTTPServer:
-    """Use stable localhost port to keep localStorage between launches."""
+    """Prefer a stable origin for browser localStorage across regular launches."""
+    port = 0 if smoke_test else PORT
     try:
-        server = ThreadingHTTPServer((HOST, 0 if smoke_test else PORT), Handler)
+        server = ThreadingHTTPServer((HOST, port), Handler)
     except OSError as exc:
         raise RuntimeError(
             f"Unable to start Horizon Studio on http://{HOST}:{PORT}. "
@@ -33,25 +38,25 @@ def start_server(*, smoke_test: bool = False) -> ThreadingHTTPServer:
 
 
 def smoke_test() -> int:
-    """Verify the bundled web assets and API without a visible desktop."""
+    """Exercise bundled web assets and a generated mod without displaying a GUI."""
     server = start_server(smoke_test=True)
     worker = threading.Thread(target=server.serve_forever, daemon=True)
     worker.start()
     base = f"http://{HOST}:{server.server_port}"
     try:
-        for path, expected in (("/", b"Horizon Studio"), ("/i18n.js", b"HorizonI18n")):
+        for path, expected in (("/", b"Horizon Studio"), ("/i18n.js", b"HorizonI18n"), ("/model_viewer.js", b"HorizonModelViewer"), ("/source_workbench_ui.js", b"source_overrides")):
             with urllib.request.urlopen(base + path, timeout=10) as response:
-                if response.status != 200 or expected not in response.read():
+                data = response.read()
+                if response.status != 200 or expected not in data:
                     raise RuntimeError(f"Unexpected response from {path}")
         sample = {
             "id": "smoke", "name": "Smoke Test", "version": "0.1.0",
             "author": "Horizon Studio", "description": "Bundled application smoke check",
-            "blocks": [],
-            "items": [{"id": "probe", "name": "Probe", "template": "minecraft:diamond"}],
-            "recipes": [], "structures": []
+            "blocks": [], "items": [{"id": "probe", "name": "Probe", "template": "minecraft:diamond"}], "recipes": [], "structures": []
         }
+        body = json.dumps(sample).encode("utf-8")
         request = urllib.request.Request(
-            base + "/api/preview", json.dumps(sample).encode("utf-8"),
+            base + "/api/preview", body,
             headers={"Content-Type": "application/json"}, method="POST"
         )
         with urllib.request.urlopen(request, timeout=10) as response:
@@ -87,6 +92,7 @@ def launch_gui() -> None:
     worker = threading.Thread(target=server.serve_forever, daemon=True)
     worker.start()
     url = f"http://{HOST}:{server.server_port}/"
+
     root = tk.Tk()
     root.title(f"Horizon Studio {app_version()}")
     root.geometry("430x290")
@@ -105,8 +111,8 @@ def launch_gui() -> None:
     heading.pack(pady=(23, 7))
     sub = tk.Label(root, font=("Segoe UI", 10), fg="#a9c4d9", bg="#0b111a")
     sub.pack()
-    tk.Label(root, text=url, font=("Consolas", 10),
-             fg="#68d5ff", bg="#0b111a").pack(pady=(8, 12))
+    url_label = tk.Label(root, text=url, font=("Consolas", 10), fg="#68d5ff", bg="#0b111a")
+    url_label.pack(pady=(8, 12))
     actions = tk.Frame(root, bg="#0b111a")
     actions.pack()
     language_bar = tk.Frame(root, bg="#0b111a")

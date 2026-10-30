@@ -4,20 +4,22 @@ First Windows portable executable release of Horizon Studio.
 
 ## Download
 
-Download **HorizonStudio-0.5.0-Windows-x64.exe** from Assets and double-click it on Windows 10/11 x64. **Python is not required.** Use Open Studio to launch the browser editor; use Stop & Exit to shut down the local server.
+Download **`HorizonStudio-0.5.0-Windows-x64.exe`** from the assets below, and double-click it on Windows 10/11 x64. **Python is not required.** The app starts a local web editor, keeps a small control window open, and can be stopped with **Stop & Exit**.
 
 ## Features
-- Recipe Lab gallery and search
-- EN/RU editor and bilingual mod content
-- Custom items, blocks, shaped/shapeless crafting
-- Six deterministic Voxel Architect generators
-- Mod Doctor static validation and CLI
-- Local-only server on 127.0.0.1:8787
 
-## Security and limitations
-- Alpha: exported .hmod packages still need real game validation.
-- **Unsigned** portable executable: Windows SmartScreen may warn; compare downloaded SHA-256 with SHA256SUMS.txt.
-- No proprietary Minecraft/Horizon game files are included.
-- This application is a visual mod editor, not a game client or a mod runtime.
+- Recipe Lab: new recipe gallery and search interface
+- EN/RU user interface and bilingual content names
+- Custom blocks, items, shaped and shapeless recipes
+- Six Voxel Architect structure generators and NBT packaging
+- Mod Doctor static checks; command-line build tooling
+- Local-only server at `127.0.0.1:8787`; no cloud registration
 
-[Repository README](https://github.com/pneqnp-iswr/horizon-studio#readme) · [Changelog](https://github.com/pneqnp-iswr/horizon-studio/blob/master/CHANGELOG.md)
+## Notes
+
+- Alpha: packaged `.hmod` mods have **not** been verified in-game.
+- This portable `.exe` is **unsigned**; Windows SmartScreen may display a warning. Verify the SHA-256 against the attached `SHA256SUMS.txt`. Do not disable system security globally.
+- No proprietary Minecraft or Horizon game files are included.
+- The executable is a standalone launcher/editor, **not** the Horizon game client or a Java/Rust mod runtime.
+
+See the [README](https://github.com/pneqnp-iswr/horizon-studio#readme) for help and the [source changelog](https://github.com/pneqnp-iswr/horizon-studio/blob/master/CHANGELOG.md) for earlier versions.

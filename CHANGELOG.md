@@ -1,11 +1,11 @@
 # Changelog
 
-## 0.5.0 — Recipe Lab + Windows executable (2026-10-30)
+## 0.5.0 — Recipe Lab + portable Windows release (2026-10-30)
 
-- Portable Windows x64 executable launcher, without separate Python installation; local desktop controls and English/Russian toggle.
-- Automated Windows PyInstaller build, actual frozen executable smoke test, SHA-256 and versioned GitHub Releases.
-- Canonical VERSION file; old release tags are never overwritten.
-- CI branch corrected from main to master.
+- Standalone Windows x64 `.exe` launcher, local desktop control window, EN/RU toggle, no Python installation required.
+- Automated PyInstaller Windows build, frozen executable smoke test, SHA-256 checksums and versioned GitHub Releases.
+- Versioned release workflow uses `VERSION` and does not overwrite already published tags.
+- Existing CI branch filter corrected to `master`.
 
 ### Added
 - New **Recipe Lab** UI direction inspired by a modern recipe-browser layout.

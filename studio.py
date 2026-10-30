@@ -19,6 +19,7 @@ import struct
 import sys
 import zlib
 import zipfile
+from source_workbench import safe_overrides, import_resource_pack, MAX_PACK_BYTES
 from voxel_architect import generate_structure, serialize_structure, preview_structure, MAX_STRUCTURES
 
 HOST = '127.0.0.1'
@@ -345,6 +346,7 @@ def create_project_files(request: dict) -> tuple[str, dict[str, bytes]]:
 
     out[f'assets/{mod_id}/lang/en_us.json'] = json_bytes(names)
     out[f'assets/{mod_id}/lang/ru_ru.json'] = json_bytes(names_ru)
+    out.update(safe_overrides(request.get('source_overrides'), mod_id, out))
     return mod_id, out
 
 
@@ -402,8 +404,8 @@ class Handler(BaseHTTPRequestHandler):
         root = Path(__file__).parent
         if self.path in ('/', '/index.html'):
             self.response(200, 'text/html; charset=utf-8', (root / 'index.html').read_bytes())
-        elif self.path == '/i18n.js':
-            self.response(200, 'text/javascript; charset=utf-8', (root / 'i18n.js').read_bytes())
+        elif self.path in ('/i18n.js', '/model_viewer.js', '/source_workbench_ui.js'):
+            self.response(200, 'text/javascript; charset=utf-8', (root / self.path.lstrip('/')).read_bytes())
         elif self.path.startswith('/assets/'):
             target = (root / self.path.lstrip('/')).resolve()
             try:
@@ -423,13 +425,16 @@ class Handler(BaseHTTPRequestHandler):
             self.response(404, 'text/plain; charset=utf-8', b'Not found')
 
     def do_POST(self):
-        if self.path not in ('/api/export', '/api/hmod', '/api/preview', '/api/structure-preview', '/api/doctor'):
+        if self.path not in ('/api/export', '/api/hmod', '/api/preview', '/api/source', '/api/structure-preview', '/api/doctor', '/api/resourcepack'):
             return self.response(404, 'application/json', b'{"error":"Not found"}')
         try:
             raw_len = self.headers.get('Content-Length', '0')
             length = int(raw_len)
-            if not 0 < length <= MAX_REQUEST_BYTES:
+            max_size = MAX_PACK_BYTES if self.path == '/api/resourcepack' else MAX_REQUEST_BYTES
+            if not 0 < length <= max_size:
                 return self.response(413, 'application/json', b'{"error":"Payload too large or empty"}')
+            if self.path == '/api/resourcepack':
+                return self.response(200, 'application/json; charset=utf-8', json_bytes(import_resource_pack(self.rfile.read(length))))
             payload = json.loads(self.rfile.read(length), parse_constant=lambda x: fail(f'Invalid JSON number: {x}'))
             if self.path == '/api/structure-preview':
                 if not isinstance(payload, dict) or 'structure' not in payload:
@@ -439,6 +444,10 @@ class Handler(BaseHTTPRequestHandler):
                 from mod_doctor import audit_project
                 return self.response(200, 'application/json; charset=utf-8', json_bytes(audit_project(payload)))
             mod_id, _ = create_project_files(payload)
+            if self.path == '/api/source':
+                _, files = create_project_files(payload)
+                source = {path: raw.decode('utf-8') for path, raw in files.items() if path.endswith(('.json', '.toml')) and len(raw) <= 131072}
+                return self.response(200, 'application/json; charset=utf-8', json_bytes({'files': source, 'count': len(source)}))
             if self.path == '/api/preview':
                 return self.response(200, 'application/json; charset=utf-8', json_bytes(inspect_project(payload)))
             if self.path == '/api/hmod':

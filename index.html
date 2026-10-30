@@ -5,7 +5,7 @@
 <title>Horizon Studio 0.5 — Recipe Lab</title>
 <style>
 :root{--bg:#05070b;--bg2:#0b1018;--panel:#0b1117;--panel2:#101722;--line:#202a37;--line2:#273345;--text:#eef5fb;--muted:#8da0b8;--accent:#6ae3ff;--accent2:#73a0ff;--green:#7ff0c8;--red:#ff8ea2;--slot:#121820;--shadow:0 18px 60px rgba(0,0,0,.45);color-scheme:dark}
-*{box-sizing:border-box}[hidden]{display:none !important}html,body{height:100%}body{margin:0;background:radial-gradient(circle at top right, rgba(77,191,255,.16), transparent 24%),linear-gradient(180deg,#06080c,#080c14 25%, #05070b);color:var(--text);font:14px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif;overflow:hidden}
+*{box-sizing:border-box}[hidden]{display:none !important}html,body{height:100%}body{margin:0;background:radial-gradient(circle at top right, rgba(77,191,255,.16), transparent 24%),linear-gradient(180deg,#06080c,#080c14 25%, #05070b);color:var(--text);font:14px/1.45 "Segoe UI",Inter,system-ui,-apple-system,sans-serif;overflow:hidden}
 a{color:#9fe7ff}button,input,select,textarea{font:inherit}button{cursor:pointer}
 .app{height:100vh;display:grid;grid-template-columns:72px 260px minmax(0,1fr);gap:14px;padding:12px}
 .panelish{background:linear-gradient(180deg, rgba(15,20,29,.96), rgba(9,12,18,.96));border:1px solid #171d27;border-radius:20px;box-shadow:var(--shadow)}
@@ -56,21 +56,60 @@ button{background:#161f2b;border:1px solid #29364a;color:#ecf5ff;border-radius:1
 .notice{background:#101923;border:1px solid #283240;border-left:3px solid #6ae3ff;padding:12px 13px;border-radius:12px;font-size:13px;color:#c8d5e5} .warn{border-left-color:#f3cb73;color:#f0dfba;background:#241d10} .status{min-height:18px;font-size:13px;color:var(--green)} .status.error{color:var(--red)} .empty-hint{color:var(--muted);padding:14px 4px}
 .footer{position:fixed;left:16px;bottom:10px;color:#5e6f84;font-size:11px}
 @media (max-width:1320px){.app{grid-template-columns:72px 230px minmax(0,1fr)}} @media (max-width:1100px){body{overflow:auto}.app{height:auto;min-height:100vh;grid-template-columns:72px minmax(0,1fr)}.sidebar{display:none}.workspace{grid-column:2}.footer{position:static;padding:0 16px 12px}} @media (max-width:760px){.app{grid-template-columns:1fr;padding:10px}.rail{display:none}.workspace-title{font-size:34px}.small-grid{grid-template-columns:1fr}.recipe-gallery,.card-gallery{grid-template-columns:1fr}}
+
+/* Studio Pro visual system: legible, crisp and deliberately non-neon */
+:root{--accent:#93c57a;--accent2:#70a6b4;--line:#394047;--line2:#52606a;--shadow:0 8px 24px rgba(0,0,0,.22)}
+body{background:#0b0f12} .panelish{background:#171d21;border-color:#303a42;border-radius:8px;box-shadow:none}
+.recipe-card,.entry-card,.editor,.side-card{border-radius:6px;background:#1a2025;border-color:#374049;box-shadow:none}
+button,input,select,textarea{border-radius:5px}
+button{background:#293239;border-color:#49565f}button:hover{background:#35434a;border-color:#b2d3a4}
+.primary{background:#71945e;border-color:#92b57e;color:#effced}.primary:hover{background:#86a872}
+.green{background:#558a69;border-color:#78c395;color:#fff}.green:hover{background:#6da880}
+.workspace-title,.sidebar-head h1{font-family:'Monocraft','Cascadia Mono',Consolas,monospace;text-transform:uppercase;letter-spacing:.025em}
+.workspace-title{font-size:clamp(28px,3vw,42px);line-height:1.1}
+.rail-btn{border-radius:6px;font-family:'Segoe UI Symbol',sans-serif}
+.rail-btn.selected{background:#314539;border-color:#a6ce95;box-shadow:none}
+.recipe-slot{border-radius:3px;background:#1d252b}
+.source-workbench{position:fixed;z-index:100;inset:4vh 3vw 4vh auto;width:min(1180px,92vw);background:#161d22;border:1px solid #60707a;box-shadow:0 24px 90px rgba(0,0,0,.75);border-radius:8px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:16px;gap:12px}
+.source-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;border-bottom:1px solid #39464e;padding-bottom:10px}
+.source-head h2{margin:0;font:700 19px 'Monocraft',Consolas,monospace}
+.source-head p{margin:5px 0 0;color:#b9c9cd;font-size:12px}
+.source-main{display:grid;grid-template-columns:220px minmax(0,1fr) minmax(320px,.9fr);gap:12px;min-height:0}
+.source-files-list{overflow:auto;display:grid;align-content:start;gap:3px;border:1px solid #39464e;background:#0f1519;padding:8px}
+.source-file{width:100%;text-align:left;border:0;background:transparent;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#b9c7cb;font:12px Consolas,monospace;padding:8px}
+.source-file.active{background:#35473c;color:#fff}
+.source-edit{display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0}
+.source-edit textarea{flex:1;resize:none;font:13px/1.65 'Cascadia Code','Consolas',monospace;background:#0c1319;color:#d8e9d5;tab-size:2;min-height:200px}
+.source-path{font:12px 'Cascadia Code',Consolas,monospace;color:#9fc58b;overflow:hidden;text-overflow:ellipsis}
+.source-preview{display:flex;flex-direction:column;min-height:0;gap:10px}
+.source-preview canvas{width:100%;height:clamp(250px,50vh,570px);background:#0a1117;cursor:grab;touch-action:none;border:1px solid #3f515b}
+.source-footer{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-top:1px solid #39464e;padding-top:10px}
+.source-footer input{max-width:300px}.source-status{color:#91ddb0;font-size:12px}.source-status.error{color:#ff9caa}
+.source-files-tools{display:grid;gap:8px}.source-subtitle{color:#96aab1;font-size:12px}
+@media(max-width:1120px){.source-main{grid-template-columns:180px 1fr}.source-preview{grid-column:1/-1}.source-workbench{overflow:auto}.source-preview canvas{height:330px}}
+@media(max-width:650px){.source-workbench{inset:2vh 2vw;width:96vw}.source-main{grid-template-columns:1fr}.source-files-list{max-height:150px}}
+
+/* No fake interactive controls: incomplete recipe stations are visibly disabled. */
+.filter-btn:disabled{opacity:.34;cursor:not-allowed}
+body.sidebar-collapsed .app{grid-template-columns:72px minmax(0,1fr)}
+body.sidebar-collapsed .sidebar{display:none}
+body.sidebar-collapsed .workspace{grid-column:2}
+.rail-btn{font-family:'Cascadia Mono',Consolas,monospace;font-weight:800}
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="rail panelish" aria-label="Primary navigation">
     <div class="rail-top">
-      <button class="rail-btn" type="button" aria-label="Menu">☰</button>
+      <button class="rail-btn" type="button" id="toggleExplorer" aria-label="Toggle explorer">☰</button>
       <div class="rail-group">
-        <button class="rail-btn" id="blockTab" role="tab" aria-label="Blocks">🧱</button>
-        <button class="rail-btn" id="itemTab" role="tab" aria-label="Items">✨</button>
-        <button class="rail-btn selected" id="recipeTab" role="tab" aria-label="Recipes">📖</button>
-        <button class="rail-btn" id="structureTab" role="tab" aria-label="Structures">🏗️</button>
+        <button class="rail-btn" id="blockTab" role="tab" aria-label="Blocks"><span aria-hidden="true">▦</span></button>
+        <button class="rail-btn" id="itemTab" role="tab" aria-label="Items"><span aria-hidden="true">◆</span></button>
+        <button class="rail-btn selected" id="recipeTab" role="tab" aria-label="Recipes"><span aria-hidden="true">▥</span></button>
+        <button class="rail-btn" id="structureTab" role="tab" aria-label="Structures"><span aria-hidden="true">⬡</span></button>
       </div>
     </div>
-    <div class="rail-bottom"><button class="rail-btn" type="button" aria-label="Cloud export">☁️</button></div>
+    <div class="rail-bottom"><button class="rail-btn" type="button" id="quickExport" aria-label="Export mod">↓</button></div>
   </aside>
 
   <aside class="sidebar panelish">
@@ -94,14 +133,14 @@ button{background:#161f2b;border:1px solid #29364a;color:#ecf5ff;border-radius:1
       <div class="side-card">
         <div class="side-nav">
           <button class="filter-btn active" type="button"><span data-i18n="allLabel">All</span><span class="tiny-badge" id="counter">0</span></button>
-          <button class="filter-btn" type="button"><span data-i18n="updated">Updated</span><span class="tiny-badge">∞</span></button>
+          <button class="filter-btn" disabled type="button" title="Planned for a future version"><span data-i18n="updated">Updated</span><span class="tiny-badge">∞</span></button>
           <button class="filter-btn" type="button"><span data-i18n="craftingTable">Crafting table</span><span class="tiny-badge">⌘</span></button>
-          <button class="filter-btn" type="button"><span data-i18n="furnace">Furnace</span><span class="tiny-badge">·</span></button>
-          <button class="filter-btn" type="button"><span data-i18n="blastFurnace">Blast furnace</span><span class="tiny-badge">·</span></button>
-          <button class="filter-btn" type="button"><span data-i18n="smoker">Smoker</span><span class="tiny-badge">·</span></button>
-          <button class="filter-btn" type="button"><span data-i18n="stonecutter">Stonecutter</span><span class="tiny-badge">·</span></button>
-          <button class="filter-btn" type="button"><span data-i18n="smithingTable">Smithing table</span><span class="tiny-badge">·</span></button>
-          <button class="filter-btn" type="button"><span data-i18n="campfire">Campfire</span><span class="tiny-badge">·</span></button>
+          <button class="filter-btn" disabled type="button" title="This recipe station is not yet supported"><span data-i18n="furnace">Furnace</span><span class="tiny-badge">·</span></button>
+          <button class="filter-btn" disabled type="button" title="This recipe station is not yet supported"><span data-i18n="blastFurnace">Blast furnace</span><span class="tiny-badge">·</span></button>
+          <button class="filter-btn" disabled type="button" title="This recipe station is not yet supported"><span data-i18n="smoker">Smoker</span><span class="tiny-badge">·</span></button>
+          <button class="filter-btn" disabled type="button" title="This recipe station is not yet supported"><span data-i18n="stonecutter">Stonecutter</span><span class="tiny-badge">·</span></button>
+          <button class="filter-btn" disabled type="button" title="This recipe station is not yet supported"><span data-i18n="smithingTable">Smithing table</span><span class="tiny-badge">·</span></button>
+          <button class="filter-btn" disabled type="button" title="This recipe station is not yet supported"><span data-i18n="campfire">Campfire</span><span class="tiny-badge">·</span></button>
         </div>
       </div>
     </section>
@@ -139,6 +178,7 @@ button{background:#161f2b;border:1px solid #29364a;color:#ecf5ff;border-radius:1
           <div class="workspace-sub" id="workspaceSubtitle" data-i18n="counter">Blocks: 0 · Items: 0 · Recipes: 0</div>
         </div>
         <div class="top-controls">
+          <button type="button" id="openWorkbench" class="primary" aria-label="Open source workbench">Source &amp; 3D</button>
           <nav class="language-switch" aria-label="Language" data-i18n-aria-label="languageName"><button id="lang-en" type="button" lang="en" aria-label="English" aria-pressed="true">🇬🇧 EN</button><button id="lang-ru" type="button" lang="ru" aria-label="Русский" aria-pressed="false">🇷🇺 RU</button></nav>
           <div class="badge">Offline-first · .hmod · EN/RU</div>
         </div>
@@ -186,8 +226,15 @@ button{background:#161f2b;border:1px solid #29364a;color:#ecf5ff;border-radius:1
   </main>
 </div>
 <div class="footer" data-i18n="footer">Unofficial open-source editor. Not affiliated with Mojang, Microsoft, or the Horizon developers. Original game assets are not distributed.</div>
+<section id="sourceWorkbench" class="source-workbench" hidden role="dialog" aria-modal="true" aria-label="Source and 3D workspace">
+  <div class="source-head"><div><h2 data-source-i18n="title">SOURCE WORKBENCH</h2><p data-source-i18n="description">Edit generated JSON; validate changes before export.</p></div><button id="closeWorkbench" type="button" data-source-i18n="close">Close</button></div>
+  <div class="source-main"><div class="source-files-tools"><label data-source-i18n="choose">Select a file to edit</label><input id="sourceFileSearch" type="search" placeholder="Filter source files"/><div id="sourceFiles" class="source-files-list" aria-label="Generated source files"></div><button id="refreshSources" type="button" data-source-i18n="reload">Reload generated files</button></div>
+  <div class="source-edit"><label data-source-i18n="source">Source</label><div id="sourcePath" class="source-path">—</div><textarea id="sourceCode" spellcheck="false" aria-label="Editable source JSON" placeholder="Select a generated JSON file"></textarea><button id="applySource" class="green" type="button" data-source-i18n="apply">Validate &amp; Apply</button></div>
+  <div class="source-preview"><label data-source-i18n="preview">3D Preview</label><canvas id="modelViewport" width="640" height="640" aria-label="Interactive WebGL 3D model preview"></canvas><small id="modelGeometryNotice" class="source-subtitle"></small><small id="viewerHint" class="source-subtitle">Drag to orbit · Scroll to zoom</small><label data-source-i18n="asset">Import your resource pack (.zip/.jar)</label><input id="resourcePackInput" type="file" accept=".zip,.jar,application/zip"/></div></div>
+  <div class="source-footer"><span id="sourceStatus" class="source-status" aria-live="polite"></span><a href="https://github.com/horizon-rust/horizon-native-mod-template" rel="noopener noreferrer" target="_blank">Rust native mod template ↗</a><small data-source-i18n="native">Rust-native requires .hnmod and horizon-mixins.</small></div>
+</section>
 <script src="/i18n.js"></script>
-<script>
+<script src="/model_viewer.js"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -196,14 +243,14 @@ const B={'minecraft:iron_block':'Iron Block','minecraft:amethyst_block':'Amethys
 const I={'minecraft:diamond':'Diamond','minecraft:emerald':'Emerald','minecraft:stick':'Stick','minecraft:amethyst_shard':'Amethyst Shard','minecraft:iron_ingot':'Iron Ingot'};
 const ING={...B,...I,'minecraft:glowstone_dust':'Glowstone Dust','minecraft:gold_ingot':'Gold Ingot','minecraft:cobblestone':'Cobblestone','minecraft:coal':'Coal','minecraft:redstone':'Redstone'};
 const META=['modId','modName','version','author','description'];
-const state={blocks:[],items:[],recipes:[],structures:[],tab:'recipe',editing:-1};
+const state={blocks:[],items:[],recipes:[],structures:[],source_overrides:{},tab:'recipe',editing:-1};
 const VALID=/^[a-z][a-z0-9_]{0,63}$/;
 function esc(s){return String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));}
 function status(message,error=false){$('status').textContent=message;$('status').classList.toggle('error',error);}
 function meta(){return {id:$('modId').value.trim(),name:$('modName').value.trim(),version:$('version').value.trim(),author:$('author').value.trim(),description:$('description').value};}
 function localId(ref){return ref&&ref.startsWith('@')?`${meta().id}:${ref.slice(1)}`:ref;}
-function payload(){return {...meta(),blocks:state.blocks,items:state.items,structures:state.structures,recipes:state.recipes.map(r=>({...r,grid:r.grid.map(localId),result:localId(r.result)}))};}
-function persist(){try{localStorage.setItem('horizonStudio_v02',JSON.stringify({metadata:meta(),blocks:state.blocks,items:state.items,recipes:state.recipes,structures:state.structures}));}catch(e){status(t('storageFull'),true);}}
+function payload(){return {...meta(),blocks:state.blocks,items:state.items,structures:state.structures,source_overrides:state.source_overrides||{},recipes:state.recipes.map(r=>({...r,grid:r.grid.map(localId),result:localId(r.result)}))};}
+function persist(){try{localStorage.setItem('horizonStudio_v02',JSON.stringify({metadata:meta(),blocks:state.blocks,items:state.items,recipes:state.recipes,structures:state.structures,source_overrides:state.source_overrides||{}}));}catch(e){status(t('storageFull'),true);}}
 function allEntries(){return [...state.blocks,...state.items];}
 function ingredientChoices(){return {...ING,...Object.fromEntries(allEntries().map(e=>['@'+e.id,e.name+t('modSuffix')]))};}
 function fillOptions(select, values, selected=''){select.innerHTML=Object.entries(values).map(([value,label])=>`<option value="${esc(value)}" ${selected===value?'selected':''}>${esc(label)}</option>`).join('');}
@@ -238,6 +285,8 @@ function spriteKeyForReference(ref){
 }
 function slotMarkup(ref){
   if(!ref)return '<div class="recipe-slot empty"></div>';
+  const pack=window.HorizonPackTextures?.[ref];
+  if(pack)return `<div class="recipe-slot custom"><img src="${esc(pack)}" alt="${esc(ref)}"></div>`;
   if(ref.startsWith('@')){
     const obj=allEntries().find(e=>e.id===ref.slice(1));
     if(obj?.texture?.startsWith('data:image/png;base64,'))return `<div class="recipe-slot custom"><img src="${esc(obj.texture)}" alt="${esc(obj.name||ref)}"></div>`;
@@ -278,8 +327,8 @@ function download(blob,name){const url=URL.createObjectURL(blob),a=document.crea
 async function api(path){const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload())});if(!response.ok){const data=await response.json();throw new Error(data.error||t('apiError'));}return response;}
 async function exportFile(path,extension){const b=$(extension==='hmod'?'exportHmod':'exportSource');b.disabled=true;try{status(t('exporting'));const result=await api(path);download(await result.blob(),meta().id+(extension==='hmod'?'.hmod':'-source.zip'));status(extension==='hmod'?t('hmodExported'):t('zipExported'));}catch(e){status(e.message,true);}finally{b.disabled=false;}}
 async function inspect(){try{const result=await (await api('/api/preview')).json();$('inspectPanel').hidden=false;$('manifestPreview').textContent=result.manifest;$('filePreview').textContent=result.files.join('\n');status(t('inspectSuccess',{count:result.file_count,bytes:result.bytes_raw}));}catch(e){status(e.message,true);}}
-function saveProject(){download(new Blob([JSON.stringify({format:'horizon-studio',schema:3,metadata:meta(),blocks:state.blocks,items:state.items,recipes:state.recipes,structures:state.structures},null,2)],{type:'application/json'}),meta().id+'.hstudio.json');status(t('projectSaved'));}
-function applyProject(data){if(typeof data!=='object'||!data||!data.metadata||!Array.isArray(data.blocks)||!Array.isArray(data.items)||!Array.isArray(data.recipes))throw new Error(t('badProject'));if(data.blocks.length>32||data.items.length>32||data.recipes.length>64||(data.structures||[]).length>8)throw new Error(t('projectLimit'));if(data.structures!==undefined&&!Array.isArray(data.structures))throw new Error(t('badProject'));for(const e of [...data.blocks,...data.items,...data.recipes,...(data.structures||[])])if(typeof e!=='object'||!e||!VALID.test(e.id))throw new Error(t('badId'));const m=data.metadata;for(const [target,key] of [['modId','id'],['modName','name'],['version','version'],['author','author'],['description','description']])$(target).value=m[key]??'';state.blocks=data.blocks;state.items=data.items;state.recipes=data.recipes;state.structures=data.structures||[];chooseTab('block');persist();render();}
+function saveProject(){download(new Blob([JSON.stringify({format:'horizon-studio',schema:3,metadata:meta(),blocks:state.blocks,items:state.items,recipes:state.recipes,structures:state.structures,source_overrides:state.source_overrides||{}},null,2)],{type:'application/json'}),meta().id+'.hstudio.json');status(t('projectSaved'));}
+function applyProject(data){if(typeof data!=='object'||!data||!data.metadata||!Array.isArray(data.blocks)||!Array.isArray(data.items)||!Array.isArray(data.recipes))throw new Error(t('badProject'));if(data.blocks.length>32||data.items.length>32||data.recipes.length>64||(data.structures||[]).length>8)throw new Error(t('projectLimit'));if(data.structures!==undefined&&!Array.isArray(data.structures))throw new Error(t('badProject'));for(const e of [...data.blocks,...data.items,...data.recipes,...(data.structures||[])])if(typeof e!=='object'||!e||!VALID.test(e.id))throw new Error(t('badId'));const m=data.metadata;for(const [target,key] of [['modId','id'],['modName','name'],['version','version'],['author','author'],['description','description']])$(target).value=m[key]??'';state.blocks=data.blocks;state.items=data.items;state.recipes=data.recipes;state.structures=data.structures||[];state.source_overrides=data.source_overrides||{};chooseTab('block');persist();render();}
 function example(){const d={metadata:{id:'ruby_demo',name:'Ruby Demo',version:'0.1.0',author:'Creator',description:'Example with two recipes, a block and a gem'},blocks:[{id:'ruby_block',name:'Block of Ruby',template:'minecraft:iron_block',hardness:4,light:3}],items:[{id:'ruby',name:'Ruby',template:'minecraft:diamond',rarity:'rare',max_stack_size:64}],recipes:[{id:'ruby_block',type:'shaped',result:'@ruby_block',count:1,grid:Array(9).fill('@ruby')},{id:'ruby_from_block',type:'shapeless',result:'@ruby',count:9,grid:['@ruby_block',...Array(8).fill('')]}]};applyProject(d);status(t('demoLoaded'));}
 function refreshLanguage(){
   if(state.tab==='structure'){$('structureEditorTitle').textContent=t(state.editing>=0?'editStructure':'newStructure');$('addStructure').textContent=t(state.editing>=0?'saveChanges':'addStructure');}
@@ -345,10 +394,10 @@ $('rotateStructure').onclick=()=>{isoRotation=(isoRotation+1)%4;if(lastStructure
 $('addStructure').onclick=addStructure;$('cancelStructure').onclick=resetStructure;$('previewStructure').onclick=previewStructure;$('sliceY').addEventListener('change',previewStructure);
 $('blockTab').onclick=()=>chooseTab('block');$('itemTab').onclick=()=>chooseTab('item');$('recipeTab').onclick=()=>chooseTab('recipe');$('structureTab').onclick=()=>chooseTab('structure');$('addObject').onclick=addObject;$('cancelObject').onclick=resetObject;$('addRecipe').onclick=addRecipe;$('cancelRecipe').onclick=resetRecipe;$('exportHmod').onclick=()=>exportFile('/api/hmod','hmod');$('exportSource').onclick=()=>exportFile('/api/export','zip');$('preview').onclick=inspect;$('doctor').onclick=runDoctor;$('closeInspect').onclick=()=>$('inspectPanel').hidden=true;$('saveProject').onclick=saveProject;$('demo').onclick=example;$('loadProject').onclick=()=>$('projectFile').click();
 $('projectFile').onchange=async()=>{const file=$('projectFile').files[0];if(!file)return;try{if(file.size>6*1024*1024)throw new Error(t('fileTooBig'));const data=JSON.parse(await file.text());applyProject(data);await api('/api/preview');status(t('projectOpened'));}catch(e){status(e.message,true);}finally{$('projectFile').value='';}};
+$('toggleExplorer').onclick=()=>document.body.classList.toggle('sidebar-collapsed');$('quickExport').onclick=()=>exportFile('/api/hmod','hmod');
 for(const id of META)$(id).addEventListener('change',persist); if($('entrySearch'))$('entrySearch').addEventListener('input',render);
 try{const cached=JSON.parse(localStorage.getItem('horizonStudio_v02')||'null');if(cached)applyProject(cached); else chooseTab('recipe');}catch(_){chooseTab('recipe');}
 window.HorizonI18n.init(); updateWorkspaceMeta();
 </script>
-</body></html>
-</script>
+<script src="/source_workbench_ui.js"></script>
 </body></html>
