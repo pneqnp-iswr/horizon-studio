@@ -1,0 +1,24 @@
+{
+  "schema": "horizon-studio.engine-profiles/1",
+  "default": "d2186eb9aa022a64a8b26e6989a04e44fba99ee7",
+  "profiles": [
+    {
+      "engine": "horizon",
+      "revision": "d2186eb9aa022a64a8b26e6989a04e44fba99ee7",
+      "label": "Horizon d2186eb (audited pin, 2026-10-30)",
+      "content_api": "0.2",
+      "capabilities": {
+        "content.block": {"status": "official-static", "source": "crates/horizon-mods/src/manifest.rs Capability::Registries; docs/mods.md 'Content mods (API 0.2)'", "evidence": "docs/COMPATIBILITY_EVIDENCE.md"},
+        "content.item": {"status": "official-static", "source": "crates/horizon-mods/src/manifest.rs Capability::Registries", "evidence": "docs/COMPATIBILITY_EVIDENCE.md"},
+        "content.lang": {"status": "official-static", "source": "crates/horizon-client/src/mod_content.rs (mod files copied into the resource root)", "evidence": "docs/COMPATIBILITY_EVIDENCE.md"},
+        "content.recipe": {"status": "official-static", "source": "crates/horizon-client/src/mod_content.rs (data files copied into the resource root)", "evidence": "docs/COMPATIBILITY_EVIDENCE.md"},
+        "content.loot_table": {"status": "official-static", "source": "crates/horizon-client/src/mod_content.rs (data files copied into the resource root)", "evidence": "docs/COMPATIBILITY_EVIDENCE.md"},
+        "content.block_tag": {"status": "official-static", "source": "crates/horizon-client/src/mod_content.rs (tag merging)", "evidence": "docs/COMPATIBILITY_EVIDENCE.md"},
+        "content.structure_nbt": {"status": "official-static", "source": "crates/horizon-client/src/mod_content.rs (worldgen/structure templates)", "evidence": "docs/COMPATIBILITY_EVIDENCE.md"},
+        "native.hook_mod": {"status": "engine-only", "source": "docs/native-mods.md", "note": "Horizon builds trusted native .hnmod mods; Studio cannot author them yet (HS-010)"},
+        "shader.pack": {"status": "engine-only", "source": "docs/shaders.md", "note": "Horizon checks .hshader packs; Studio has no shader authoring yet (HS-013)"},
+        "entity.custom": {"status": "unsupported", "note": "No content-mod registry or verified native hook for custom entities at this revision (master roadmap section 12)"}
+      }
+    }
+  ]
+}

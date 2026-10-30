@@ -75,7 +75,7 @@ Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (H
 
 | Milestone | Status | Depends on | Evidence | Notes |
 |---|---|---|---|---|
-| HS-008 Engine capability registry per SHA | In progress | HS-005 | — | **Active.** |
+| HS-008 Engine capability registry per SHA | In progress | HS-005 | unit: [First slice: registry, project requirements, CLI capabilities (tests/test_capabilities.py)](../docs/ENGINE_CAPABILITIES.md) | **Active.** |
 | HS-010 Trusted native .hnmod build | Planned | HS-008 | — |  |
 | HS-012 Gameplay IR v1 + event graph | Planned | HS-008 | — |  |
 

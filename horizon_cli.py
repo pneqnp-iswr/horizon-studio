@@ -60,7 +60,7 @@ def write_migrated(source: Path, output: Path, force: bool) -> str:
 
 def main(argv=None) -> int:
     parser=argparse.ArgumentParser(description='Horizon Studio offline builder and diagnostics (official checking is opt-in)')
-    parser.add_argument('command', choices=('doctor','inspect','build','source','verify','migrate','graph'))
+    parser.add_argument('command', choices=('doctor','inspect','build','source','verify','migrate','graph','capabilities'))
     parser.add_argument('project', type=Path, help='Project .hstudio.json file (schema 2-4 or studio.project/1)')
     parser.add_argument('-o','--output',type=Path,help='Destination for build/source/migrate (migrate prints to stdout without it)')
     parser.add_argument('--force',action='store_true',help='migrate: replace an existing output file')
@@ -78,6 +78,18 @@ def main(argv=None) -> int:
             else:
                 print(write_migrated(args.project,args.output,args.force))
             return 0
+        if args.command=='capabilities':
+            from studio_core.capabilities import check
+            report=check(read_document(args.project))
+            if args.json: print(json.dumps(report,ensure_ascii=False,indent=2))
+            else:
+                profile=report['profile']
+                print(f"Engine profile: {profile['label'] if profile else 'unknown'}")
+                for capability,users in sorted(report['requirements'].items()):
+                    print(f"  needs {capability:24s} {len(users)} object(s)")
+                for issue in report['diagnostics']:
+                    print(f"{issue['level'].upper():7s} {issue['code']}: {issue['message']}")
+            return 1 if report['diagnostics'] else 0
         if args.command=='graph':
             graph=AssetGraph(read_document(args.project))
             report=graph.to_json()
