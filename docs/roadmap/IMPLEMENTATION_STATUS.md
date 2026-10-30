@@ -7,7 +7,8 @@ Last updated: 2026-10-31. Master before this update: `957eec0b8956933b6805444354
 - **F0 — Foundation:** code complete; gate still lacks a real-game load record (HS-002 blocked on an authorized Horizon installation).
 - **F1 — Project Core:** done — HS-005, HS-006, HS-007.
 - **F3 — Visual Scripting (current):** **HS-008 engine capability registry in progress** (F2 has not started; HS-008 unblocks F3 and later F5).
-- **Release engineering (PR #12):** gated, idempotent Windows release pipeline with build manifest; v0.6.0 notes repaired. Next release: 0.7.0 ([RELEASING.md](../RELEASING.md)).
+- **Release engineering (PR #12):** gated, idempotent Windows release pipeline with build manifest; v0.6.0 notes repaired (run 41135915512, assets unchanged).
+- **Latest release: v0.7.0** (PR #15 → tag on `c816211`, run 41136925994): `HorizonStudio-0.7.0-Windows-x64.exe`, 12 170 186 bytes, SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9`, unsigned; verified through the API. The frozen Windows build exported the officially checked `.hmod` bytes and recovered its workspace on relaunch.
 
 | ID | State | Evidence |
 |---|---|---|
@@ -58,8 +59,8 @@ Last updated: 2026-10-31. Master before this update: `957eec0b8956933b6805444354
 
 ## Next recommended tasks
 
-1. Release 0.7.0 through the new pipeline and verify it through the API.
-2. HS-008: engine capability registry per engine SHA, recorded in the project document (unblocks F3).
+1. HS-008 (continue): show capability diagnostics in the editor and block export on missing capabilities; first slice (registry, requirements, CLI) is in.
+2. HS-010 / HS-012 after HS-008.
 3. HS-009: Blockbench interchange with loss reports (F2).
 4. HS-002: run the content-load harness on an authorized installation and record the result.
 

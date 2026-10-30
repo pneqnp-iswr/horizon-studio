@@ -25,18 +25,18 @@
 ## Последний релиз для Windows
 
 <!-- roadmap:release:start -->
-**[Horizon Studio v0.6.0 — Source Workbench](https://github.com/pneqnp-iswr/horizon-studio/releases/tag/v0.6.0)** · альфа-предрелиз · опубликован 2026-10-30  
-⬇ **[HorizonStudio-0.6.0-Windows-x64.exe](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.6.0/HorizonStudio-0.6.0-Windows-x64.exe)** · 11,5 МБ · [SHA256SUMS.txt](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.6.0/SHA256SUMS.txt)  
-SHA-256 `67d70703aa2180369c26cb212ce9277601cc3c7befd715e3e3b57d09d7bcc793` · собран из [`63a313f`](https://github.com/pneqnp-iswr/horizon-studio/commit/63a313f50b08ddccf55e331c99a6e25b7f72d8ad) · без подписи
+**[Horizon Studio v0.7.0 — Project Core](https://github.com/pneqnp-iswr/horizon-studio/releases/tag/v0.7.0)** · альфа-предрелиз · опубликован 2026-10-30  
+⬇ **[HorizonStudio-0.7.0-Windows-x64.exe](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.7.0/HorizonStudio-0.7.0-Windows-x64.exe)** · 11,6 МБ · [SHA256SUMS.txt](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.7.0/SHA256SUMS.txt)  
+SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9` · собран из [`c816211`](https://github.com/pneqnp-iswr/horizon-studio/commit/c816211b01670d06411ef5a4acd336b8658cdd6a) · без подписи
 
-**В этой сборке** (Модульные тесты Python и smoke-тест собранного EXE в workflow v0.6.0; проверено через GitHub API 2026-10-31):
+**В этой сборке** (гейты релиза на теговом коммите (Python, Node, браузерные E2E, официальный checker), двойной самотест EXE и GUI-запуск на Windows; прогон 41136925994, проверено через GitHub API 2026-10-31):
 
-- Блоки, предметы, рецепты с формой и без, PNG-текстуры, имена EN/RU
-- Voxel Architect: шесть генераторов структур с seed, поворотом и отражением
-- Source Workbench: JSON-правки и 3D-превью кубоидов
-- Проверки Mod Doctor, ZIP исходников и экспериментальный экспорт .hmod
-
-**Есть в `master`, но не в этом EXE:** HS-003 Защита локального API; HS-004 Согласованность метаданных релизов; HS-005 Канонический studio.project/1 и миграция; HS-006 Надёжное рабочее пространство, undo/redo, восстановление; HS-007 Браузерные E2E в CI и модули UI.
+- Канонический studio.project/1 со стабильными ID; старые проекты открываются и мигрируют
+- Рабочее пространство на диске: восстановление, выбор при конфликте ревизий, Undo/Redo
+- Модульный редактор с выдвижной панелью и раскладкой для узких экранов
+- Защищённый локальный API (токен сессии, проверки Host/Origin)
+- Экспорт .hmod совпадает с официально проверенными пакетами, в том числе из этой Windows-сборки
+- Блоки, предметы, рецепты, текстуры, структуры, Source Workbench и Mod Doctor из 0.6
 <!-- roadmap:release:end -->
 
 Правила и проверка релизов: [docs/RELEASING.md](docs/RELEASING.md). У каждого релиза есть `SHA256SUMS.txt`; начиная с 0.7.0 — ещё и `build-manifest.json`.

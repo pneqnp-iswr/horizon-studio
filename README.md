@@ -25,18 +25,18 @@
 ## Latest Windows release
 
 <!-- roadmap:release:start -->
-**[Horizon Studio v0.6.0 — Source Workbench](https://github.com/pneqnp-iswr/horizon-studio/releases/tag/v0.6.0)** · alpha prerelease · published 2026-10-30  
-⬇ **[HorizonStudio-0.6.0-Windows-x64.exe](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.6.0/HorizonStudio-0.6.0-Windows-x64.exe)** · 11.5 MB · [SHA256SUMS.txt](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.6.0/SHA256SUMS.txt)  
-SHA-256 `67d70703aa2180369c26cb212ce9277601cc3c7befd715e3e3b57d09d7bcc793` · built from [`63a313f`](https://github.com/pneqnp-iswr/horizon-studio/commit/63a313f50b08ddccf55e331c99a6e25b7f72d8ad) · unsigned
+**[Horizon Studio v0.7.0 — Project Core](https://github.com/pneqnp-iswr/horizon-studio/releases/tag/v0.7.0)** · alpha prerelease · published 2026-10-30  
+⬇ **[HorizonStudio-0.7.0-Windows-x64.exe](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.7.0/HorizonStudio-0.7.0-Windows-x64.exe)** · 11.6 MB · [SHA256SUMS.txt](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.7.0/SHA256SUMS.txt)  
+SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9` · built from [`c816211`](https://github.com/pneqnp-iswr/horizon-studio/commit/c816211b01670d06411ef5a4acd336b8658cdd6a) · unsigned
 
-**In this build** (Python unit tests and the frozen-executable smoke test of the v0.6.0 workflow; verified through the GitHub API on 2026-10-31):
+**In this build** (release gates on the tagged commit (Python, Node, browser E2E, official checker), frozen self-test twice and GUI launch on Windows; run 41136925994, verified through the GitHub API on 2026-10-31):
 
-- Blocks, items, shaped and shapeless recipes, PNG textures, EN/RU names
-- Voxel Architect: six seeded structure generators with rotation and mirroring
-- Source Workbench JSON overrides and cuboid 3D preview
-- Mod Doctor static checks, source ZIP and experimental .hmod export
-
-**On `master` but not in this executable:** HS-003 Local API threat hardening; HS-004 Release metadata consistency; HS-005 Canonical studio.project/1 + migration; HS-006 Durable workspace, undo/redo, recovery; HS-007 Browser E2E in CI + UI modules.
+- Canonical studio.project/1 with stable object IDs; older projects open and migrate
+- Disk workspace with crash recovery, revision-conflict choice and Undo/Redo
+- Modular editor with drawer and phone layouts for narrow windows
+- Hardened local API (session token, Host/Origin checks)
+- .hmod export identical to the officially checked packages, also from this Windows build
+- Blocks, items, recipes, textures, structures, Source Workbench and Mod Doctor from 0.6
 <!-- roadmap:release:end -->
 
 Release rules and verification: [docs/RELEASING.md](docs/RELEASING.md). Every release carries `SHA256SUMS.txt`; releases from 0.7.0 on also carry `build-manifest.json`.
