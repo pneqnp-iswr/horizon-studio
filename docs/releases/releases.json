@@ -17,10 +17,68 @@
       "verified_by": "Python unit tests and the frozen-executable smoke test of the v0.6.0 workflow; verified through the GitHub API on 2026-10-31",
       "verified_by_ru": "Модульные тесты Python и smoke-тест собранного EXE в workflow v0.6.0; проверено через GitHub API 2026-10-31",
       "capabilities": [
-        {"en": "Blocks, items, shaped and shapeless recipes, PNG textures, EN/RU names", "ru": "Блоки, предметы, рецепты с формой и без, PNG-текстуры, имена EN/RU"},
-        {"en": "Voxel Architect: six seeded structure generators with rotation and mirroring", "ru": "Voxel Architect: шесть генераторов структур с seed, поворотом и отражением"},
-        {"en": "Source Workbench JSON overrides and cuboid 3D preview", "ru": "Source Workbench: JSON-правки и 3D-превью кубоидов"},
-        {"en": "Mod Doctor static checks, source ZIP and experimental .hmod export", "ru": "Проверки Mod Doctor, ZIP исходников и экспериментальный экспорт .hmod"}
+        {
+          "en": "Blocks, items, shaped and shapeless recipes, PNG textures, EN/RU names",
+          "ru": "Блоки, предметы, рецепты с формой и без, PNG-текстуры, имена EN/RU"
+        },
+        {
+          "en": "Voxel Architect: six seeded structure generators with rotation and mirroring",
+          "ru": "Voxel Architect: шесть генераторов структур с seed, поворотом и отражением"
+        },
+        {
+          "en": "Source Workbench JSON overrides and cuboid 3D preview",
+          "ru": "Source Workbench: JSON-правки и 3D-превью кубоидов"
+        },
+        {
+          "en": "Mod Doctor static checks, source ZIP and experimental .hmod export",
+          "ru": "Проверки Mod Doctor, ZIP исходников и экспериментальный экспорт .hmod"
+        }
+      ]
+    },
+    {
+      "version": "0.7.0",
+      "name": "Project Core",
+      "tag": "v0.7.0",
+      "commit": "c816211b01670d06411ef5a4acd336b8658cdd6a",
+      "channel": "prerelease",
+      "published": "2026-10-30",
+      "last_pr": 15,
+      "executable": {
+        "name": "HorizonStudio-0.7.0-Windows-x64.exe",
+        "size": 12170186,
+        "sha256": "3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9"
+      },
+      "verified_by": "release gates on the tagged commit (Python, Node, browser E2E, official checker), frozen self-test twice and GUI launch on Windows; run 41136925994, verified through the GitHub API on 2026-10-31",
+      "verified_by_ru": "гейты релиза на теговом коммите (Python, Node, браузерные E2E, официальный checker), двойной самотест EXE и GUI-запуск на Windows; прогон 41136925994, проверено через GitHub API 2026-10-31",
+      "capabilities": [
+        {
+          "en": "Canonical studio.project/1 with stable object IDs; older projects open and migrate",
+          "ru": "Канонический studio.project/1 со стабильными ID; старые проекты открываются и мигрируют",
+          "milestone": "HS-005"
+        },
+        {
+          "en": "Disk workspace with crash recovery, revision-conflict choice and Undo/Redo",
+          "ru": "Рабочее пространство на диске: восстановление, выбор при конфликте ревизий, Undo/Redo",
+          "milestone": "HS-006"
+        },
+        {
+          "en": "Modular editor with drawer and phone layouts for narrow windows",
+          "ru": "Модульный редактор с выдвижной панелью и раскладкой для узких экранов",
+          "milestone": "HS-007"
+        },
+        {
+          "en": "Hardened local API (session token, Host/Origin checks)",
+          "ru": "Защищённый локальный API (токен сессии, проверки Host/Origin)",
+          "milestone": "HS-003"
+        },
+        {
+          "en": ".hmod export identical to the officially checked packages, also from this Windows build",
+          "ru": "Экспорт .hmod совпадает с официально проверенными пакетами, в том числе из этой Windows-сборки"
+        },
+        {
+          "en": "Blocks, items, recipes, textures, structures, Source Workbench and Mod Doctor from 0.6",
+          "ru": "Блоки, предметы, рецепты, текстуры, структуры, Source Workbench и Mod Doctor из 0.6"
+        }
       ]
     }
   ]
