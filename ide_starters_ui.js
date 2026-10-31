@@ -19,8 +19,9 @@
         &&item.verification==='project-schema-only'&&item.in_game_verified===false));
   }
   function summary(item,lang){
+    const kindsRu={block:'Блоки',item:'Предметы',recipe:'Рецепты',structure:'Структуры',vfx:'Эффекты'};
     const kinds=Object.entries(item.counts||{}).filter(([name,num])=>typeof name==='string'&&Number.isInteger(num)&&num>0)
-      .map(([name,num])=>name+' × '+num).join(' · ');
+      .map(([name,num])=>(lang==='ru'?(kindsRu[name]||name):name)+' × '+num).join(' · ');
     const desc=lang==='ru'?item.description_ru:item.description;
     return desc+'\n'+kinds+'\n'+(lang==='ru'?'Проверено как проект; в игре не испытано.':'Project schema validated; not tested in the game.');
   }
