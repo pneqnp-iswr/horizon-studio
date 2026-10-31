@@ -64,7 +64,7 @@ Release rules and verification: [docs/RELEASING.md](docs/RELEASING.md). Every re
 | F0 Foundation | Official validator, secure local API, release metadata, real-game smoke harness | Partially verified | 3 / 4 |
 | F1 Project Core | Canonical project document, migrations, durable workspace, undo, browser E2E | Done | 3 / 3 |
 | F2 Creative Editor | Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bridge (HS-011) | Partially verified | 0 / 6 |
-| F3 Visual Scripting | Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (HS-010) | **In progress** | 1 / 5 |
+| F3 Visual Scripting | Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (HS-010) | **In progress** | 2 / 5 |
 | F4 Gameplay Systems | Entities, components, AI behaviour trees, events, RPG and automation | Planned | 0 / 3 |
 | F5 World & VFX | Shader graph over .hshader, particles, physics sandbox, dimensions | Partially verified | 1 / 5 |
 | F6 Engine Bridge | Upstream-accepted engine capabilities: entities, server events, worldgen, physics, rendering | Partially verified | 0 / 3 |

@@ -49,6 +49,7 @@ WEB_SCRIPTS = {
     'vfx_engine.js': b'HorizonVfx',
     'vfx_ui.js': b'HorizonVfxStudio',
     'command_palette.js': b'HorizonPalette',
+    'ai_creator_ui.js': b'HorizonAiCreator',
     'editor_app.js': b'createWorkspaceSync({',
 }
 # Every file the packaged application needs at runtime, relative to the repository root.

@@ -8,7 +8,8 @@ capability problems are reported, not hidden, and never delete authoring data.
 
 Tools, by effect:
   read-only   inspect_project, list_assets, inspect_capabilities, validate_project, build_project
-  edits       create_asset, update_asset, delete_asset (planned with ``propose``, applied with ``commit``)
+  edits       create_asset, update_asset, delete_asset, create_vfx_asset (planned with ``propose``,
+              applied with ``commit``)
   history     rollback_transaction
   privileged  export_package — needs ``approved=True`` from a person, never from the model
 Native code is not a tool: generated Rust is never built or run by this executor (HS-010).
@@ -29,7 +30,10 @@ from studio_core.project_schema import ProjectFormatError, dumps, is_ref, is_uid
 
 CONTRACT = "horizon-studio.ai-tools/1"
 READ_ONLY = ("inspect_project", "list_assets", "inspect_capabilities", "validate_project", "build_project")
-EDITS = ("create_asset", "update_asset", "delete_asset")
+EDITS = ("create_asset", "update_asset", "delete_asset", "create_vfx_asset")
+# Effect presets a model may start from (studio.vfx/1); fields it may set on top of one.
+VFX_PRESETS = ("impact_spark",)
+VFX_FIELDS = ("name", "seed", "duration", "loop")
 PRIVILEGED = ("export_package",)
 TOOLS = READ_ONLY + EDITS + ("rollback_transaction",) + PRIVILEGED
 # Operations the editor's own transactions also use (studio_core.transactions); not offered to models.
@@ -294,6 +298,23 @@ class Session:
         doc["objects"].append({"uid": uid, "kind": kind, "id": object_id, "props": self._value(doc, props, index)})
         changes["created"].append({"uid": uid, "kind": kind, "id": object_id})
 
+    def _op_create_vfx_asset(self, doc, op, changes, index):
+        """A Studio-only effect (HS-025/HS-026) from a preset, validated as studio.vfx/1 before it
+        exists. Effects are never exported to the .hmod; the result says so (VFX_STUDIO_ONLY)."""
+        from studio_core import vfx
+        preset, patch = op.get("preset", "impact_spark"), op.get("set", {})
+        if preset not in VFX_PRESETS:
+            raise ToolError("BAD_REQUEST", f"operations[{index}]: preset must be one of {', '.join(VFX_PRESETS)}")
+        if not isinstance(patch, dict) or set(patch) - set(VFX_FIELDS):
+            raise ToolError("BAD_REQUEST", f"operations[{index}]: set may change only {', '.join(VFX_FIELDS)}")
+        effect = {**getattr(vfx, preset)(), **copy.deepcopy(patch)}
+        problems = vfx.validate(effect)
+        if problems:
+            raise ToolError("INVALID_RESULT", f"operations[{index}]: " + "; ".join(p["message"] for p in problems),
+                            [{"level": "error", "code": "VFX_" + p["code"], "message": p["message"]} for p in problems])
+        self._op_create_asset(doc, {"kind": "vfx", "id": op.get("id"), "uid": op.get("uid"), "props": effect},
+                              changes, index)
+
     def _op_update_asset(self, doc, op, changes, index):
         obj = self._find(doc, op.get("uid"), index, op)
         if "props" in op:  # every property at once (keeps the given key order)
@@ -412,10 +433,14 @@ class FixtureProvider:
 
     name = "fixture"
 
-    INTENTS = ("material_set", "update")
+    INTENTS = ("material_set", "update", "impact_effect")
 
     def propose(self, request: dict, context: dict) -> list[dict]:
         intent = request.get("intent")
+        if intent == "impact_effect":  # a Studio-only effect from the Impact Spark preset
+            fields = {k: request[k] for k in VFX_FIELDS if k in request}
+            return [{"tool": "create_vfx_asset", "id": request.get("id", "impact_spark"), "preset": "impact_spark",
+                     "set": fields}]
         if intent == "update":  # change properties of one existing asset, named "kind:id"
             if not isinstance(request.get("asset"), str) or not isinstance(request.get("set"), dict):
                 raise ToolError("BAD_REQUEST", "update needs an asset ('kind:id') and the properties to set")

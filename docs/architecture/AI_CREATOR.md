@@ -63,6 +63,42 @@ replacement of the editor's state:
 An approved proposal is one step in the same journal as the person's edits, so one undo takes it back, after a restart
 too. The journal records the resolved operations, so redo gives the same uids and the same `.hmod`.
 
+## The AI Creator panel
+
+<img src="../screenshots/ai-creator-1440x900.png" alt="The AI Creator panel at 1440 by 900. On the left, the request: the provider (Fixture, simulated and offline), a note that no live model is connected, the request 'Change a block or item', item ruby, property rarity, value epic. In the middle, the proposal: 'change item ruby, 1 operation, checked by the core', the operation update_asset item:ruby (rarity), a table showing rarity before rare and after epic, 'Valid: the project still builds', and the buttons Apply as one step and Reject. On the right, the history. A badge at the top reads Simulated, fixture provider." width="100%" />
+
+Rail → **AI Creator** (also in the command palette). It is a review tool, not a chat window.
+
+| Part | What it shows |
+|---|---|
+| **Badge** | *Simulated · fixture provider*: in this build the only provider is the deterministic fixture, and the panel says so everywhere |
+| **Request** | Provider and request. The fixture understands three structured requests (a material set, a change to a block or item, an Impact Spark effect). It does not read free text, and the panel says that too |
+| **What the provider receives** | The context the core hands the provider (`inspect_project`): project id, name and version, the engine target, counts and the revision. For the fixture, nothing leaves the computer |
+| **Proposal** | A summary, the operation list, and a per-asset diff with every field's before and after (uid references shown by name). Validation by the core, with export-blocking notes such as *Studio preview, not exported* for effects |
+| **Apply / Reject** | Apply commits the proposal as **one step** of the shared history (`/api/ai/commit`), only at the revision it was made for. Otherwise it is *stale* and refused. Reject drops it (audited) |
+| **Progress and cancel** | While the provider answers, nothing changes. Cancel discards the answer when it arrives and rejects it in the core |
+| **Undo it** | After Apply, the same undo as the toolbar (Ctrl+Z); one undo takes back the whole AI change |
+| **History** | The project's steps, newest first, marked *AI · approved by you* or *You*; undone steps stay visible until a new edit |
+
+Errors are explained in place: stale proposal, a workspace conflict, a detached project (invalid ID or an open conflict),
+an unknown asset, an invalid result, an expired proposal.
+
+`create_vfx_asset` (§8 of cycle 3) is a typed operation in the same executor:
+- it creates a `studio.vfx/1` effect from a preset (`impact_spark`), with `name`, `seed`, `duration` and `loop`;
+- it is validated before it exists;
+- it is never exported: the `.hmod` bytes are unchanged, and the diagnostics say so;
+- the VFX Studio edits it like any other effect.
+
+Tests:
+- `tests/e2e/ai.e2e.cjs` runs in Chromium against the real core:
+  - a person's edit and an AI proposal on the same item;
+  - preview, apply, undo, redo and reload;
+  - a stale, a rejected and a cancelled proposal;
+  - a material set and an effect, with `.hmod` bytes;
+  - Russian, and axe.
+- `tests/test_transactions.py` covers `create_vfx_asset`: preview, accept, undo, redo, a manual edit, a restart,
+  deterministic particles, and the unchanged package.
+
 ## Providers and privacy (HS-021, planned)
 
 - One interface, `propose(request, context) -> operations`. `FixtureProvider` is the deterministic reference used in
@@ -84,9 +120,8 @@ fixture provider. The input project is never modified; a refused transaction wri
 
 ## Roadmap
 
-- HS-020 (in progress): this contract and executor, and one transaction protocol for the editor and AI proposals
-  (`studio_core/transactions.py`). The editor routes its own edits, undo and redo through it. It is complete once the
-  AI Creator panel drives the AI path in the browser end to end.
+- HS-020 (done): this contract and executor, one transaction protocol for the editor and AI proposals
+  (`studio_core/transactions.py`), and the AI Creator panel that drives the AI path in the browser end to end.
 - HS-021: providers, credentials, consent and offline mode.
-- HS-022: the AI Creator panel (proposal review, audit trail, approvals) and authoring across models, animation, VFX, entities, graphs and Rust, with validate-and-repair loops.
+- HS-022: authoring across models, animation, VFX, entities, graphs and Rust, with validate-and-repair loops; the review panel above is its first piece.
 - HS-024: the live preview loop through the Preview Bridge (HS-023).
