@@ -88,13 +88,14 @@ jobs:
             python scripts/desktop_probe.py --exe desktop/target/debug/horizon-studio \
               --out desktop-evidence --label linux-1440x900 --window-size 1440x900
       - name: Functional E2E on the real window (WebKitWebDriver)
+        timeout-minutes: 15
         # A separate test build: the cargo feature `e2e` answers the Save dialog from the environment.
         run: |
           cargo install tauri-driver --locked --version "$TAURI_DRIVER_VERSION"
           cargo build --locked --features e2e --manifest-path desktop/Cargo.toml
           xvfb-run -a -s "-screen 0 1600x1000x24" env WEBKIT_DISABLE_DMABUF_RENDERER=1 \
             DESKTOP_APP="$PWD/desktop/target/debug/horizon-studio" \
-            node --test --test-reporter=spec tests/desktop/desktop.e2e.cjs
+            node --test --test-reporter=tap tests/desktop/desktop.e2e.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -195,6 +196,7 @@ jobs:
           if (Test-Path $installed.FullName) { throw "The uninstaller left HorizonStudio.exe behind" }
           Write-Output "Uninstalled cleanly"
       - name: Functional E2E on the real window (WebView2 through msedgedriver)
+        timeout-minutes: 20
         # Built after the packages are assembled, so the uploaded builds can never be test builds.
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
@@ -204,7 +206,7 @@ jobs:
           if (-not (Test-Path desktop/target/release/core/horizon-studio-core.exe)) { throw "The bundled core is missing next to the test build" }
           $env:NATIVE_DRIVER = & ./scripts/msedgedriver_for_webview2.ps1 -Destination "$env:RUNNER_TEMP/msedgedriver"
           $env:DESKTOP_APP = "$app"
-          node --test --test-reporter=spec tests/desktop/desktop.e2e.cjs
+          node --test --test-reporter=tap tests/desktop/desktop.e2e.cjs
       - name: Print small screenshots into the log for review
         if: always()
         shell: python

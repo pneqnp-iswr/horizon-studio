@@ -10,18 +10,23 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
-const { launch, sleep } = require('./webdriver.cjs');
+const { launch, sleep, stopAll } = require('./webdriver.cjs');
 const { readZip } = require('../e2e/zip.cjs');
 
 const APP = process.env.DESKTOP_APP;
 const OFFICIAL_RUBY_SHA256 = 'ee3e1c878ea41fbf710f749896bfdb92b23b18e21e67b016b57b95b96a8797e2';
 const scenario = (name, body) => test(name, { skip: !APP && 'set DESKTOP_APP to an e2e build of the shell', timeout: 240000 }, body);
+test.after(stopAll);
 
 function scratch() {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'hs-desktop-e2e-'));
   const saves = path.join(home, 'saves');
   fs.mkdirSync(saves);
-  return { home, saves, env: { HOME: home, USERPROFILE: home, HORIZON_STUDIO_E2E_SAVE_DIR: saves } };
+  // The core's data goes to HORIZON_STUDIO_HOME. HOME also isolates WebKitGTK's storage on Linux; Windows keeps
+  // its own USERPROFILE (WebView2 and msedgedriver need the real one) and the scenarios clear storage themselves.
+  const env = { HORIZON_STUDIO_HOME: path.join(home, '.horizon-studio'), HORIZON_STUDIO_E2E_SAVE_DIR: saves };
+  if (process.platform !== 'win32') env.HOME = home;
+  return { home, saves, env };
 }
 
 function coreProcesses() {

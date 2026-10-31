@@ -8,6 +8,16 @@ const net = require('node:net');
 
 const ELEMENT = 'element-6066-11e4-a52e-4f735466cecf';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+// Every driver started, so a scenario that times out cannot leave one running (and keep Node alive).
+const drivers = new Set();
+
+function stopAll() {
+  for (const child of drivers) {
+    if (child.exitCode === null) child.kill();
+    drivers.delete(child);
+  }
+}
+process.on('exit', stopAll);
 
 function request(port, method, path, body) {
   return new Promise((resolve, reject) => {
@@ -50,19 +60,30 @@ async function launch({ app, env = {}, args = [], driver = process.env.TAURI_DRI
   const driverArgs = ['--port', String(port), '--native-port', String(nativePort)];
   if (nativeDriver) driverArgs.push('--native-driver', nativeDriver);
   const child = spawn(driver, driverArgs, { env: { ...process.env, ...env }, stdio: ['ignore', 'pipe', 'pipe'] });
+  drivers.add(child);
+  child.once('exit', () => drivers.delete(child));
   let log = '';
   child.stdout.on('data', chunk => { log += chunk; });
   child.stderr.on('data', chunk => { log += chunk; });
   const deadline = Date.now() + 30000;
   for (;;) {
     try { await request(port, 'GET', '/status'); break; } catch (error) {
-      if (Date.now() > deadline || child.exitCode !== null) throw new Error(`tauri-driver did not start: ${log}`);
+      if (Date.now() > deadline || child.exitCode !== null) {
+        child.kill();
+        throw new Error(`tauri-driver did not start: ${log}`);
+      }
       await sleep(200);
     }
   }
-  const session = await request(port, 'POST', '/session', {
-    capabilities: { alwaysMatch: { 'tauri:options': { application: app, args } } },
-  });
+  let session;
+  try {
+    session = await request(port, 'POST', '/session', {
+      capabilities: { alwaysMatch: { 'tauri:options': { application: app, args } } },
+    });
+  } catch (error) {
+    child.kill();
+    throw new Error(`${error.message}\n${log}`);
+  }
   return new Window(port, session.sessionId, child, () => log);
 }
 
@@ -83,7 +104,11 @@ class Window {
         last = await this.run(fn, ...args);
         if (last) return last;
       } catch (error) { last = error.message; }
-      if (Date.now() > deadline) throw new Error(`Timed out waiting for ${message} (last: ${JSON.stringify(last)})`);
+      if (Date.now() > deadline) {
+        let page = 'unknown';
+        try { page = JSON.stringify(await this.run(() => ({ href: location.href, ready: document.readyState, title: document.title }))); } catch (error) { page = error.message; }
+        throw new Error(`Timed out waiting for ${message} (last: ${JSON.stringify(last)}; page: ${page})\n${this.log().slice(-2000)}`);
+      }
       await sleep(interval);
     }
   }
@@ -113,4 +138,4 @@ class Window {
   }
 }
 
-module.exports = { launch, sleep };
+module.exports = { launch, sleep, stopAll };
