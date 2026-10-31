@@ -471,6 +471,9 @@ def run_request(session: Session, provider, request: dict, *, actor: str | None 
     """Ask a provider for operations and return them as a proposal. A person (or an approved
     policy) commits it; the provider never mutates the project itself."""
     actor = actor or f"ai:{provider.name}"
-    context = session.call("inspect_project", actor=actor)
+    inspected = session.call("inspect_project", actor=actor)
+    context = inspected
+    if callable(getattr(provider, "context", None)):  # remote providers get a minimal context (HS-021)
+        context = provider.context(session)
     operations = provider.propose(request, context)
-    return session.propose(operations, actor=actor, expected_revision=context["revision"])
+    return session.propose(operations, actor=actor, expected_revision=inspected["revision"])

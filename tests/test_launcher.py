@@ -15,6 +15,36 @@ class LauncherTests(unittest.TestCase):
         finally:
             server.server_close()
 
+    def test_a_page_load_burst_is_never_refused(self):
+        # A page load opens one connection per script and icon (the handler speaks HTTP/1.0), up to six at a
+        # time. They wait in the listen backlog until the server accepts them; with socketserver's default of 5,
+        # Windows refused the sixth, a script failed to load and the desktop editor started without its bridge.
+        import socket
+        import threading
+        from studio import WEB_SCRIPTS
+        script = sorted(WEB_SCRIPTS)[0]
+        for exclusive in (False, True):  # the browser launcher and the desktop core
+            with self.subTest(exclusive=exclusive):
+                server = start_server(smoke_test=not exclusive, exclusive=exclusive)
+                port, sockets, serving = server.server_port, [], None
+                try:
+                    # The server is not accepting yet, so every connection has to fit in the backlog.
+                    for _ in range(32):
+                        sockets.append(socket.create_connection(("127.0.0.1", port), timeout=5))
+                    serving = threading.Thread(target=server.serve_forever, daemon=True)
+                    serving.start()
+                    for conn in sockets:
+                        conn.sendall(f"GET /{script} HTTP/1.0\r\nHost: 127.0.0.1:{port}\r\n\r\n".encode())
+                    for conn in sockets:
+                        with conn.makefile("rb") as reply:
+                            self.assertIn(b" 200 ", reply.readline())
+                finally:
+                    for conn in sockets:
+                        conn.close()
+                    if serving:
+                        server.shutdown()
+                    server.server_close()
+
     def test_bundled_application_smoke(self):
         self.assertEqual(smoke_test(), 0)
 

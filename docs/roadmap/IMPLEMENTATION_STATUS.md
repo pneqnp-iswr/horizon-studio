@@ -53,11 +53,11 @@ Last updated: 2026-10-31. Master before this update: `2f9f1bc` (PR #22). Roadmap
 - `unit`: Python 3.11/3.12 on Ubuntu and Windows; Node 22 editor-module tests.
 - `official-static`: **pass** for all three examples and their `studio.project/1` migrations on Horizon `d2186eb9` (CI) and upstream `main` `3a5ac7ff` (local drift probe).
 <!-- roadmap:e2e-count:start -->
-- `browser-e2e`: **pass** — 35 scenarios on the current master (editor, workbench and roadmap explorer, VFX Studio, PixelChat), Chromium on Ubuntu CI ([inventory](../BROWSER_E2E.md#current-inventory)). Firefox, WebKit and Windows browsers are not covered.
+- `browser-e2e`: **pass** — 36 scenarios on the current master (editor, workbench and roadmap explorer, VFX Studio, PixelChat), Chromium on Ubuntu CI ([inventory](../BROWSER_E2E.md#current-inventory)). Firefox, WebKit and Windows browsers are not covered.
 <!-- roadmap:e2e-count:end -->
 - `desktop-smoke`: **pass** — the real desktop application starts, reports the editor ready and stops its core cleanly: Windows portable and installed (WebView2), Linux (WebKitGTK, Xvfb). This proves the shell, not game compatibility.
 <!-- roadmap:desktop-e2e-count:start -->
-- `desktop-e2e`: 9 functional scenarios that drive the real application window through tauri-driver: WebKitWebDriver on Linux, msedgedriver for WebView2 on Windows ([inventory](../DESKTOP.md#desktop-e2e)). They need a test build with the cargo feature `e2e`, which answers the Save dialog from the environment; packaged builds are checked not to have it.
+- `desktop-e2e`: 10 functional scenarios that drive the real application window through tauri-driver: WebKitWebDriver on Linux, msedgedriver for WebView2 on Windows ([inventory](../DESKTOP.md#desktop-e2e)). They need a test build with the cargo feature `e2e`, which answers the Save dialog from the environment; packaged builds are checked not to have it.
 <!-- roadmap:desktop-e2e-count:end -->
 - `game-content-load`: **not verified** — needs a legally installed client, prepared resources and a GPU session (owner-run or self-hosted runner; decision pending).
 - `gameplay`: **not verified**.

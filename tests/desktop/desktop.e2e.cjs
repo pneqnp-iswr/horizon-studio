@@ -45,16 +45,59 @@ async function open(env, extra = {}) {
 }
 
 async function editorReady(win) {
-  await win.waitFor(() => Boolean(window.HorizonDesktop && window.HorizonDesktop.available()
-    && document.querySelector('#workspaceSaveStatus')?.dataset.key && document.body.dataset.shell),
-  { message: 'the editor inside the desktop shell' });
+  try {
+    await win.waitFor(() => Boolean(window.HorizonDesktop && window.HorizonDesktop.available()
+      && document.querySelector('#workspaceSaveStatus')?.dataset.key && document.body.dataset.shell),
+    { message: 'the editor inside the desktop shell' });
+  } catch (error) {
+    error.message += `\n${await diagnose(win)}`;
+    throw error;
+  }
+}
+
+/** What a window that never became ready was doing: each readiness condition, the editor's own
+ * status, which scripts loaded and whether startup reached its end, and the core's last requests. */
+async function diagnose(win) {
+  let page;
+  try {
+    page = await win.run(() => ({
+      ipc: Boolean(window.__TAURI_INTERNALS__),
+      bridge: Boolean(window.HorizonDesktop && window.HorizonDesktop.available()),
+      bridgeAtStartup: document.body.classList.contains('desktop'),
+      startupFinished: typeof document.querySelector('#openPalette')?.onclick === 'function',
+      key: document.querySelector('#workspaceSaveStatus')?.dataset.key || null,
+      shell: document.body.dataset.shell || null,
+      status: document.querySelector('#status')?.textContent || '',
+      missing: ['HorizonI18n', 'HorizonStudioApi', 'HorizonDesktop', 'HorizonWorkbench', 'HorizonVfxStudio', 'HorizonPalette',
+        'HorizonAiCreator'].filter(name => !window[name]),
+      navigation: performance.getEntriesByType('navigation').map(entry => entry.type),
+      scripts: performance.getEntriesByType('resource').filter(entry => entry.initiatorType === 'script')
+        .map(entry => `${new URL(entry.name).pathname} ${entry.responseStatus ?? '?'} ${Math.round(entry.duration)}ms`),
+    }));
+  } catch (error) { page = error.message; }
+  let core = '';
+  const dir = process.platform === 'win32'
+    ? path.join(process.env.LOCALAPPDATA || '', 'io.github.pneqnp-iswr.horizonstudio', 'logs')
+    : path.join(os.homedir(), '.local', 'share', 'io.github.pneqnp-iswr.horizonstudio', 'logs');
+  try { core = fs.readFileSync(path.join(dir, 'core.log'), 'utf8').split(/\r?\n/).slice(-25).join('\n'); } catch (error) { core = error.message; }
+  return `diagnosis: ${JSON.stringify(page)}\ncore.log (last lines):\n${core}`;
+}
+
+/** Reloads the window and waits for the new page's editor (never the old page's). */
+async function reload(win, { clear = false } = {}) {
+  await win.run(wipe => {
+    window.__hsOldPage = true;
+    if (wipe) localStorage.clear();
+    setTimeout(() => location.reload(), 0);
+    return true;
+  }, clear);
+  await win.waitFor(() => !window.__hsOldPage, { message: 'the reloaded page' });
+  await editorReady(win);
 }
 
 async function fresh(win) {
   // WebView storage can outlive a test on Windows (it lives in the user's profile); start clean.
-  await win.run(() => { localStorage.clear(); setTimeout(() => location.reload(), 0); return true; });
-  await sleep(800);
-  await editorReady(win);
+  await reload(win, { clear: true });
 }
 
 async function loadDemo(win) {
@@ -71,7 +114,13 @@ function diskHas(root, text) {
   if (!fs.existsSync(root)) return false;
   return fs.readdirSync(root, { withFileTypes: true }).some(entry => {
     const full = path.join(root, entry.name);
-    return entry.isDirectory() ? diskHas(full, text) : fs.readFileSync(full, 'utf8').includes(text);
+    if (entry.isDirectory()) return diskHas(full, text);
+    // An atomic save's temporary file can be renamed away between the listing and the read.
+    if (entry.name.endsWith('.tmp')) return false;
+    try { return fs.readFileSync(full, 'utf8').includes(text); } catch (error) {
+      if (error.code === 'ENOENT') return false;
+      throw error;
+    }
   });
 }
 
@@ -320,6 +369,22 @@ scenario('a restarted window recovers the disk workspace', async () => {
     await win.click('#restoreWorkspace');
     await win.waitFor(() => document.querySelector('#workspaceSaveStatus').dataset.key === 'workspaceRecovered', { message: 'recovered' });
     assert.equal((await state(win)).items[0].name, 'Restart Ruby');
+  } finally {
+    await win.close();
+  }
+});
+
+scenario('reloading the window brings the editor back every time', async () => {
+  // People can reload the desktop window (F5); each reload must end in a working editor attached to the core.
+  const box = scratch();
+  const win = await open(box.env);
+  try {
+    await editorReady(win);
+    for (let i = 0; i < 12; i++) await reload(win);
+    // Still attached to the core after the last reload: the demo loads and its workspace is saved.
+    await loadDemo(win);
+    await win.waitFor(() => document.querySelector('#workspaceSaveStatus').dataset.key === 'workspaceSaved',
+      { message: 'the workspace saved after the reloads' });
   } finally {
     await win.close();
   }

@@ -21,7 +21,8 @@ async function startStudio() {
   const python = process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
   const child = spawn(python, ['studio.py', '0'], {
     cwd: ROOT,
-    env: { ...process.env, HOME: home, USERPROFILE: home, PYTHONUNBUFFERED: '1' },
+    // An in-memory credential store: tests never touch the machine's real one.
+    env: { ...process.env, HOME: home, USERPROFILE: home, PYTHONUNBUFFERED: '1', HORIZON_STUDIO_CREDENTIALS: 'memory' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let log = '';
