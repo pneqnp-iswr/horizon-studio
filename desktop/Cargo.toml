@@ -27,8 +27,10 @@ windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Storage
 
 [features]
 # Test builds for desktop E2E only: answers the native Save dialog from the environment and
-# lets a test replace the core. Release builds never enable it (checked in tests/test_desktop.py).
-e2e = []
+# lets a test replace the core. It also turns on the WebView's DevTools protocol, without which
+# msedgedriver cannot attach to WebView2 in an optimized build. Release builds never enable it
+# (checked in tests/test_desktop.py and by scripts/desktop_probe.py).
+e2e = ["tauri/devtools"]
 
 [profile.release]
 codegen-units = 1

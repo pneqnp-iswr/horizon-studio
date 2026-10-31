@@ -74,7 +74,10 @@ class TestBuildIsolationTests(unittest.TestCase):
     def test_the_feature_is_never_on_by_default(self):
         cargo = (DESKTOP / "Cargo.toml").read_text(encoding="utf-8")
         features = cargo.split("[features]", 1)[1].split("\n[", 1)[0]
-        self.assertRegex(features, r"(?m)^e2e = \[\]$")
+        self.assertRegex(features, r'(?m)^e2e = \["tauri/devtools"\]$')
+        # DevTools only ever come with the test feature, never with the shipped dependency.
+        tauri = re.search(r'(?m)^tauri = \{.*\}$', cargo).group(0)
+        self.assertNotIn("devtools", tauri)
         self.assertNotRegex(features, r"(?m)^default\s*=.*e2e")
         for name in ("tauri.conf.json", "tauri.release.conf.json"):
             self.assertNotIn("e2e", (DESKTOP / name).read_text(encoding="utf-8"), name)
