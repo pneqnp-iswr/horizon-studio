@@ -642,8 +642,24 @@
       ],
       "engine_requirements": [],
       "validation_target": "unit",
-      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
-      "evidence": []
+      "design_ref": "docs/architecture/AI_CREATOR.md",
+      "evidence": [
+        {
+          "level": "unit",
+          "ref": "Tool contract horizon-studio.ai-tools/1 and transactional executor: schema, reference and generator validation, revision preconditions, preview, cancel, rollback, audit log, privileged export, engine capability gate; the fixture provider's Ruby set builds the officially checked bytes ee3e1c87 (tests/test_ai_creator.py)",
+          "url": "tests/test_ai_creator.py"
+        },
+        {
+          "level": "unit",
+          "ref": "CLI: horizon_cli.py ai-apply writes a new project and a JSONL audit, never the input; a refused transaction writes nothing",
+          "url": "horizon_cli.py"
+        },
+        {
+          "level": "docs",
+          "ref": "Architecture: contract, transactions, providers and privacy plan",
+          "url": "docs/architecture/AI_CREATOR.md"
+        }
+      ]
     },
     {
       "id": "HS-021",

@@ -60,7 +60,7 @@ def write_migrated(source: Path, output: Path, force: bool) -> str:
 
 def main(argv=None) -> int:
     parser=argparse.ArgumentParser(description='Horizon Studio offline builder and diagnostics (official checking is opt-in)')
-    parser.add_argument('command', choices=('doctor','inspect','build','source','verify','migrate','graph','capabilities'))
+    parser.add_argument('command', choices=('doctor','inspect','build','source','verify','migrate','graph','capabilities','ai-apply'))
     parser.add_argument('project', type=Path, help='Project .hstudio.json file (schema 2-4 or studio.project/1)')
     parser.add_argument('-o','--output',type=Path,help='Destination for build/source/migrate (migrate prints to stdout without it)')
     parser.add_argument('--force',action='store_true',help='migrate: replace an existing output file')
@@ -70,8 +70,43 @@ def main(argv=None) -> int:
     parser.add_argument('--validator-revision',help='Declared pinned validator source revision (40-digit SHA; not independently authenticated)')
     parser.add_argument('--timeout',type=float,default=120,help='Official checker timeout in seconds (verify only)')
     parser.add_argument('--evidence',type=Path,help='Write JSON official-check evidence for verify')
+    parser.add_argument('--operations',type=Path,help='ai-apply: JSON list of tool operations, or {"request": {...}} for the fixture provider')
+    parser.add_argument('--audit',type=Path,help='ai-apply: append the audit log as JSON lines')
+    parser.add_argument('--actor',default='ai:cli',help='ai-apply: who the transaction is recorded for')
     args=parser.parse_args(argv)
     try:
+        if args.command=='ai-apply':
+            # HS-020: the AI Creator tool contract; one validated, audited transaction.
+            from studio_core.ai_tools import FixtureProvider, Session, ToolError, run_request
+            if args.operations is None or args.output is None:
+                raise ValueError('ai-apply needs --operations and -o/--output')
+            if args.output.resolve()==args.project.resolve():
+                raise ValueError('ai-apply never modifies its input; choose a different -o/--output')
+            if args.output.exists() and not args.force:
+                raise ValueError(f'{args.output} exists; pass --force to replace it')
+            session=Session(read_document(args.project))
+            spec=json.loads(args.operations.read_text(encoding='utf-8'))
+            try:
+                if isinstance(spec,dict) and 'request' in spec:
+                    proposal=run_request(session,FixtureProvider(),spec['request'],actor=args.actor)
+                else:
+                    proposal=session.propose(spec,actor=args.actor,expected_revision=session.revision)
+                transaction=session.commit(proposal.id,actor=args.actor,expected_revision=session.revision)
+            except ToolError as exc:
+                for issue in exc.diagnostics:
+                    print(f"{issue['level'].upper():7s} {issue['code']}: {issue['message']}",file=sys.stderr)
+                print(f'REFUSED {exc.code}: {exc}',file=sys.stderr)
+                return 1
+            finally:
+                if args.audit:
+                    with args.audit.open('a',encoding='utf-8') as log:
+                        for entry in session.audit:
+                            log.write(json.dumps(entry,ensure_ascii=False)+'\n')
+            atomic_write_bytes(args.output,dumps(session.doc).encode('utf-8'))
+            changes=transaction.changes
+            print(f"Applied {transaction.id}: {len(changes['created'])} created, {len(changes['updated'])} updated, "
+                  f"{len(changes['deleted'])} deleted; revision {transaction.result_revision[:12]} -> {args.output}")
+            return 0
         if args.command=='migrate':
             if args.output is None:
                 sys.stdout.write(dumps(read_document(args.project)))
