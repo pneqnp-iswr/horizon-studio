@@ -25,21 +25,25 @@
 ## Последний релиз для Windows
 
 <!-- roadmap:release:start -->
-**[Horizon Studio v0.7.0 — Project Core](https://github.com/pneqnp-iswr/horizon-studio/releases/tag/v0.7.0)** · альфа-предрелиз · опубликован 2026-10-30  
-⬇ **[HorizonStudio-0.7.0-Windows-x64.exe](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.7.0/HorizonStudio-0.7.0-Windows-x64.exe)** · 11,6 МБ · [SHA256SUMS.txt](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.7.0/SHA256SUMS.txt)  
-SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9` · собран из [`c816211`](https://github.com/pneqnp-iswr/horizon-studio/commit/c816211b01670d06411ef5a4acd336b8658cdd6a) · без подписи
+**[Horizon Studio v0.8.0 — Desktop Studio](https://github.com/pneqnp-iswr/horizon-studio/releases/tag/v0.8.0)** · альфа-предрелиз · опубликован 2026-10-31  
+⬇ **[HorizonStudio-0.8.0-Windows-x64-setup.exe](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.8.0/HorizonStudio-0.8.0-Windows-x64-setup.exe)** · Установщик настольного приложения · 8,3 МБ · SHA-256 `e512b6c1248084fe7d879939e1b06c91cf7ce9d4e6a2ab1a3702d7d323d1d519`  
+⬇ **[HorizonStudio-0.8.0-Windows-x64-portable.zip](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.8.0/HorizonStudio-0.8.0-Windows-x64-portable.zip)** · Переносимая версия (папка в ZIP; распакуйте целиком) · 10,6 МБ · SHA-256 `fbf96a7248673820449800c4708cd2baf92102975158f1be1d343392b46b5953`  
+Настольная сборка без подписи: Windows SmartScreen предупредит; классический запуск:  
+⬇ **[HorizonStudio-0.8.0-Windows-x64.exe](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.8.0/HorizonStudio-0.8.0-Windows-x64.exe)** · 11,9 МБ · [SHA256SUMS.txt](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.8.0/SHA256SUMS.txt)  
+SHA-256 `6f4e47d2529d8633e640646abfa4c210abbb94903c202ec5c0a8a846ef5b6949` · собран из [`07f74ae`](https://github.com/pneqnp-iswr/horizon-studio/commit/07f74aec8ed2d0a3c5000662f862d1404cbb9e12) · без подписи
 
-**В этой сборке** (гейты релиза на теговом коммите (Python, Node, браузерные E2E, официальный checker), двойной самотест EXE и GUI-запуск на Windows; прогон 41136925994, проверено через GitHub API 2026-10-31):
+**В этой сборке** (гейты релиза на теговом коммите (Python, Node, браузерные E2E, официальный checker; E2E настольного окна 10/10 на Linux и Windows, установка, запуск и удаление, переносимый ZIP в том виде, в каком он выпущен), двойной самотест EXE и GUI-запуск на Windows; прогон 41216054418, каждый файл проверен и скачан через GitHub API 2026-10-31):
 
-- Канонический studio.project/1 со стабильными ID; старые проекты открываются и мигрируют
-- Рабочее пространство на диске: восстановление, выбор при конфликте ревизий, Undo/Redo
-- Модульный редактор с выдвижной панелью и раскладкой для узких экранов
-- Защищённый локальный API (токен сессии, проверки Host/Origin)
-- Экспорт .hmod совпадает с официально проверенными пакетами, в том числе из этой Windows-сборки
-- Блоки, предметы, рецепты, текстуры, структуры, Source Workbench и Mod Doctor из 0.6
+- Настольное приложение: установщик и переносимая папка; после перезапуска открывается последний проект на вашем языке
+- Одна история транзакций для вас и ИИ: ревизии, отмена и повтор после перезапуска, без тихой перезаписи
+- ИИ-конструктор: предпросмотр каждого поля, применение одним отменяемым шагом; встроенный провайдер — помеченная симуляция
+- Провайдер Claude с системным хранилищем учётных данных, согласием и офлайн-режимом (с живым API не проверен)
+- VFX Studio: эффекты из нескольких эмиттеров с ключевыми кривыми и бюджетами (превью Studio, не экспортируется)
+- Палитра команд (Ctrl+K) с поиском по элементам проекта
+- Preview Bridge (инструмент разработчика): контент в игре засчитывается только по реальным слотам инвентаря
 <!-- roadmap:release:end -->
 
-Правила и проверка релизов: [docs/RELEASING.md](docs/RELEASING.md). У каждого релиза есть `SHA256SUMS.txt`; начиная с 0.7.0 — ещё и `build-manifest.json`.
+Правила и проверка релизов: [docs/RELEASING.md](docs/RELEASING.md). У каждого релиза есть `SHA256SUMS.txt`; начиная с 0.7.0 — ещё и `build-manifest.json`, а с 0.8.0 — установщик, переносимый ZIP и `desktop-manifest.json`.
 
 ## Где мы сейчас
 
@@ -63,7 +67,7 @@ SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9` · с
 |---|---|---|---|
 | F0 Фундамент | Официальный валидатор, защищённый локальный API, метаданные релизов, проверка в игре | Частично проверено | 3 / 4 |
 | F1 Ядро проекта | Канонический документ проекта, миграции, надёжное рабочее пространство, undo, браузерные E2E | Готово | 3 / 3 |
-| F2 Креативный редактор | Модульный UI, док-панели, поиск, выбор в 3D, обмен с Blockbench, мост к Rust (HS-011) | Частично проверено | 0 / 6 |
+| F2 Креативный редактор | Модульный UI, док-панели, поиск, выбор в 3D, обмен с Blockbench, мост к Rust (HS-011) | Частично проверено | 1 / 6 |
 | F3 Визуальное программирование | Реестр возможностей движка, типизированный IR графов, бэкенды .hmod и нативный .hnmod (HS-010) | **В работе** | 2 / 5 |
 | F4 Игровые системы | Сущности, компоненты, деревья поведения ИИ, события, RPG и автоматизация | Запланировано | 0 / 3 |
 | F5 Мир и эффекты | Шейдерный граф поверх .hshader, частицы, физическая песочница, измерения | Частично проверено | 1 / 5 |
@@ -116,9 +120,9 @@ SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9` · с
 
 ## Быстрый старт
 
-**Windows (Python не нужен):** скачайте `HorizonStudio-<version>-Windows-x64.exe` со страницы [Releases](https://github.com/pneqnp-iswr/horizon-studio/releases), при желании сверьте с `SHA256SUMS.txt` и запустите. Файл портативный и не подписан, поэтому SmartScreen может предупредить. Последний релиз старше возможностей, отмеченных выше как более новые, чем 0.6.
+**Настольное приложение для Windows (Python не нужен):** со страницы [Releases](https://github.com/pneqnp-iswr/horizon-studio/releases) установите `HorizonStudio-<version>-Windows-x64-setup.exe` (для текущего пользователя, без прав администратора) или распакуйте целиком `…-portable.zip` и запустите `HorizonStudio.exe` (рядом нужна папка `core\`). Сверьте файлы с `SHA256SUMS.txt`. Сборки не подписаны, поэтому SmartScreen предупредит. Классический `HorizonStudio-<version>-Windows-x64.exe` тоже в релизе: он открывает редактор в браузере. Переход с 0.7: [MIGRATING_FROM_0.7.md](docs/MIGRATING_FROM_0.7.md).
 
-**Настольное превью (Windows):** каждое изменение собирает установщик и портативную папку в
+**Превью между релизами:** каждое изменение собирает установщик и портативную папку в
 [workflow Desktop shell](https://github.com/pneqnp-iswr/horizon-studio/actions/workflows/desktop.yml) (артефакт
 `desktop-windows-preview-build`). Это превью, без подписи и не релиз — см. [DESKTOP.md](docs/DESKTOP.md).
 

@@ -34,6 +34,6 @@ No signing identity is invented or bought by automation. Adding one means:
 
 ## Status
 
-As of engineering cycle 3 there is **no signing identity**. Whether to publish desktop builds under
-`unsigned-prerelease` is the owner's call, recorded in `docs/releases/signing-decision.json` once made. Until then the
-desktop build stays a preview, and the verified 0.7 EXE remains the released product.
+As of engineering cycle 3 there is **no signing identity**. The repository owner chose `unsigned-prerelease`
+(`docs/releases/signing-decision.json`), and 0.8.0 was published that way: every executable's Authenticode status is
+`NotSigned` in `desktop-manifest.json`, and the release is a GitHub prerelease.
