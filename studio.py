@@ -45,6 +45,7 @@ WEB_SCRIPTS = {
     'source_workbench_ui.js': b'source_overrides',
     'desktop_bridge.js': b'HorizonDesktop',
     'workbench_ui.js': b'HorizonWorkbench',
+    'ide_starters_ui.js': b'HorizonIdeStarters',
     'roadmap_explorer.js': b'HorizonRoadmap',
     'vfx_engine.js': b'HorizonVfx',
     'vfx_ui.js': b'HorizonVfxStudio',
@@ -61,7 +62,9 @@ UI_ICONS = tuple(sorted(f'assets/editor/icons/{icon.name}'
 BUNDLED_FILES = ('index.html', 'VERSION', *WEB_SCRIPTS, 'assets/branding/horizon-studio-mark.png',
                  'assets/branding/horizon-studio-wordmark.svg', 'assets/editor/workbench.css', *UI_ICONS,
                  'assets/roadmap/roadmap-overview.svg', *ROADMAP_ICONS, 'docs/roadmap/roadmap.json',
-                 'studio_core/engine_profiles.json')
+                 'studio_core/engine_profiles.json',
+                 'examples/ruby_demo.hstudio.json', 'examples/voxel_showcase.hstudio.json',
+                 'examples/workshop_showcase.hstudio.json')
 MAX_REQUEST_BYTES = 6 * 1024 * 1024
 ID_RE = re.compile(r'^[a-z][a-z0-9_]{0,63}$')
 VERSION_RE = re.compile(r'^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$')
@@ -651,6 +654,24 @@ class Handler(BaseHTTPRequestHandler):
                 return self.response(200, 'application/json; charset=utf-8', json_bytes(view()))
             except (OSError, ValueError, KeyError) as exc:  # a broken bundle must answer, not drop the connection
                 return self.response(500, 'application/json; charset=utf-8', json_bytes({'error': f'Journey data unavailable: {exc}'}))
+        if self.path == '/api/ide/templates':
+            from studio_core.ide_templates import TemplateError, list_templates
+            try:
+                data = list_templates()
+            except TemplateError as exc:
+                return self.response(500, 'application/json; charset=utf-8', json_bytes({'error': str(exc)}))
+            return self.response(200, 'application/json; charset=utf-8', json_bytes(data))
+        if self.path.startswith('/api/ide/template/'):
+            from studio_core.ide_templates import TemplateError, load_template
+            # The template ID is only a catalog key. Never accept a filesystem path.
+            key = self.path[len('/api/ide/template/'):]
+            try:
+                data = load_template(key)
+            except KeyError:
+                return self.response(404, 'application/json; charset=utf-8', json_bytes({'error': 'Unknown starter template'}))
+            except TemplateError as exc:
+                return self.response(500, 'application/json; charset=utf-8', json_bytes({'error': str(exc)}))
+            return self.response(200, 'application/json; charset=utf-8', json_bytes(data))
         root = Path(__file__).parent
         if self.path in ('/', '/index.html'):
             self.response(200, 'text/html; charset=utf-8', (root / 'index.html').read_bytes())
