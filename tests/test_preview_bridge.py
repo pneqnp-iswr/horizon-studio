@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest import mock
 
 from studio_core.migrate import to_generator_request, upgrade
-from studio_core.preview_bridge import BridgeError, PreviewBridge, discover
+from studio_core.preview_bridge import BridgeError, PreviewBridge, discover, package_items, parse_inventory
 
 ROOT = Path(__file__).resolve().parent.parent
 FAKES = ROOT / "tests" / "fakes"
@@ -33,7 +33,7 @@ class PreviewBridgeTests(unittest.TestCase):
         self.personal = self.folder / "personal-saves" / "My World"
         self.personal.mkdir(parents=True)
         (self.personal / "level.dat").write_bytes(b"mine")
-        self.bridge = PreviewBridge(CTL, GAME, self.folder / "preview")
+        self.bridge = PreviewBridge(CTL, GAME, self.folder / "preview", sleep=lambda _s: None)
 
     def tearDown(self):
         self.bridge.end()
@@ -48,9 +48,14 @@ class PreviewBridgeTests(unittest.TestCase):
         self.assertEqual((self.personal / "level.dat").read_bytes(), b"mine")
         shot = self.bridge.screenshot(self.folder / "view.png")
         self.assertEqual(len(shot["sha256"]), 64)
+        self.assertTrue(Path(shot["path"]).is_relative_to(Path(session["folder"])), "the game writes only inside the session")
+        self.assertEqual((self.folder / "view.png").read_bytes(), Path(shot["path"]).read_bytes())
         state = self.bridge.state()
         content = self.bridge.verify_items(["ruby_demo:ruby"])
         self.assertTrue(content["all_found"])
+        [check] = content["checks"]
+        self.assertEqual((check["before"], check["after"], check["slots"]), (0, 1, [0]))
+        self.assertTrue(content["control"]["refused"], "the same game refused an item the package does not define")
         # The package goes in as a dev mod, offscreen, with the isolated folders.
         args = json.loads(Path(session["socket"] + ".state").read_text())["args"]
         self.assertEqual(args[args.index("--dev-mod") + 1], str(self.hmod))
@@ -60,6 +65,10 @@ class PreviewBridgeTests(unittest.TestCase):
         evidence = self.bridge.evidence(screenshot=shot, state=state, content=content)
         self.assertEqual(evidence["schema"], "horizon-studio.preview-evidence/1")
         self.assertEqual(evidence["level"], "game-load")
+        self.assertEqual(evidence["binding"], {"package_sha256": session["hmod_sha256"], "horizon_version": "v2026.10.31",
+                                               "launch_api": "0.1.0", "session": session["id"], "world": "StudioPreview",
+                                               "seed": 5})
+        self.assertEqual(len(evidence["digest"]), 64)
         self.assertEqual(evidence["package"]["sha256"], session["hmod_sha256"])
         self.assertTrue(any("not, by itself, proof" in note for note in evidence["notes"]))
         commands = [entry["command"] for entry in evidence["commands"]]
@@ -107,11 +116,20 @@ class PreviewBridgeTests(unittest.TestCase):
             with self.assertRaises(BridgeError) as fake:
                 bridge.screenshot(self.folder / "fake.png")
         self.assertEqual(fake.exception.code, "BAD_SCREENSHOT")
-        with mock.patch.dict(os.environ, {"FAKE_CTL_MODE": "quit-hangs"}), mock.patch("os.kill") as kill:
+        with mock.patch.dict(os.environ, {"FAKE_CTL_MODE": "quit-hangs"}), mock.patch("os.kill") as kill, \
+                mock.patch.object(PreviewBridge, "command_line", return_value=f"horizon-client --game-dir {bridge.session['game_dir']}"):
             ended = bridge.end()
         self.assertIn("quit failed", ended["how"])
         kill.assert_called_once()
         self.assertEqual(bridge.end(), {"ended": True}, "ending twice is harmless")
+        # A process id the game reported is stopped only while it is still this session's game.
+        for command, expect in (("some-other-program --game-dir /elsewhere", "not this session's game"), (None, "already gone")):
+            other = PreviewBridge(CTL, GAME, self.folder / "preview")
+            other.start(self.hmod, approved=True)
+            with self.subTest(command=command), mock.patch.dict(os.environ, {"FAKE_CTL_MODE": "quit-hangs"}), \
+                    mock.patch("os.kill") as kill, mock.patch.object(PreviewBridge, "command_line", return_value=command):
+                self.assertIn(expect, other.end()["how"])
+                kill.assert_not_called()
 
     def test_discovery_finds_horizon_ctl_and_the_game_beside_it(self):
         with self.assertRaises(BridgeError) as missing:
@@ -128,8 +146,144 @@ class PreviewBridgeTests(unittest.TestCase):
         self.assertIsNotNone(discover(str(ctl), environ={})["game"])
 
 
-if __name__ == "__main__":
-    unittest.main()
+class AdversarialGameTests(unittest.TestCase):
+    """PB-001: a game (or a stand-in) that lies, answers ambiguously or half-answers never yields game-load."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.folder = Path(self.tmp.name)
+        self.hmod = ruby_package(self.folder)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def session(self, mode="", items=("ruby_demo:ruby",)):
+        bridge = PreviewBridge(CTL, GAME, self.folder / "preview", sleep=lambda _s: None)
+        with mock.patch.dict(os.environ, {"FAKE_CTL_MODE": mode}):
+            bridge.start(self.hmod, approved=True)
+            try:
+                content = bridge.verify_items(list(items) if items is not None else None)
+            finally:
+                bridge.end()
+        return content, bridge.evidence(screenshot=None, state=None, content=content)
+
+    def test_lying_or_ambiguous_games_never_reach_game_load(self):
+        cases = {
+            "give-lies": "NOT_IN_INVENTORY",          # {"ok": true} and nothing in the inventory
+            "substring": "NOT_IN_INVENTORY",          # the id only appears inside another stack's components
+            "prefix": "NOT_IN_INVENTORY",             # ruby_demo:ruby_block is not ruby_demo:ruby
+            "two": "WRONG_QUANTITY",                  # one asked, two arrived
+            "malformed": "MALFORMED_INVENTORY",       # 8 hotbar slots
+            "duplicate-slot": "MALFORMED_INVENTORY",  # two stacks claim slot 0
+            "counts-mismatch": "AMBIGUOUS_INVENTORY", # counts disagree with the slots
+            "list-reply": "MALFORMED_REPLY",          # not an object at all
+        }
+        for mode, reason in cases.items():
+            with self.subTest(mode):
+                content, evidence = self.session(mode)
+                self.assertFalse(content["all_found"])
+                self.assertEqual(content["checks"][0]["reason"], reason)
+                self.assertEqual(evidence["level"], "launched")
+
+    def test_a_game_that_accepts_any_id_confirms_nothing(self):
+        content, evidence = self.session("accept-anything")
+        self.assertTrue(content["checks"][0]["confirmed"], "the item itself did arrive")
+        self.assertFalse(content["control"]["refused"])
+        self.assertFalse(content["all_found"], "but a game that accepts unknown ids proves nothing about the package")
+        self.assertEqual(evidence["level"], "launched")
+
+    def test_only_items_the_package_defines_can_confirm_it(self):
+        # Vanilla items exist in every game: confirming one would say nothing about the mod.
+        content, evidence = self.session("", items=("minecraft:diamond", "ruby_demo:not_in_the_package"))
+        self.assertEqual([c["reason"] for c in content["checks"]], ["NOT_IN_PACKAGE", "NOT_IN_PACKAGE"])
+        self.assertEqual(evidence["level"], "launched")
+        self.assertEqual(package_items(self.hmod), ("ruby_demo", {"ruby_demo:ruby", "ruby_demo:ruby_block"}))
+        content, evidence = self.session("", items=None)
+        self.assertEqual(content["checked"], ["ruby_demo:ruby", "ruby_demo:ruby_block"], "by default: every package item")
+        self.assertEqual(evidence["level"], "game-load")
+
+    def test_a_late_inventory_update_is_waited_for(self):
+        content, evidence = self.session("late")
+        self.assertTrue(content["all_found"])
+        self.assertEqual(evidence["level"], "game-load")
+
+    def test_a_package_changed_during_the_session_downgrades_the_evidence(self):
+        bridge = PreviewBridge(CTL, GAME, self.folder / "preview", sleep=lambda _s: None)
+        bridge.start(self.hmod, approved=True)
+        content = bridge.verify_items()
+        bridge.end()
+        self.hmod.write_bytes(self.hmod.read_bytes() + b"tampered")
+        evidence = bridge.evidence(screenshot=None, state=None, content=content)
+        self.assertEqual(evidence["level"], "launched")
+        self.assertTrue(any("package changed" in note for note in evidence["notes"]))
+
+    def test_evidence_is_bound_and_a_tampered_record_no_longer_matches_its_digest(self):
+        import hashlib
+        content, evidence = self.session("")
+        recompute = lambda e: hashlib.sha256(json.dumps({k: e[k] for k in ("binding", "level", "content")},
+                                                        sort_keys=True).encode("utf-8")).hexdigest()
+        self.assertEqual(recompute(evidence), evidence["digest"])
+        evidence["binding"]["package_sha256"] = "0" * 64
+        self.assertNotEqual(recompute(evidence), evidence["digest"])
+
+    def test_inventory_replies_are_checked_against_the_upstream_schema(self):
+        empty = lambda n: {"slot": n, "item": None}
+        good = {"hotbar": [empty(n) for n in range(9)], "main": [empty(n) for n in range(9, 36)],
+                "armor": [empty(n) for n in range(500, 504)], "offhand": empty(504), "carried": None, "counts": {}}
+        self.assertEqual(parse_inventory(good)["counts"], {})
+        stacked = json.loads(json.dumps(good))
+        stacked["main"][0] = {"slot": 9, "item": "ruby_demo:ruby", "count": 3}
+        stacked["carried"] = {"item": "ruby_demo:ruby", "count": 1}
+        stacked["counts"] = {"ruby_demo:ruby": 4}
+        self.assertEqual(parse_inventory(stacked)["counts"], {"ruby_demo:ruby": 4})
+        broken = {
+            "a bool slot": ("hotbar", 1, {"slot": True, "item": None}),
+            "an id without a namespace": ("hotbar", 0, {"slot": 0, "item": "ruby", "count": 1}),
+            "a zero count": ("hotbar", 0, {"slot": 0, "item": "ruby_demo:ruby", "count": 0}),
+            "a text count": ("hotbar", 0, {"slot": 0, "item": "ruby_demo:ruby", "count": "1"}),
+            "a slot out of place": ("main", 0, {"slot": 8, "item": None}),
+        }
+        for why, (group, index, entry) in broken.items():
+            with self.subTest(why):
+                bad = json.loads(json.dumps(good))
+                bad[group][index] = entry
+                with self.assertRaises(BridgeError) as refused:
+                    parse_inventory(bad)
+                self.assertEqual(refused.exception.code, "MALFORMED_INVENTORY")
+        for missing in ("hotbar", "main", "armor", "offhand", "counts"):
+            with self.subTest(missing=missing), self.assertRaises(BridgeError):
+                parse_inventory({k: v for k, v in good.items() if k != missing})
+
+    def test_version_replies_that_are_not_a_launch_api_are_refused(self):
+        import subprocess
+        # A blank reply is " ", not "": on Windows an empty environment value removes the variable.
+        for raw in ("[]", "not json", " ", '"0.1.0"', '{"launch_api": "0.1.0", "options": "all"}'):
+            with self.subTest(raw=raw), mock.patch.dict(os.environ, {"FAKE_LAUNCH_REPLY": raw}):
+                with self.assertRaises(BridgeError) as refused:
+                    PreviewBridge(CTL, GAME, self.folder / "preview").check_version()
+                self.assertIn(refused.exception.code, ("VERSION_UNKNOWN", "VERSION_UNSUPPORTED"))
+
+        def hangs(*args, **kwargs):
+            raise subprocess.TimeoutExpired(args[0], 60)
+
+        with self.assertRaises(BridgeError) as late:
+            PreviewBridge(CTL, GAME, self.folder / "preview", run=hangs).check_version()
+        self.assertEqual(late.exception.code, "VERSION_UNKNOWN")
+
+    def test_one_session_at_a_time_and_failed_screenshots_leave_no_file(self):
+        bridge = PreviewBridge(CTL, GAME, self.folder / "preview")
+        session = bridge.start(self.hmod, approved=True)
+        with self.assertRaises(BridgeError) as busy:
+            bridge.start(self.hmod, approved=True)
+        self.assertEqual(busy.exception.code, "SESSION_ACTIVE")
+        with mock.patch.dict(os.environ, {"FAKE_CTL_MODE": "no-png"}), self.assertRaises(BridgeError):
+            bridge.screenshot(self.folder / "copy.png")
+        self.assertEqual(list((Path(session["folder"]) / "screenshots").iterdir()), [], "no partial file is kept")
+        self.assertFalse((self.folder / "copy.png").exists())
+        bridge.end()
+        with self.assertRaises(BridgeError) as ended:
+            bridge.verify_items()
+        self.assertEqual(ended.exception.code, "NO_SESSION")
 
 
 class PreviewCliTests(unittest.TestCase):
@@ -164,3 +318,7 @@ class PreviewCliTests(unittest.TestCase):
             self.assertEqual(evidence["level"], "game-load")
             self.assertTrue(out.with_suffix(".png").is_file())
             self.assertTrue(evidence["session"]["game_dir"].startswith(str(folder / ".horizon-studio" / "preview")))
+
+
+if __name__ == "__main__":
+    unittest.main()

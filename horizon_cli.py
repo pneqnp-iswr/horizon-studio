@@ -75,7 +75,7 @@ def main(argv=None) -> int:
     parser.add_argument('--actor',default='ai:cli',help='ai-apply: who the transaction is recorded for')
     parser.add_argument('--ctl',help='preview: path to horizon-ctl (default: HORIZON_CTL, then PATH)')
     parser.add_argument('--yes',action='store_true',help='preview: I approve starting Horizon for this isolated session')
-    parser.add_argument('--item',action='append',default=[],help='preview: a project item (mod:id) the game must confirm')
+    parser.add_argument('--item',action='append',default=[],help='preview: a package item (mod:id) the game must confirm (default: every item the package defines)')
     args=parser.parse_args(argv)
     try:
         if args.command=='ai-apply':
@@ -134,7 +134,7 @@ def main(argv=None) -> int:
                         bridge.start(package,approved=args.yes)
                         shot=bridge.screenshot(args.output.with_suffix('.png'))
                         state=bridge.state()
-                        content=bridge.verify_items(args.item) if args.item else None
+                        content=bridge.verify_items(args.item or None)
                     finally:
                         bridge.end()
                 evidence=bridge.evidence(screenshot=shot,state=state,content=content)
