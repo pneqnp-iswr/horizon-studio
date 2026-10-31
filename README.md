@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="version" src="https://img.shields.io/badge/version-0.7.0-blue" />
+  <img alt="version" src="https://img.shields.io/badge/version-0.8.0-blue" />
   <img alt="status" src="https://img.shields.io/badge/status-alpha-orange" />
   <img alt="tests" src="https://github.com/pneqnp-iswr/horizon-studio/actions/workflows/tests.yml/badge.svg" />
   <img alt="official check" src="https://github.com/pneqnp-iswr/horizon-studio/actions/workflows/official-content-check.yml/badge.svg" />
@@ -47,7 +47,7 @@ Release rules and verification: [docs/RELEASING.md](docs/RELEASING.md). Every re
   <img src="assets/roadmap/current-phase.svg" alt="Current phase: F3 Visual Scripting. HS-008 engine capability registry in progress; HS-010 and HS-012 planned." width="100%" />
 </p>
 
-- **In development:** Version **0.7 — Project Core** (`VERSION` on `master`). The panel above shows the newest release whose executable has been verified through the GitHub API; a version counts as released only after that.
+- **In development:** Version **0.8 — Desktop Studio** (`VERSION` on `master`). The panel above shows the newest release whose executable has been verified through the GitHub API; a version counts as released only after that.
 - **Proven:** the example mods pass the official `cargo-horizon-mod check` built from a pinned Horizon revision, in CI and locally.
 - **Proven in a browser:** editor, workbench and roadmap workflows run in Chromium on every pull request (Ubuntu CI), including autosave, recovery, revision conflicts, the exported package bytes and an accessibility audit ([current inventory](docs/BROWSER_E2E.md#current-inventory)).
 - **Not yet proven:** loading a Studio mod in the running game, and any gameplay behaviour.
