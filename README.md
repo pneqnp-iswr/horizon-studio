@@ -67,7 +67,7 @@ Release rules and verification: [docs/RELEASING.md](docs/RELEASING.md). Every re
 | F3 Visual Scripting | Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (HS-010) | **In progress** | 1 / 5 |
 | F4 Gameplay Systems | Entities, components, AI behaviour trees, events, RPG and automation | Planned | 0 / 3 |
 | F5 World & VFX | Shader graph over .hshader, particles, physics sandbox, dimensions | Partially verified | 1 / 5 |
-| F6 Engine Bridge | Upstream-accepted engine capabilities: entities, server events, worldgen, physics, rendering | Planned | 0 / 3 |
+| F6 Engine Bridge | Upstream-accepted engine capabilities: entities, server events, worldgen, physics, rendering | Partially verified | 0 / 3 |
 | F7 Ecosystem | Secure plugin SDK, templates, signed releases, publishing | Planned | 0 / 3 |
 | F8 Creative Platform | Advanced animation, procedural worlds, team assets, eight end-to-end demos | Planned | 0 / 2 |
 

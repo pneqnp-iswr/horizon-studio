@@ -60,7 +60,7 @@ def write_migrated(source: Path, output: Path, force: bool) -> str:
 
 def main(argv=None) -> int:
     parser=argparse.ArgumentParser(description='Horizon Studio offline builder and diagnostics (official checking is opt-in)')
-    parser.add_argument('command', choices=('doctor','inspect','build','source','verify','migrate','graph','capabilities','ai-apply'))
+    parser.add_argument('command', choices=('doctor','inspect','build','source','verify','migrate','graph','capabilities','ai-apply','preview'))
     parser.add_argument('project', type=Path, help='Project .hstudio.json file (schema 2-4 or studio.project/1)')
     parser.add_argument('-o','--output',type=Path,help='Destination for build/source/migrate (migrate prints to stdout without it)')
     parser.add_argument('--force',action='store_true',help='migrate: replace an existing output file')
@@ -73,6 +73,9 @@ def main(argv=None) -> int:
     parser.add_argument('--operations',type=Path,help='ai-apply: JSON list of tool operations, or {"request": {...}} for the fixture provider')
     parser.add_argument('--audit',type=Path,help='ai-apply: append the audit log as JSON lines')
     parser.add_argument('--actor',default='ai:cli',help='ai-apply: who the transaction is recorded for')
+    parser.add_argument('--ctl',help='preview: path to horizon-ctl (default: HORIZON_CTL, then PATH)')
+    parser.add_argument('--yes',action='store_true',help='preview: I approve starting Horizon for this isolated session')
+    parser.add_argument('--item',action='append',default=[],help='preview: a project item (mod:id) the game must confirm')
     args=parser.parse_args(argv)
     try:
         if args.command=='ai-apply':
@@ -106,6 +109,40 @@ def main(argv=None) -> int:
             changes=transaction.changes
             print(f"Applied {transaction.id}: {len(changes['created'])} created, {len(changes['updated'])} updated, "
                   f"{len(changes['deleted'])} deleted; revision {transaction.result_revision[:12]} -> {args.output}")
+            return 0
+        if args.command=='preview':
+            # HS-023: the project in a real Horizon client through horizon-ctl, in an isolated test world.
+            import tempfile
+            from studio_core.preview_bridge import BridgeError, PreviewBridge, discover
+            if args.output is None:
+                raise ValueError('preview needs -o/--output for the evidence JSON')
+            doc=read_document(args.project)
+            from studio_core.capabilities import check as capability_check
+            blocked=[d for d in capability_check(doc)['diagnostics'] if d['level']=='error']
+            if blocked:
+                for issue in blocked:
+                    print(f"ERROR   {issue['code']}: {issue['message']}",file=sys.stderr)
+                return 1
+            try:
+                found=discover(args.ctl)
+                bridge=PreviewBridge(found['ctl'],found['game'])
+                print(f"Launch API {bridge.check_version()['launch_api']}")
+                with tempfile.TemporaryDirectory() as folder:
+                    package=Path(folder)/f"{doc['project']['id']}.hmod"
+                    package.write_bytes(hmod_zip(to_generator_request(doc)))
+                    try:
+                        bridge.start(package,approved=args.yes)
+                        shot=bridge.screenshot(args.output.with_suffix('.png'))
+                        state=bridge.state()
+                        content=bridge.verify_items(args.item) if args.item else None
+                    finally:
+                        bridge.end()
+                evidence=bridge.evidence(screenshot=shot,state=state,content=content)
+            except BridgeError as exc:
+                print(f'PREVIEW {exc.code}: {exc}',file=sys.stderr)
+                return 1
+            atomic_write_bytes(args.output,(json.dumps(evidence,ensure_ascii=False,indent=2)+'\n').encode('utf-8'))
+            print(f"Evidence level {evidence['level']} -> {args.output}")
             return 0
         if args.command=='migrate':
             if args.output is None:
