@@ -99,7 +99,7 @@
       return `<h3>${esc(t(label))}</h3><ul class="capability-list">`+items.map(c=>`<li class="${cls}"><span class="ico ${icon}" aria-hidden="true"></span>`+
         `<span><b>${esc(c.capability)}</b> ${facts(c)}${c.note?`<small> — ${esc(pick(c,'note',lang))}</small>`:''}${warning(c)}</span></li>`).join('')+'</ul>';
     }).join('');
-    return `<p class="journey-note">${esc(t('journeyBuildNote',{label:build.label,api:build.content_api}))}</p>`+
+    return `<p class="journey-note">${esc(t('journeyBuildNote',{label:pick(build,'label',lang),api:build.content_api}))}</p>`+
       `<p class="journey-note">${esc(t('jrBuildVersion',{version:build.studio_version}))}</p>${groups}`;
   }
 

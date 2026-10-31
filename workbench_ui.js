@@ -27,7 +27,7 @@
     return needs.map(([capability,users])=>{
       const ok=!missing.has(capability);
       return `<li class="${ok?'cap-ok':'cap-missing'}"><span class="ico ${ok?'i-check':'i-lock'}" aria-hidden="true"></span>`+
-        `<span>${esc(capability)}</span><span class="tiny-badge" title="${esc(users.join(', '))}">${users.length}</span>`+
+        `<code>${esc(capability)}</code><span class="tiny-badge" data-ids title="${esc(users.join(', '))}">${users.length}</span>`+
         `<span class="sr-only">${esc(t(ok?'capAvailable':'capMissing'))}</span></li>`;
     }).join('');
   }
@@ -68,7 +68,8 @@
       if(!result)return;
       lastCheck=result;
       const profile=result.profile;
-      $('engineProfile').textContent=profile?t('engineProfile',{label:profile.label,api:profile.content_api}):t('capUnknownProfile');
+      const label=profile&&(window.HorizonI18n.language==='ru'&&profile.label_ru||profile.label);
+      $('engineProfile').textContent=profile?t('engineProfile',{label,api:profile.content_api}):t('capUnknownProfile');
       $('engineCapabilities').innerHTML=capabilityMarkup(result,t);
       const missing=(result.diagnostics||[]).length;
       $('engineStatus').textContent=profile?`Horizon ${profile.revision.slice(0,7)} · API ${profile.content_api}${missing?' · '+t('capMissingCount',{count:missing}):''}`:t('capUnknownProfile');

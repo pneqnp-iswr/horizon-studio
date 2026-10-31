@@ -128,5 +128,6 @@ def check(doc: dict, registry: dict | None = None) -> dict:
         why = entry["note"] if entry else "this revision has no known way to load it"
         diagnostics.append({"level": "error", "code": "ENGINE_CAPABILITY_MISSING", "capability": capability,
                             "message": f"{capability} ({', '.join(users[:3])}{'…' if len(users) > 3 else ''}): {why}"})
-    return {"profile": {"revision": profile["revision"], "label": profile["label"], "content_api": profile["content_api"]},
+    return {"profile": {"revision": profile["revision"], "label": profile["label"],
+                        "label_ru": profile.get("label_ru", profile["label"]), "content_api": profile["content_api"]},
             "requirements": needs, "diagnostics": diagnostics}

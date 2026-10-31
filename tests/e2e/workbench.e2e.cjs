@@ -165,6 +165,8 @@ e2e('the Russian workbench has no leftover English interface text', async ({ pag
   await page.click('#demo');
   await page.click('#lang-ru');
   await page.click('#blockTab');
+  // The engine card fills in after a debounced check; scan it in its final state.
+  await page.waitForFunction(() => document.querySelector('#engineCapabilities li') && document.querySelector('#engineProfile').textContent !== '—');
   // Product, format and engine names stay as they are; everything else must be translated.
   const allowed = new Set(['Horizon', 'Studio', 'Mod', 'Doctor', 'Ruby', 'Demo', 'hmod', 'API', 'PNG', 'JSON', 'NBT', 'zip',
     'WebGL', 'd2186eb', 'project', 'studio', 'Iron', 'Block', 'minecraft', 'iron_block', 'ruby_block', 'of',
@@ -178,13 +180,14 @@ e2e('the Russian workbench has no leftover English interface text', async ({ pag
       const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         const element = node.parentElement;
-        if (!element || element.closest('option, code, .project-chip, #workspaceMode, [hidden]') || !element.getClientRects().length) continue;
+        // Identifiers (code, lists of object ids) are data, not interface text.
+        if (!element || element.closest('option, code, [data-ids], .project-chip, #workspaceMode, [hidden]') || !element.getClientRects().length) continue;
         for (const word of node.textContent.match(/[A-Za-z][A-Za-z_]{2,}/g) || []) {
           if (!allowedWords.includes(word)) found.add(`${word} (${element.tagName.toLowerCase()}#${element.id || element.className})`);
         }
       }
       for (const element of root.querySelectorAll('[aria-label], [placeholder], [title]')) {
-        if (element.closest('[hidden]')) continue;
+        if (element.closest('[hidden], [data-ids]')) continue;
         for (const attribute of ['aria-label', 'placeholder', 'title']) {
           for (const word of (element.getAttribute(attribute) || '').match(/[A-Za-z][A-Za-z_]{2,}/g) || []) {
             if (!allowedWords.includes(word)) found.add(`${word} [${attribute} of #${element.id || element.className}]`);

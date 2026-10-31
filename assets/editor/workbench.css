@@ -171,6 +171,7 @@ body:not([data-tab=structure]) #structureCanvas{display:none}
 .warn{border-left-color:var(--gold1);color:#f0dfba;background:#1d170c}
 .capability-list{display:grid;gap:4px;margin:0;padding:0;list-style:none}
 .capability-list li{display:flex;gap:7px;align-items:center;font-size:12px}
+.capability-list code{font:12px var(--font-pixel);color:inherit}
 .cap-ok{color:var(--gold2)}.cap-engine{color:var(--stone4)}.cap-missing{color:var(--danger)}
 
 /* status bar */

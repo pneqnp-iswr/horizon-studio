@@ -69,6 +69,7 @@ def build_capabilities(registry: dict | None = None) -> dict:
             "api", "stability", "side", "backend", "permissions", "contract", "note", "note_ru", "source")}})
     version = VERSION.read_text(encoding="utf-8").strip() if VERSION.is_file() else "development"
     return {"engine": profile["engine"], "revision": profile["revision"], "label": profile["label"],
+            "label_ru": profile.get("label_ru", profile["label"]),
             "content_api": profile["content_api"], "buildable": BUILDABLE, "groups": groups,
             "studio_version": version,
             "profiles": [{"revision": p["revision"], "label": p["label"]} for p in registry["profiles"]]}
