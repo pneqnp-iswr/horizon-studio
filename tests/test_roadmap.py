@@ -199,6 +199,27 @@ class ReleaseDataTests(unittest.TestCase):
             with self.subTest(expected):
                 self.assertTrue(any(expected in p for p in self.problems(mutate)))
 
+    def test_desktop_downloads_are_checked_and_listed(self):
+        def desktop(r):
+            v = r["version"]
+            r["desktop"] = {"installer": {"name": f"HorizonStudio-{v}-Windows-x64-setup.exe", "size": 5_000_000, "sha256": "a" * 64},
+                            "portable": {"name": f"HorizonStudio-{v}-Windows-x64-portable.zip", "size": 9_000_000, "sha256": "b" * 64},
+                            "signing": "unsigned"}
+        self.assertEqual(self.problems(desktop), [])
+        for mutate, expected in ((lambda r: (desktop(r), r["desktop"].update(signing="trusted")), "desktop signing"),
+                                 (lambda r: (desktop(r), r["desktop"]["portable"].update(name="x.exe")), "desktop portable"),
+                                 (lambda r: (desktop(r), r["desktop"]["installer"].pop("sha256")), "desktop installer")):
+            with self.subTest(expected):
+                self.assertTrue(any(expected in p for p in self.problems(mutate)))
+        releases = copy.deepcopy(self.RELEASES)
+        latest = roadmap.latest_release(releases)
+        desktop(latest)
+        for lang, words in (("en", "SmartScreen will warn"), ("ru", "SmartScreen предупредит")):
+            section = roadmap.release_section(DATA, releases, lang)
+            self.assertIn(f"/releases/download/{latest['tag']}/{latest['desktop']['portable']['name']}", section)
+            self.assertIn("b" * 64, section)
+            self.assertIn(words, section)
+
     def test_panel_lists_newer_work_as_not_released(self):
         section = roadmap.release_section(DATA, self.RELEASES, "en")
         latest = roadmap.latest_release(self.RELEASES)
