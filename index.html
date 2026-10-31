@@ -34,6 +34,8 @@
       </div>
     </div>
     <div class="rail-bottom">
+      <button class="rail-btn i-search" type="button" id="openPalette" aria-label="Command palette" data-i18n-aria-label="openPalette" data-i18n-title="openPalette" title="Command palette" aria-keyshortcuts="Control+K" aria-haspopup="dialog"></button>
+      <button class="rail-btn i-vfx" type="button" id="openVfx" aria-label="VFX Studio" data-i18n-aria-label="openVfx" data-i18n-title="openVfx" title="VFX Studio" aria-haspopup="dialog"></button>
       <button class="rail-btn i-journey" type="button" id="openJourney" aria-label="Development journey" data-i18n-aria-label="journeyTitle" aria-haspopup="dialog"></button>
       <button class="rail-btn i-export" type="button" id="quickExport" aria-label="Export .hmod" data-i18n-aria-label="downloadHmod"></button>
     </div>
@@ -173,6 +175,37 @@
   <div class="source-preview"><label data-source-i18n="preview">3D Preview</label><canvas id="modelViewport" width="640" height="640" aria-label="Interactive WebGL 3D model preview"></canvas><small id="modelGeometryNotice" class="source-subtitle"></small><small id="viewerHint" class="source-subtitle">Drag to orbit · Scroll to zoom</small><label data-source-i18n="asset">Import your resource pack (.zip/.jar)</label><input id="resourcePackInput" type="file" accept=".zip,.jar,application/zip"/></div></div>
   <div class="source-footer"><span id="sourceStatus" class="source-status" aria-live="polite"></span><a href="https://github.com/horizon-rust/horizon-native-mod-template" rel="noopener noreferrer" target="_blank">Rust native mod template ↗</a><small data-source-i18n="native">Rust-native requires .hnmod and horizon-mixins.</small></div>
 </section>
+<section id="vfxDialog" class="source-workbench vfx-studio" hidden role="dialog" aria-modal="true" aria-labelledby="vfxHeading">
+  <div class="source-head"><div><h2 id="vfxHeading" data-i18n="vfxTitle">VFX Studio</h2><p data-i18n="vfxIntro">Particle effects with a seeded simulation. They are saved in the project and are not exported to the .hmod.</p></div><span id="vfxPreviewLabel" class="vfx-badge" data-i18n="vfxPreviewLabel">Studio preview — not in-game rendering</span><button id="closeVfx" type="button" data-i18n="close">Close</button></div>
+  <div class="vfx-main">
+    <div class="vfx-effects"><label data-i18n="vfxEffectsLabel">Effects</label><ul id="vfxEffects" class="vfx-list" aria-label="Effects" data-i18n-aria-label="vfxEffectsLabel"></ul>
+      <button id="vfxNewSpark" type="button" class="primary" data-i18n="vfxNewSpark">New Impact Spark</button><button id="vfxDelete" type="button" class="danger ghost" data-i18n="vfxDelete">Delete effect</button></div>
+    <div class="vfx-stage"><canvas id="vfxCanvas" width="320" height="200" role="img" aria-label="Studio preview — not in-game rendering" data-i18n-aria-label="vfxPreviewLabel"></canvas>
+      <div class="vfx-transport"><button id="vfxPlay" type="button" aria-pressed="false" data-i18n="vfxPlay">Play</button><button id="vfxRestart" type="button" data-i18n="vfxRestart">Restart</button>
+        <label class="vfx-timeline"><span data-i18n="vfxTimeline">Timeline</span><input id="vfxTime" type="range" min="0" max="0.8" step="0.01" value="0"/></label>
+        <output id="vfxTimeLabel" aria-live="off">0.00 s</output><output id="vfxCount" aria-live="off">0 particles</output></div>
+      <label data-i18n="vfxDiagnosticsLabel">Engine and validation</label><ul id="vfxDiagnostics" class="vfx-diagnostics" aria-live="polite"></ul></div>
+    <form id="vfxInspector" class="vfx-inspector" hidden onsubmit="return false">
+      <label><span data-i18n="vfxFieldId">Effect ID</span><input id="vfxId" autocomplete="off"/></label>
+      <label><span data-i18n="vfxFieldName">Name</span><input id="vfxName" maxlength="80"/></label>
+      <div class="vfx-row"><label><span data-i18n="vfxFieldSeed">Seed</span><input id="vfxSeed" type="number" min="0" max="4294967295" step="1"/></label>
+        <label><span data-i18n="vfxFieldDuration">Duration (s)</span><input id="vfxDuration" type="number" min="0.05" max="10" step="0.05"/></label>
+        <label class="check"><input id="vfxLoop" type="checkbox"/><span data-i18n="vfxFieldLoop">Loop</span></label></div>
+      <fieldset><legend data-i18n="vfxSparks">Sparks</legend>
+        <label><span data-i18n="vfxFieldCount">Count</span><input id="vfxSparkCount" type="number" min="1" max="512" step="1"/></label>
+        <div class="vfx-row"><label><span data-i18n="vfxFieldSpeed">Speed min / max (m/s)</span><input id="vfxSpeedMin" type="number" min="0" max="60" step="0.1"/></label><label><span class="sr-only">max</span><input id="vfxSpeedMax" type="number" min="0" max="60" step="0.1" aria-label="max"/></label></div>
+        <div class="vfx-row"><label><span data-i18n="vfxFieldLife">Lifetime min / max (s)</span><input id="vfxLifeMin" type="number" min="0.01" max="10" step="0.01"/></label><label><span class="sr-only">max</span><input id="vfxLifeMax" type="number" min="0.01" max="10" step="0.01" aria-label="max"/></label></div>
+        <div class="vfx-row"><label><span data-i18n="vfxFieldSpread">Spread (°)</span><input id="vfxSpread" type="number" min="0" max="180" step="1"/></label><label><span data-i18n="vfxFieldGravity">Gravity (m/s²)</span><input id="vfxGravity" type="number" min="-50" max="50" step="0.1"/></label></div>
+        <div class="vfx-row"><label><span data-i18n="vfxFieldDrag">Drag</span><input id="vfxDrag" type="number" min="0" max="20" step="0.1"/></label><label><span data-i18n="vfxFieldStretch">Trail (s)</span><input id="vfxStretch" type="number" min="0" max="0.5" step="0.005"/></label></div>
+        <div class="vfx-colors"><span data-i18n="vfxFieldColors">Colour: start, middle, end</span><input id="vfxColorStart" type="color" aria-label="start"/><input id="vfxColorMid" type="color" aria-label="middle"/><input id="vfxColorEnd" type="color" aria-label="end"/></div>
+      </fieldset>
+    </form>
+  </div>
+</section>
+<div id="paletteDialog" class="palette" hidden role="dialog" aria-modal="true" aria-label="Command palette" data-i18n-aria-label="openPalette">
+  <div class="palette-box"><input id="paletteInput" type="text" role="combobox" aria-expanded="false" aria-controls="paletteList" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Type a command…" data-i18n-placeholder="palettePlaceholder" aria-label="Command palette" data-i18n-aria-label="openPalette"/>
+  <ul id="paletteList" role="listbox" aria-label="Commands" data-i18n-aria-label="paletteCommands"></ul><p id="paletteEmpty" class="palette-empty" hidden data-i18n="paletteEmpty">No matching command</p></div>
+</div>
 <script src="/i18n.js"></script>
 <script src="/model_viewer.js"></script>
 <script src="/editor_history.js"></script>
@@ -183,6 +216,9 @@
 <script src="/desktop_bridge.js"></script>
 <script src="/roadmap_explorer.js"></script>
 <script src="/workbench_ui.js"></script>
+<script src="/vfx_engine.js"></script>
+<script src="/vfx_ui.js"></script>
+<script src="/command_palette.js"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -191,7 +227,7 @@ const B={'minecraft:iron_block':'Iron Block','minecraft:amethyst_block':'Amethys
 const I={'minecraft:diamond':'Diamond','minecraft:emerald':'Emerald','minecraft:stick':'Stick','minecraft:amethyst_shard':'Amethyst Shard','minecraft:iron_ingot':'Iron Ingot'};
 const ING={...B,...I,'minecraft:glowstone_dust':'Glowstone Dust','minecraft:gold_ingot':'Gold Ingot','minecraft:cobblestone':'Cobblestone','minecraft:coal':'Coal','minecraft:redstone':'Redstone'};
 const META=['modId','modName','version','author','description'];
-const state={blocks:[],items:[],recipes:[],structures:[],source_overrides:{},tab:'recipe',editing:-1};
+const state={blocks:[],items:[],recipes:[],structures:[],effects:[],source_overrides:{},tab:'recipe',editing:-1};
 const VALID=/^[a-z][a-z0-9_]{0,63}$/;
 function esc(s){return HorizonStudioRender.escapeHtml(s);}
 function status(message,error=false){$('status').textContent=message;$('status').classList.toggle('error',error);}
@@ -285,7 +321,7 @@ async function api(path){const response=await studioPost(path,JSON.stringify(pay
 async function exportFile(path,extension){const b=$(extension==='hmod'?'exportHmod':'exportSource');b.disabled=true;try{const blocked=await workbench.exportGate();if(blocked){status(blocked,true);return;}status(t('exporting'));const result=await api(path);if(!await download(await result.blob(),meta().id+(extension==='hmod'?'.hmod':'-source.zip'))){status(t('saveCancelled'));return;}status(extension==='hmod'?t('hmodExported'):t('zipExported'));}catch(e){status(e.message,true);}finally{b.disabled=false;}}
 async function inspect(){try{const result=await (await api('/api/preview')).json();$('inspectPanel').hidden=false;$('manifestPreview').textContent=result.manifest;$('filePreview').textContent=result.files.join('\n');status(t('inspectSuccess',{count:result.file_count,bytes:result.bytes_raw}));}catch(e){status(e.message,true);}}
 async function saveProject(){try{const response=await studioPost('/api/project/save',JSON.stringify(editorState()));if(!response.ok){const data=await response.json();throw new Error(data.error||t('apiError'));}if(!await download(await response.blob(),(meta().id||'project')+'.hstudio.json')){status(t('saveCancelled'));return;}status(t('projectSaved'));}catch(e){status(e.message,true);}}
-function applyProject(data,{preserveHistory=false,skipWorkspaceCheck=false}={}){const problem=HorizonStudioModel.projectProblem(data);if(problem)throw new Error(t(problem));const m=data.metadata;for(const [target,key] of [['modId','id'],['modName','name'],['version','version'],['author','author'],['description','description']])$(target).value=m[key]??'';state.blocks=data.blocks;state.items=data.items;state.recipes=data.recipes;state.structures=data.structures||[];state.source_overrides=data.source_overrides||{};state.carry=data.carry||{};if(data.target)state.target=data.target;else delete state.target;HorizonStudioModel.assignMissingUids(state,newUid);chooseTab(preserveHistory?state.tab:'block');persist({record:false,disk:false});if(!preserveHistory)editJournal.reset(editorState());historyButtons();render();if(!skipWorkspaceCheck)beginWorkspaceSession();document.dispatchEvent(new Event('studio:state-changed'));}
+function applyProject(data,{preserveHistory=false,skipWorkspaceCheck=false}={}){const problem=HorizonStudioModel.projectProblem(data);if(problem)throw new Error(t(problem));const m=data.metadata;for(const [target,key] of [['modId','id'],['modName','name'],['version','version'],['author','author'],['description','description']])$(target).value=m[key]??'';state.blocks=data.blocks;state.items=data.items;state.recipes=data.recipes;state.structures=data.structures||[];state.effects=data.effects||[];state.source_overrides=data.source_overrides||{};state.carry=data.carry||{};if(data.target)state.target=data.target;else delete state.target;HorizonStudioModel.assignMissingUids(state,newUid);chooseTab(preserveHistory?state.tab:'block');persist({record:false,disk:false});if(!preserveHistory)editJournal.reset(editorState());historyButtons();render();if(!skipWorkspaceCheck)beginWorkspaceSession();document.dispatchEvent(new Event('studio:state-changed'));}
 function example(){const d={metadata:{id:'ruby_demo',name:'Ruby Demo',version:'0.1.0',author:'Creator',description:'Example with two recipes, a block and a gem'},blocks:[{id:'ruby_block',name:'Block of Ruby',template:'minecraft:iron_block',hardness:4,light:3}],items:[{id:'ruby',name:'Ruby',template:'minecraft:diamond',rarity:'rare',max_stack_size:64}],recipes:[{id:'ruby_block',type:'shaped',result:'@ruby_block',count:1,grid:Array(9).fill('@ruby')},{id:'ruby_from_block',type:'shapeless',result:'@ruby',count:9,grid:['@ruby_block',...Array(8).fill('')]}]};applyProject(d);status(t('demoLoaded'));}
 function refreshLanguage(){
   if(state.tab==='structure'){$('structureEditorTitle').textContent=t(state.editing>=0?'editStructure':'newStructure');$('addStructure').textContent=t(state.editing>=0?'saveChanges':'addStructure');}
@@ -363,6 +399,19 @@ window.addEventListener('keydown',event=>{if(!(event.ctrlKey||event.metaKey)||ev
 for(const id of META)$(id).addEventListener('change',()=>{persist();if(workspaceSync.id!==meta().id)beginWorkspaceSession();});
 for(const id of ['modId','modName'])$(id).addEventListener('input',updateWorkspaceMeta); if($('entrySearch'))$('entrySearch').addEventListener('input',render);
 try{const cached=JSON.parse(localStorage.getItem('horizonStudio_v02')||'null');if(cached)applyProject(cached); else {chooseTab('recipe');editJournal.reset(editorState());beginWorkspaceSession();}}catch(_){chooseTab('recipe');editJournal.reset(editorState());beginWorkspaceSession();}
+// HS-025: effects are part of the editor state, so save, autosave, undo and reopen cover them.
+const vfxStudio=window.HorizonVfxStudio.mount({effects:()=>state.effects,commit:list=>{state.effects=list;persist();document.dispatchEvent(new Event('studio:state-changed'));},
+  newUid,t,status,target:()=>state.target});
+// HS-033: every workbench command in one keyboard palette (Ctrl+K). Each runs the real control.
+const PALETTE=[['loadProject','project'],['saveProject','project'],['demo','project'],['toggleExplorer','view'],
+  ['undoEdit','edit','Ctrl+Z'],['redoEdit','edit','Ctrl+Shift+Z'],['blockTab','view'],['itemTab','view'],['recipeTab','view'],
+  ['structureTab','view'],['openWorkbench','tools'],['openVfx','tools'],['openJourney','tools'],['openCapabilities','tools'],
+  ['doctor','tools'],['preview','export'],['exportHmod','export'],['exportSource','export'],['lang-en','language'],['lang-ru','language']];
+const palette=window.HorizonPalette.mount({t,commands:()=>PALETTE.map(([id,group,shortcut])=>{const el=$(id);
+  const label=(el?.getAttribute('aria-label')||el?.getAttribute('title')||el?.textContent||id).trim();
+  return {id,label,group:t('paletteGroup_'+group),shortcut,keywords:[id,el?.dataset.paletteKeywords||''],
+    available:()=>Boolean(el&&!el.disabled),run:()=>el.click()};})});
+$('openPalette').onclick=()=>palette.open();
 window.HorizonI18n.init(); updateWorkspaceMeta();historyButtons();workbench.shell(null);
 if(desktop.available()){
   document.body.classList.add('desktop');

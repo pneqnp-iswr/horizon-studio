@@ -168,7 +168,7 @@ e2e('the Russian workbench has no leftover English interface text', async ({ pag
   // The engine card fills in after a debounced check; scan it in its final state.
   await page.waitForFunction(() => document.querySelector('#engineCapabilities li') && document.querySelector('#engineProfile').textContent !== '—');
   // Product, format and engine names stay as they are; everything else must be translated.
-  const allowed = new Set(['Horizon', 'Studio', 'Mod', 'Doctor', 'Ruby', 'Demo', 'hmod', 'API', 'PNG', 'JSON', 'NBT', 'zip',
+  const allowed = new Set(['Horizon', 'Studio', 'Mod', 'Doctor', 'Ruby', 'Demo', 'hmod', 'API', 'PNG', 'JSON', 'VFX', 'NBT', 'zip',
     'WebGL', 'd2186eb', 'project', 'studio', 'Iron', 'Block', 'minecraft', 'iron_block', 'ruby_block', 'of',
     // proper names, the official command, an example identifier and the language's own name
     'Mojang', 'Microsoft', 'cargo', 'horizon', 'mod', 'check', 'my_first_mod', 'English']);

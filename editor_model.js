@@ -7,7 +7,7 @@
 })(typeof window!=='undefined'?window:null,function(){
   'use strict';
   const VALID=/^[a-z][a-z0-9_]{0,63}$/;
-  const LIMITS={blocks:32,items:32,recipes:64,structures:8};
+  const LIMITS={blocks:32,items:32,recipes:64,structures:8,effects:16};
 
   /** '@ruby' -> 'mod:ruby'; vanilla names and empty slots are unchanged. */
   function localRef(ref,modId){return ref&&ref.startsWith('@')?`${modId}:${ref.slice(1)}`:ref;}
@@ -24,6 +24,7 @@
     const snapshot={metadata:meta,blocks:state.blocks,items:state.items,recipes:state.recipes,structures:state.structures,
       source_overrides:state.source_overrides||{},carry:state.carry||{}};
     if(state.target)snapshot.target=state.target;  // HS-008: the engine revision the project is built for
+    if(state.effects?.length)snapshot.effects=state.effects;  // HS-025: Studio-only VFX, never exported
     return snapshot;
   }
 
@@ -31,15 +32,16 @@
   function projectProblem(data){
     if(typeof data!=='object'||!data||!data.metadata||!Array.isArray(data.blocks)||!Array.isArray(data.items)||!Array.isArray(data.recipes))return 'badProject';
     if(data.structures!==undefined&&!Array.isArray(data.structures))return 'badProject';
+    if(data.effects!==undefined&&!Array.isArray(data.effects))return 'badProject';
     for(const [group,limit] of Object.entries(LIMITS))if((data[group]||[]).length>limit)return 'projectLimit';
-    for(const e of [...data.blocks,...data.items,...data.recipes,...(data.structures||[])])
+    for(const e of [...data.blocks,...data.items,...data.recipes,...(data.structures||[]),...(data.effects||[])])
       if(typeof e!=='object'||!e||!VALID.test(e.id))return 'badId';
     return null;
   }
 
   /** Give every object without one a uid; existing uids are never changed. */
   function assignMissingUids(state,newUid){
-    for(const e of [...state.blocks,...state.items,...state.recipes,...state.structures])
+    for(const e of [...state.blocks,...state.items,...state.recipes,...state.structures,...(state.effects||[])])
       if(!e.uid){const uid=newUid();if(uid)e.uid=uid;}
     return state;
   }

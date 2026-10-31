@@ -7,7 +7,7 @@ Last updated: 2026-10-31. Master before this update: `2f9f1bc` (PR #22). Roadmap
 - **F0 — Foundation:** code complete; gate still lacks a real-game load record (HS-002 blocked on an authorized Horizon installation).
 - **F1 — Project Core:** done — HS-005, HS-006, HS-007.
 - **F2 — Creative Editor:** **HS-019 native desktop shell and workbench UI, partial** (slice A of the desktop transformation, PR #19). Missing: desktop release pipeline, an E2E run driving the shell's own window, a signing decision.
-- **F3 — Visual Scripting (current):** **HS-008 engine capability registry — done** (CI run 41152431321, PR #22): registry with Horizon's API levels, two audited profiles (`d2186eb`, `3c1d4b39`), project target selection with comparison, editor and CLI export gates; the official checker runs once per profile in CI. **Active milestone: HS-020** (AI Creator tool contract), in progress: the contract `horizon-studio.ai-tools/1` and its transactional executor exist with deterministic tests and a CLI (`ai-apply`); still missing is the editor routing its own edits through the same executor.
+- **F3 — Visual Scripting (current):** **HS-008 engine capability registry — done** (CI run 41152431321, PR #22): registry with Horizon's API levels, two audited profiles (`d2186eb`, `3c1d4b39`), project target selection with comparison, editor and CLI export gates; the official checker runs once per profile in CI. **HS-025 VFX asset model and Studio preview — done** (browser E2E, [VFX.md](../architecture/VFX.md)): effects are saved in the project, never exported and always labelled as a Studio preview. **Active milestone: HS-020** (AI Creator tool contract), in progress: the contract `horizon-studio.ai-tools/1` and its transactional executor exist with deterministic tests and a CLI (`ai-apply`); still missing is the editor routing its own edits through the same executor.
 - **Latest release: v0.7.0** (PR #15 → tag on `c816211`, run 41136925994): `HorizonStudio-0.7.0-Windows-x64.exe`, 12 170 186 bytes, SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9`, unsigned; verified through the API. It stays the released product until the desktop build meets the gates in [ADR 0002](../adr/0002-desktop-shell.md).
 
 ## Roadmap v2 (engineering cycle 2)
@@ -52,7 +52,7 @@ Last updated: 2026-10-31. Master before this update: `2f9f1bc` (PR #22). Roadmap
 - `unit`: Python 3.11/3.12 on Ubuntu and Windows; Node 22 editor-module tests.
 - `official-static`: **pass** for all three examples and their `studio.project/1` migrations on Horizon `d2186eb9` (CI) and upstream `main` `3a5ac7ff` (local drift probe).
 <!-- roadmap:e2e-count:start -->
-- `browser-e2e`: **pass** — 24 scenarios on the current master (editor, workbench and roadmap explorer, PixelChat), Chromium on Ubuntu CI ([inventory](../BROWSER_E2E.md#current-inventory)). Firefox, WebKit and Windows browsers are not covered.
+- `browser-e2e`: **pass** — 30 scenarios on the current master (editor, workbench and roadmap explorer, VFX Studio, PixelChat), Chromium on Ubuntu CI ([inventory](../BROWSER_E2E.md#current-inventory)). Firefox, WebKit and Windows browsers are not covered.
 <!-- roadmap:e2e-count:end -->
 - `desktop-smoke`: **pass** — the real desktop application starts, reports the editor ready and stops its core cleanly: Windows portable and installed (WebView2), Linux (WebKitGTK, Xvfb). This proves the shell, not game compatibility.
 <!-- roadmap:desktop-e2e-count:start -->
