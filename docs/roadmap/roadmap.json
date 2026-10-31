@@ -515,6 +515,11 @@
           "level": "browser-e2e",
           "ref": "Command palette (Ctrl+K): every top-bar and rail command reachable, the enabled ones offered, keyboard navigation, focus return, Russian labels, axe (tests/e2e/palette.e2e.cjs)",
           "url": "tests/e2e/palette.e2e.cjs"
+        },
+        {
+          "level": "browser-e2e",
+          "ref": "Asset search in the command palette: typing finds blocks, items, recipes, structures and effects by name or kind:id (never with an empty query); choosing one opens it for editing, effects in VFX Studio (tests/e2e/palette.e2e.cjs)",
+          "url": "tests/e2e/palette.e2e.cjs"
         }
       ],
       "missing": "Docking, tabs and saved layouts with reset are not built; the palette is the first part"

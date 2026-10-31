@@ -45,7 +45,9 @@
     const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
     function render(){
-      state.items=rank(commands().filter(c=>c.available()),input.value);
+      // Search-only entries (the project's assets) appear once something is typed, so the empty palette stays short.
+      const typed=input.value.trim()!=='';
+      state.items=rank(commands().filter(c=>c.available()&&(typed||!c.searchOnly)),input.value);
       state.active=Math.min(state.active,Math.max(0,state.items.length-1));
       list.innerHTML=state.items.map((c,i)=>`<li id="palette-${esc(c.id)}" role="option" aria-selected="${i===state.active}" data-command="${esc(c.id)}"`+
         `${i===state.active?' class="active"':''}><span>${esc(c.label)}</span><small>${esc(c.group)}${c.shortcut?` · <kbd>${esc(c.shortcut)}</kbd>`:''}</small></li>`).join('');

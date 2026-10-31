@@ -193,10 +193,25 @@ const PALETTE=[['loadProject','project'],['saveProject','project'],['demo','proj
   ['undoEdit','edit','Ctrl+Z'],['redoEdit','edit','Ctrl+Shift+Z'],['blockTab','view'],['itemTab','view'],['recipeTab','view'],
   ['structureTab','view'],['openWorkbench','tools'],['openVfx','tools'],['openAi','tools'],['openJourney','tools'],['openCapabilities','tools'],
   ['doctor','tools'],['preview','export'],['exportHmod','export'],['exportSource','export'],['lang-en','language'],['lang-ru','language']];
-const palette=window.HorizonPalette.mount({t,commands:()=>PALETTE.map(([id,group,shortcut])=>{const el=$(id);
+// Typing in the palette also finds the project's assets: choosing one opens it for editing (HS-033 asset search).
+function openAsset(kind,index){
+  if($('entrySearch'))$('entrySearch').value='';
+  chooseTab(kind);
+  $('entries').querySelector(`[data-edit="${index}"]`)?.click();
+}
+function assetCommands(){
+  const groups=[['block','blocks'],['item','items'],['recipe','recipes'],['structure','structures']];
+  const out=groups.flatMap(([kind,key])=>(state[key]||[]).map((e,i)=>({id:`asset-${kind}-${i}`,
+    label:`${kind==='recipe'?displayName(e.result)+' ⇐ '+e.id:e.name||e.id} (${kind}:${e.id})`,group:t('paletteGroup_asset'),
+    keywords:[e.id,`${kind}:${e.id}`,e.name_ru||''],searchOnly:true,available:()=>true,run:()=>openAsset(kind,i)})));
+  for(const e of state.effects||[])out.push({id:`asset-vfx-${e.uid}`,label:`${e.name||e.id} (vfx:${e.id})`,group:t('paletteGroup_asset'),
+    keywords:[e.id,`vfx:${e.id}`],searchOnly:true,available:()=>true,run:()=>{$('openVfx').click();vfxStudio.select(e.uid);}});
+  return out;
+}
+const palette=window.HorizonPalette.mount({t,commands:()=>[...PALETTE.map(([id,group,shortcut])=>{const el=$(id);
   const label=(el?.getAttribute('aria-label')||el?.getAttribute('title')||el?.textContent||id).trim();
   return {id,label,group:t('paletteGroup_'+group),shortcut,keywords:[id,el?.dataset.paletteKeywords||''],
-    available:()=>Boolean(el&&!el.disabled),run:()=>el.click()};})});
+    available:()=>Boolean(el&&!el.disabled),run:()=>el.click()};}),...assetCommands()]});
 $('openPalette').onclick=()=>palette.open();
 window.HorizonI18n.init(); updateWorkspaceMeta();historyButtons();workbench.shell(null);
 if(desktop.available()){
