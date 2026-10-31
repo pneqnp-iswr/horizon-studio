@@ -225,6 +225,9 @@ const vfxStudio=window.HorizonVfxStudio.mount({effects:()=>state.effects,commit:
 // HS-020/HS-022: AI proposals reviewed and applied through the same transactions as every edit.
 const aiCreator=window.HorizonAiCreator.mount({t,sync:workspaceSync,post:studioPost,snapshot:editorState,status,undo:undoProject,
   assets:()=>[...state.blocks.map(e=>({kind:'block',id:e.id,name:e.name})),...state.items.map(e=>({kind:'item',id:e.id,name:e.name}))]});
+// IDE-003: local vetted starters reuse existing project open/save and workspace transactions.
+window.HorizonIdeStarters.mount({t,language:()=>window.HorizonI18n.language,
+  apply:project=>applyProject(project),status});
 // HS-033: every workbench command in one keyboard palette (Ctrl+K). Each runs the real control.
 const PALETTE=[['loadProject','project'],['saveProject','project'],['demo','project'],['toggleExplorer','view'],
   ['undoEdit','edit','Ctrl+Z'],['redoEdit','edit','Ctrl+Shift+Z'],['blockTab','view'],['itemTab','view'],['recipeTab','view'],
