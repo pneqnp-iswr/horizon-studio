@@ -27,6 +27,7 @@ from studio_core.graph import AssetGraph
 from studio_core.migrate import from_editor_state, source_schema, to_editor_state, upgrade
 from studio_core.project_schema import SCHEMA, dumps
 from studio_core.workspace import WorkspaceStore, WorkspaceNotFound, WorkspaceConflict, WorkspaceCorrupt
+from studio_core.transactions import TransactionError
 import threading
 
 HOST = '127.0.0.1'
@@ -435,6 +436,75 @@ def workspace_for(server):
         return server.studio_workspaces
 
 
+def transactions_for(server):
+    """HS-020: the one owner of each project's revision, history and AI proposals."""
+    from studio_core.transactions import ProjectService
+    store = workspace_for(server)
+    with _workspace_lock:
+        if not hasattr(server, 'studio_transactions'):
+            server.studio_transactions = ProjectService(store)
+        return server.studio_transactions
+
+
+TX_PATHS = ('/api/tx/open', '/api/tx/commit', '/api/tx/undo', '/api/tx/redo', '/api/tx/history',
+            '/api/ai/propose', '/api/ai/commit', '/api/ai/reject')
+
+
+def _text(payload, key, required=True):
+    value = payload.get(key) if isinstance(payload, dict) else None
+    if value is None and not required:
+        return None
+    if not isinstance(value, str) or len(value) > 200:
+        fail(f'Expected {key}')
+    return value
+
+
+def transaction_request(server, path: str, payload) -> dict:
+    """The command protocol between the editor and the core (docs/architecture/TRANSACTIONS.md)."""
+    service = transactions_for(server)
+    if not isinstance(payload, dict):
+        fail('Expected an object')
+
+    def view(result):
+        out = {'state': to_editor_state(result['document']), 'revision': result['revision'], 'history': result['history']}
+        for key in ('entry', 'step', 'recovered_from_backup', 'history_note'):
+            if key in result:
+                out[key] = result[key]
+        return out
+
+    if path == '/api/tx/open':
+        opened = view(service.open(_text(payload, 'project_id')))
+        if 'state' in payload:  # does the editor already hold exactly this project?
+            try:
+                opened['matches'] = dumps(from_editor_state(payload['state'])) == dumps(from_editor_state(opened['state']))
+            except ValueError:
+                opened['matches'] = False
+        return opened
+    if path == '/api/tx/history':
+        opened = service.open(_text(payload, 'project_id'))
+        return {'revision': opened['revision'], 'history': opened['history'],
+                'audit': service.audit(_text(payload, 'project_id'))}
+    if path == '/api/tx/commit':
+        if not isinstance(payload.get('state'), dict):
+            fail('Expected project state')
+        label = payload.get('label')
+        if label is not None and not isinstance(label, str):
+            fail('label must be text')
+        return view(service.commit(from_editor_state(payload['state']), base_revision=_text(payload, 'base_revision', False),
+                                   actor='editor', label=label))
+    if path in ('/api/tx/undo', '/api/tx/redo'):
+        step = service.undo if path.endswith('undo') else service.redo
+        return view(step(_text(payload, 'project_id'), expected_revision=_text(payload, 'expected_revision')))
+    if path == '/api/ai/propose':
+        return service.propose(_text(payload, 'project_id'), payload.get('request'),
+                               provider=_text(payload, 'provider', False) or 'fixture',
+                               base_revision=_text(payload, 'base_revision'))
+    if path == '/api/ai/commit':
+        return view(service.commit_proposal(_text(payload, 'project_id'), _text(payload, 'proposal_id'),
+                                            expected_revision=_text(payload, 'expected_revision')))
+    return service.reject(_text(payload, 'project_id'), _text(payload, 'proposal_id'))
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         stream = getattr(self.server, 'studio_log', sys.stdout)  # the desktop core keeps stdout for its protocol
@@ -506,7 +576,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path not in ('/api/export', '/api/hmod', '/api/preview', '/api/source', '/api/structure-preview', '/api/doctor', '/api/resourcepack',
                              '/api/project/open', '/api/project/save', '/api/workspace/write', '/api/workspace/recover',
-                             '/api/capabilities/check'):
+                             '/api/capabilities/check') + TX_PATHS:
             return self.response(404, 'application/json', b'{"error":"Not found"}')
         if not trusted_request(self.headers, self.server.server_address[1]):
             return self.response(403, 'application/json; charset=utf-8', b'{"error":"Untrusted request origin or host"}')
@@ -538,13 +608,21 @@ class Handler(BaseHTTPRequestHandler):
                     'state': to_editor_state(result['document']),
                     'revision': result['revision'],
                     'recovered_from_backup': result['recovered_from_backup']}))
+            if self.path in TX_PATHS:
+                return self.response(200, 'application/json; charset=utf-8',
+                                     json_bytes(transaction_request(self.server, self.path, payload)))
             if self.path == '/api/workspace/write':
+                # Older clients: a whole-state write is one more transaction in the project's journal.
                 if not isinstance(payload, dict) or not isinstance(payload.get('state'), dict):
                     fail('Expected project state')
-                document = from_editor_state(payload['state'])
-                outcome = workspace_for(self.server).save(
-                    document, expected_revision=payload.get('expected_revision'))
-                return self.response(200, 'application/json; charset=utf-8', json_bytes(outcome))
+                expected = payload.get('expected_revision')
+                if expected is not None and not isinstance(expected, str):
+                    fail('expected_revision must be text or null')
+                result = transactions_for(self.server).commit(from_editor_state(payload['state']), base_revision=expected,
+                                                              actor='editor', label='Workspace write')
+                return self.response(200, 'application/json; charset=utf-8', json_bytes({
+                    'project_id': result['document']['project']['id'], 'revision': result['revision'],
+                    'recovered_from_backup': False}))
             if self.path == '/api/project/open':
                 # Any supported project file -> editor state; older schemas are migrated in memory only.
                 document = upgrade(payload)
@@ -570,6 +648,11 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == '/api/hmod':
                 return self.response(200, 'application/octet-stream', hmod_zip(payload), f'{mod_id}.hmod')
             return self.response(200, 'application/zip', project_zip(payload), f'{mod_id}-source.zip')
+        except TransactionError as exc:
+            body = {'error': str(exc), 'code': exc.code, **exc.details}
+            if exc.diagnostics:
+                body['diagnostics'] = exc.diagnostics
+            return self.response(exc.status, 'application/json; charset=utf-8', json_bytes(body))
         except WorkspaceNotFound as exc:
             return self.response(404, 'application/json; charset=utf-8', json_bytes({'error': str(exc)}))
         except WorkspaceConflict as exc:

@@ -238,43 +238,43 @@ function editorState(){return HorizonStudioModel.editorSnapshot(meta(),state);}
 function newUid(){return globalThis.crypto?.randomUUID?.();}
 const editJournal=new window.HorizonStudioHistory.Journal();
 const studioPost=window.HorizonStudioApi.post;
+// HS-020: the core owns the project's revision and history; the editor sends one transaction per action.
 const workspaceSync=window.HorizonStudioWorkspace.createWorkspaceSync({
   post:studioPost,snapshot:editorState,projectId:()=>meta().id,isValidId:id=>VALID.test(id),
-  apply:state=>applyProject(state,{skipWorkspaceCheck:true}),notify:workspaceNotice,
+  apply:state=>{applyProject(state,{preserveHistory:true,skipWorkspaceCheck:true});editJournal.reset(editorState());historyButtons();},
+  notify:workspaceNotice,onHistory:()=>{historyButtons();document.dispatchEvent(new Event('studio:history-changed'));},
 });
 const workbench=window.HorizonWorkbench.init({t,post:studioPost,snapshot:editorState,chooseTab,
   getTarget:()=>state.target||null,
   setTarget:target=>{if(target)state.target=target;else delete state.target;persist();workbench.update({meta:meta(),tab:state.tab,counts:counts()});}});
 function counts(){return {block:state.blocks.length,item:state.items.length,recipe:state.recipes.length,structure:state.structures.length};}
-function historyButtons(){ $('undoEdit').disabled=!editJournal.canUndo; $('redoEdit').disabled=!editJournal.canRedo; }
+// Attached to a workspace, undo and redo are the core's (shared by people and AI, kept across restarts);
+// detached (invalid ID, no core, an open conflict), the editor keeps a local history.
+function historyButtons(){const core=workspaceSync.tracking;$('undoEdit').disabled=!(core?workspaceSync.canUndo:editJournal.canUndo);$('redoEdit').disabled=!(core?workspaceSync.canRedo:editJournal.canRedo);}
 function workspaceNotice(key,values={},mode=workspaceSync.mode){
   const label=$('workspaceSaveStatus');
   label.textContent=t(key,values);label.dataset.key=key;
   $('restoreWorkspace').hidden=mode!=='conflict';
   $('keepEditor').hidden=mode!=='conflict';
 }
-function persist({record=true,disk=true}={}){
+function persist({record=true,disk=true,label=null}={}){
   const snapshot=editorState();
-  if(record)editJournal.record(snapshot);
+  const committed=disk&&workspaceSync.record(label);
+  if(record){if(committed)editJournal.reset(snapshot);else editJournal.record(snapshot);}
   historyButtons();
   try{localStorage.setItem('horizonStudio_v02',JSON.stringify(snapshot));}
   catch(e){status(t('storageFull'),true);}
-  if(disk)workspaceSync.scheduleSave();
 }
-const scheduleWorkspaceSave=()=>workspaceSync.scheduleSave();
 const beginWorkspaceSession=()=>workspaceSync.begin();
 const acceptDiskWorkspace=()=>workspaceSync.restoreDisk();
 const keepEditorWorkspace=()=>workspaceSync.keepEditor();
-function undoProject(){
-  const previous=editJournal.undo();if(!previous)return;
-  applyProject(previous,{preserveHistory:true,skipWorkspaceCheck:true});
-  historyButtons();if(workspaceSync.id!==meta().id)beginWorkspaceSession();else scheduleWorkspaceSave();
+function localStep(snapshot){
+  if(!snapshot)return;
+  applyProject(snapshot,{preserveHistory:true,skipWorkspaceCheck:true});
+  historyButtons();if(workspaceSync.id!==meta().id)beginWorkspaceSession();
 }
-function redoProject(){
-  const next=editJournal.redo();if(!next)return;
-  applyProject(next,{preserveHistory:true,skipWorkspaceCheck:true});
-  historyButtons();if(workspaceSync.id!==meta().id)beginWorkspaceSession();else scheduleWorkspaceSave();
-}
+function undoProject(){if(workspaceSync.tracking){workspaceSync.undo();return;}localStep(editJournal.undo());}
+function redoProject(){if(workspaceSync.tracking){workspaceSync.redo();return;}localStep(editJournal.redo());}
 function allEntries(){return [...state.blocks,...state.items];}
 function ingredientChoices(){return {...ING,...Object.fromEntries(allEntries().map(e=>['@'+e.id,e.name+t('modSuffix')]))};}
 function fillOptions(select, values, selected=''){select.innerHTML=Object.entries(values).map(([value,label])=>`<option value="${esc(value)}" ${selected===value?'selected':''}>${esc(label)}</option>`).join('');}
@@ -397,6 +397,8 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&document.bo
 $('toggleExplorer').setAttribute('aria-expanded',String(sidebarVisible()));$('quickExport').onclick=()=>exportFile('/api/hmod','hmod');
 window.addEventListener('keydown',event=>{if(!(event.ctrlKey||event.metaKey)||event.altKey)return;const tag=event.target?.tagName;if(['INPUT','TEXTAREA','SELECT'].includes(tag)||event.target?.isContentEditable||!$('sourceWorkbench').hidden)return;const key=event.key.toLowerCase();if(key==='z'&&!event.shiftKey){event.preventDefault();undoProject();}else if(key==='y'||(key==='z'&&event.shiftKey)){event.preventDefault();redoProject();}});
 for(const id of META)$(id).addEventListener('change',()=>{persist();if(workspaceSync.id!==meta().id)beginWorkspaceSession();});
+// Another tab (or an AI change approved elsewhere) may have moved the project on: look on return.
+window.addEventListener('focus',()=>workspaceSync.check());document.addEventListener('visibilitychange',()=>{if(!document.hidden)workspaceSync.check();});
 for(const id of ['modId','modName'])$(id).addEventListener('input',updateWorkspaceMeta); if($('entrySearch'))$('entrySearch').addEventListener('input',render);
 try{const cached=JSON.parse(localStorage.getItem('horizonStudio_v02')||'null');if(cached)applyProject(cached); else {chooseTab('recipe');editJournal.reset(editorState());beginWorkspaceSession();}}catch(_){chooseTab('recipe');editJournal.reset(editorState());beginWorkspaceSession();}
 // HS-025: effects are part of the editor state, so save, autosave, undo and reopen cover them.

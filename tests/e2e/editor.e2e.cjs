@@ -72,25 +72,41 @@ e2e('renaming keeps the uid, follows recipe references and saves studio.project/
   assert.match(opal.uid, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-/);
 });
 
-e2e('undo and redo work from buttons and keyboard shortcuts', async ({ page }) => {
+e2e('undo and redo are the core\'s: buttons, shortcuts, the disk and a reload (HS-020)', async ({ page, studio }) => {
   await loadDemo(page);
   await addEntry(page, 'item', 'shard', 'Shard');
   const count = async () => (await editorState(page)).items.length;
+  const waitCount = n => page.waitForFunction(n => JSON.parse(localStorage.getItem('horizonStudio_v02')).items.length === n, n);
+  const enabled = id => page.waitForFunction(id => !document.getElementById(id).disabled, id);
   assert.equal(await count(), 2);
+  await enabled('undoEdit');  // the core has recorded the transaction
   assert.equal(await page.isDisabled('#redoEdit'), true);
   await page.click('#undoEdit');
-  assert.equal(await count(), 1);
-  assert.equal(await page.isDisabled('#redoEdit'), false);
+  await waitCount(1);
+  await waitDisk(studio, 'ruby_demo', doc => !objectIds(doc).includes('shard'));
+  await enabled('redoEdit');
   await page.click('#redoEdit');
-  assert.equal(await count(), 2);
+  await waitCount(2);
+  await waitDisk(studio, 'ruby_demo', doc => objectIds(doc).includes('shard'));
+  await enabled('undoEdit');
   await page.click('#entries');  // focus outside text fields: shortcuts are ignored while typing
   await page.keyboard.press('Control+z');
-  assert.equal(await count(), 1);
+  await waitCount(1);
+  await enabled('redoEdit');
   await page.keyboard.press('Control+Shift+z');
-  assert.equal(await count(), 2);
+  await waitCount(2);
   await page.focus('#entryName');
   await page.keyboard.press('Control+z');
   assert.equal(await count(), 2, 'Ctrl+Z inside a text field must not undo project edits');
+
+  // The history is the core's: after a reload the same steps can still be undone.
+  await page.reload();
+  await waitWorkspace(page, 'workspaceSaved');
+  await enabled('undoEdit');
+  assert.equal(await page.getAttribute('#undoEdit', 'disabled'), null);
+  await page.click('#undoEdit');
+  await waitCount(1);
+  await waitDisk(studio, 'ruby_demo', doc => !objectIds(doc).includes('shard'));
 });
 
 e2e('autosave writes a recoverable disk workspace that a fresh browser can restore', async ({ page, studio, another }) => {
@@ -188,7 +204,7 @@ e2e('Source Workbench validates, applies, undoes and exports JSON overrides', as
   assert.deepEqual(JSON.parse(files[target].toString('utf8')), override);
 
   await page.click('#undoEdit');
-  assert.deepEqual((await editorState(page)).source_overrides, {});
+  await page.waitForFunction(() => !Object.keys(JSON.parse(localStorage.getItem('horizonStudio_v02')).source_overrides).length);
 });
 
 e2e('the unedited demo exports exactly the officially checked .hmod', async ({ page }) => {
