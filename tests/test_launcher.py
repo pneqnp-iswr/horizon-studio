@@ -63,8 +63,22 @@ class LauncherTests(unittest.TestCase):
             self.assertEqual((ready["protocol"], ready["event"]), ("horizon-studio.core/1", "ready"))
             self.assertRegex(ready["url"], r"^http://127\.0\.0\.1:\d+/$")
             self.assertEqual(ready["version"], app_version())
-            with urllib.request.urlopen(ready["url"] + "api/session", timeout=10) as response:
-                self.assertTrue(json.loads(response.read())["token"])
+            # The token travels in the handshake only; the desktop core refuses to hand it out.
+            self.assertRegex(ready["token"], r"^[A-Za-z0-9_-]{32,128}$")
+            import urllib.error
+            with self.assertRaises(urllib.error.HTTPError) as refused:
+                urllib.request.urlopen(ready["url"] + "api/session", timeout=10)
+            self.assertEqual(refused.exception.code, 403)
+            def post(headers):
+                request = urllib.request.Request(ready["url"] + "api/preview", data=b"{}", method="POST",
+                                                 headers={"Content-Type": "application/json", **headers})
+                try:
+                    with urllib.request.urlopen(request, timeout=10) as response:
+                        return response.status
+                except urllib.error.HTTPError as error:
+                    return error.code
+            self.assertEqual(post({}), 403, "no token, no API")
+            self.assertEqual(post({"X-Studio-Token": ready["token"]}), 400, "authorized; the empty request is then invalid")
             with urllib.request.urlopen(ready["url"], timeout=10) as response:
                 self.assertIn(b"Horizon Studio", response.read())
             child.stdin.close()  # what happens when the shell exits or crashes
@@ -74,6 +88,26 @@ class LauncherTests(unittest.TestCase):
             if child.poll() is None:
                 child.kill()
             child.stdout.close()
+
+    def test_the_desktop_core_port_cannot_be_shared(self):
+        """S1: on Windows SO_REUSEADDR would let another process bind the core's port."""
+        import socket
+        from launcher import ExclusiveHTTPServer, start_server
+        server = start_server(exclusive=True)
+        try:
+            self.assertIsInstance(server, ExclusiveHTTPServer)
+            self.assertFalse(server.allow_reuse_address)
+            if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+                self.assertTrue(server.socket.getsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE))
+            intruder = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                intruder.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                with self.assertRaises(OSError):
+                    intruder.bind(server.server_address)
+            finally:
+                intruder.close()
+        finally:
+            server.server_close()
 
     def test_core_shutdown_command_and_missing_pipes(self):
         import io

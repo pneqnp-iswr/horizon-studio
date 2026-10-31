@@ -29,14 +29,15 @@ function scratch() {
   return { home, saves, env };
 }
 
-function coreProcesses() {
+function corePids() {
   if (process.platform === 'win32') {
     return execFileSync('tasklist', ['/FO', 'CSV', '/NH'], { encoding: 'utf8' })
-      .split(/\r?\n/).filter(line => /horizon-studio-core\.exe/i.test(line)).length;
+      .split(/\r?\n/).filter(line => /horizon-studio-core\.exe/i.test(line)).map(line => Number(line.split('","')[1]));
   }
-  return execFileSync('ps', ['-eo', 'args'], { encoding: 'utf8' })
-    .split('\n').filter(line => /horizon-studio-core|launcher\.py --serve/.test(line)).length;
+  return execFileSync('ps', ['-eo', 'pid=,args='], { encoding: 'utf8' })
+    .split('\n').filter(line => /horizon-studio-core|launcher\.py --serve/.test(line)).map(line => Number(line.trim().split(/\s+/)[0]));
 }
+const coreProcesses = () => corePids().length;
 
 async function open(env, extra = {}) {
   const win = await launch({ app: APP, env, ...extra });
@@ -117,6 +118,9 @@ scenario('launches the real window, completes the core handshake and loads the e
     assert.ok(info.ipc && info.shell);
     assert.ok(info.status.includes(info.shell));
     assert.equal(coreProcesses(), before + 1, 'one core process per window');
+    // The desktop core never hands its session token to HTTP clients; the editor got it from the shell.
+    assert.equal(await win.run(() => fetch('/api/session').then(r => r.status)), 403);
+    assert.equal(await win.run(() => window.HorizonStudioApi.session().then(token => token.length >= 32)), true);
   } finally {
     await win.close();
   }
@@ -313,6 +317,23 @@ scenario('a restarted window recovers the disk workspace', async () => {
     await win.click('#restoreWorkspace');
     await win.waitFor(() => document.querySelector('#workspaceSaveStatus').dataset.key === 'workspaceRecovered', { message: 'recovered' });
     assert.equal((await state(win)).items[0].name, 'Restart Ruby');
+  } finally {
+    await win.close();
+  }
+});
+
+scenario('a core that dies under the editor takes the window back to the failure screen', async () => {
+  const box = scratch();
+  const before = new Set(corePids());
+  const win = await open(box.env);
+  try {
+    await editorReady(win);
+    const mine = corePids().filter(pid => !before.has(pid));
+    assert.equal(mine.length, 1);
+    process.kill(mine[0]);
+    await win.waitFor(() => document.querySelector('#failure') && !document.querySelector('#failure').hidden, { message: 'failure screen' });
+    assert.match(await content(win, '#failureMessage'), /stopped unexpectedly/);
+    assert.match(await win.run(() => location.href), /^(tauri:\/\/localhost|http:\/\/tauri\.localhost)(\/|$)/);
   } finally {
     await win.close();
   }

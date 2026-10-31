@@ -25,5 +25,7 @@
   }
   /** Tells the shell the editor booted; resolves the shell/core versions for the status bar. */
   function ready(info,scope){return invoke('desktop_ready',{info},undefined,scope);}
-  return Object.freeze({available,invoke,saveFile,ready});
+  /** The core's API session token, which the shell received over its private pipe. */
+  function coreSession(scope){return invoke('core_session',undefined,undefined,scope);}
+  return Object.freeze({available,invoke,saveFile,ready,coreSession});
 });

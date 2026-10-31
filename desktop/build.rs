@@ -4,7 +4,7 @@ fn main() {
     // runtime "editor" capability in main.rs, limited to the core's loopback origin).
     tauri_build::try_build(
         tauri_build::Attributes::new()
-            .app_manifest(tauri_build::AppManifest::new().commands(&["desktop_ready", "save_file"])),
+            .app_manifest(tauri_build::AppManifest::new().commands(&["desktop_ready", "save_file", "core_session"])),
     )
     .expect("failed to run tauri-build");
 }

@@ -7,6 +7,7 @@ on:
   push:
     branches: [master]
     paths:
+      - scripts/desktop_release.py
       - tests/desktop/**
       - desktop/**
       - launcher.py
@@ -23,6 +24,7 @@ on:
   pull_request:
     branches: [master]
     paths:
+      - scripts/desktop_release.py
       - tests/desktop/**
       - desktop/**
       - launcher.py
@@ -207,6 +209,38 @@ jobs:
           $env:NATIVE_DRIVER = & ./scripts/msedgedriver_for_webview2.ps1 -Destination "$env:RUNNER_TEMP/msedgedriver"
           $env:DESKTOP_APP = "$app"
           node --test --test-reporter=tap tests/desktop/desktop.e2e.cjs
+      - name: Launch the portable ZIP exactly as shipped
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $zip = Get-ChildItem dist/*.zip | Select-Object -First 1
+          $into = Join-Path $env:RUNNER_TEMP 'zip-check'
+          Expand-Archive -Path $zip.FullName -DestinationPath $into -Force
+          $exe = Get-ChildItem $into -Recurse -Filter HorizonStudio.exe | Select-Object -First 1
+          python scripts/desktop_probe.py --exe $exe.FullName --out desktop-evidence --label zip-extracted-1280x800 --window-size 1280x800
+      - name: Record the Authenticode status of the shipped files
+        run: |
+          $files = [ordered]@{ (Split-Path $env:INSTALLER -Leaf) = $env:INSTALLER; 'HorizonStudio.exe' = "$env:PORTABLE/HorizonStudio.exe"; 'core/horizon-studio-core.exe' = "$env:PORTABLE/core/horizon-studio-core.exe" }
+          $report = [ordered]@{}
+          foreach ($name in $files.Keys) {
+            $signature = Get-AuthenticodeSignature -FilePath $files[$name]
+            $report[$name] = [ordered]@{ status = "$($signature.Status)"; signer = "$($signature.SignerCertificate.Subject)" }
+          }
+          $report | ConvertTo-Json | Set-Content -Path desktop-evidence/signing.json -Encoding utf8
+          Get-Content desktop-evidence/signing.json
+      - name: Desktop release candidate (manifest, checksums, verification; never published)
+        # Reaching this step means every earlier gate of this run passed. release_ready stays false
+        # until every parity gate of docs/adr/0002-desktop-shell.md holds.
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $version = (Get-Content VERSION -Raw).Trim()
+          $zip = (Get-ChildItem dist/*.zip | Select-Object -First 1).FullName
+          python scripts/desktop_release.py manifest --version $version --commit $env:GITHUB_SHA `
+            --installer $env:INSTALLER --portable-zip $zip --smoke desktop-evidence --signing desktop-evidence/signing.json `
+            --out dist/desktop-manifest.json --parity desktop-e2e `
+            --gate rust-tests=success --gate core-smoke=success --gate portable-smoke=success `
+            --gate zip-launch=success --gate install-uninstall=success --gate desktop-e2e=success
+          python scripts/desktop_release.py checksums --dist dist (Split-Path $env:INSTALLER -Leaf) (Split-Path $zip -Leaf) desktop-manifest.json
+          python scripts/desktop_release.py verify --dist dist --manifest dist/desktop-manifest.json
       - name: Print small screenshots into the log for review
         if: always()
         shell: python
@@ -237,6 +271,12 @@ jobs:
               t = (m.get("report") or {}).get("timings_ms") or {}
               lines.append(f"| {m['label']} | {m['ok']} | {t.get('core_ready')} ms | {t.get('editor_ready')} ms | "
                            f"{(m.get('memory') or {}).get('total_rss_mb')} MB | {(m.get('screenshot') or {}).get('size')} |")
+          manifest = Path("dist/desktop-manifest.json")
+          if manifest.is_file():
+              m = json.loads(manifest.read_text(encoding="utf-8"))
+              open_gates = [g for g, v in m["parity"].items() if not v["passed"]]
+              lines += ["", f"Release candidate {m['build']}: signing {m['signing']['overall']}, release_ready {m['release_ready']}"
+                        + (f" (open parity gates: {', '.join(open_gates)})" if open_gates else "")]
           sizes = evidence / "sizes.json"
           if sizes.is_file():
               lines += ["", "Sizes: `" + sizes.read_text(encoding="utf-8").replace(chr(10), " ") + "`"]
@@ -254,4 +294,6 @@ jobs:
           path: |
             dist/*.zip
             dist/*-setup.exe
+            dist/desktop-manifest.json
+            dist/SHA256SUMS.txt
           retention-days: 14
