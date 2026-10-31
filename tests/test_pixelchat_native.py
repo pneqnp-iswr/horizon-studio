@@ -83,7 +83,7 @@ class NativePixelChatContractTests(unittest.TestCase):
         self.assertIsNotNone(rust_data)
         rust_rows = re.findall(r"\[\s*(0b[01]{5}(?:\s*,\s*0b[01]{5}){4})\s*,?\s*\]", rust_data.group(1))
         self.assertEqual(len(rust_rows), 4)
-        color_line = re.search(r"pub const COLORS[^;]+;", runtime)
+        color_line = re.search(r"^pub const COLORS[^\n]+", runtime, re.MULTILINE)
         self.assertIsNotNone(color_line)
         colors = [int(value.replace("_", ""), 16) & 0xFFFFFF
                   for value in re.findall(r"0x[0-9A-F_]+", color_line.group(0))]
