@@ -85,9 +85,7 @@
     }
     select.addEventListener('change',show);
     create.addEventListener('click',createProject);
-    for(const lang of ['en','ru']){
-      document.getElementById('lang-'+lang)?.addEventListener('click',()=>queueMicrotask(render));
-    }
+    window.addEventListener('horizon:language-changed',render);
     refresh();
     return {refresh,render};
   }
