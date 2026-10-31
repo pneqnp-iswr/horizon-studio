@@ -1,8 +1,9 @@
 name: Desktop shell
 
 # Builds and exercises the Tauri desktop shell (desktop/) with the frozen project core.
-# Preview artifacts only: publishing releases stays in windows-release.yml until the
-# desktop build reaches parity (docs/adr/0002-desktop-shell.md).
+# Pushes and pull requests build preview artifacts. windows-release.yml calls this workflow with
+# `release: true` for the final installer and portable ZIP, and only that workflow publishes them
+# (docs/RELEASING.md).
 on:
   push:
     branches: [master]
