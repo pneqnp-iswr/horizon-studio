@@ -60,6 +60,9 @@ class AssetGraph:
                     if isinstance(value, str) and value.startswith(prefix):
                         found.append({"level": "error", "code": "UNRESOLVED_LOCAL_NAME", "uid": obj["uid"],
                                       "message": f"{self.label(obj['uid'])}: {value} is not an object of this project"})
+            elif obj["kind"] == "vfx":
+                from studio_core.vfx import diagnostics as vfx_diagnostics
+                found.extend(vfx_diagnostics(obj, self.label(obj["uid"])))
             elif obj["kind"] not in KINDS:
                 found.append({"level": "warning", "code": "UNSUPPORTED_OBJECT_KIND", "uid": obj["uid"],
                               "message": f"{self.label(obj['uid'])} is kept but not built by this Studio version"})

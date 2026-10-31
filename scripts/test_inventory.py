@@ -41,7 +41,7 @@ def listing(scenarios: list[dict]) -> str:
 
 def sections(scenarios: list[dict], desktop: list[dict]) -> dict[Path, list[tuple[str, str]]]:
     count = (f"- `browser-e2e`: **pass** — {len(scenarios)} scenarios on the current master (editor, workbench and "
-             "roadmap explorer, PixelChat), Chromium on Ubuntu CI ([inventory](../BROWSER_E2E.md#current-inventory)). "
+             "roadmap explorer, VFX Studio, PixelChat), Chromium on Ubuntu CI ([inventory](../BROWSER_E2E.md#current-inventory)). "
              "Firefox, WebKit and Windows browsers are not covered.")
     desktop_count = (f"- `desktop-e2e`: {len(desktop)} functional scenarios that drive the real application window through "
                      "tauri-driver: WebKitWebDriver on Linux, msedgedriver for WebView2 on Windows "

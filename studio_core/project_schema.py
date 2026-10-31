@@ -1,6 +1,6 @@
 """Canonical Horizon Studio project document, ``studio.project/1`` (ADR-001).
 
-A project is one JSON document. Every object (block, item, recipe, structure)
+A project is one JSON document. Every object (block, item, recipe, structure, vfx)
 has a stable ``uid`` that survives renames, and objects refer to each other by
 ``{"ref": "<uid>"}`` instead of by name. Object kinds Studio does not know yet
 (future plugins) and unknown top-level fields are kept untouched.
@@ -26,9 +26,11 @@ import uuid
 FORMAT = "horizon-studio"
 SCHEMA = "studio.project/1"
 LEGACY_SCHEMAS = (2, 3, 4)
-KINDS = ("block", "item", "recipe", "structure")
+KINDS = ("block", "item", "recipe", "structure", "vfx")
 # Blocks and items share one namespace in the generated mod (``<mod>:<id>``).
-ID_SPACES = {"block": "content", "item": "content", "recipe": "recipe", "structure": "structure"}
+ID_SPACES = {"block": "content", "item": "content", "recipe": "recipe", "structure": "structure", "vfx": "vfx"}
+# Studio authoring data the .hmod generator leaves out (HS-025 effects).
+STUDIO_ONLY_KINDS = ("vfx",)
 KIND_RE = re.compile(r"^[a-z][a-z0-9_.-]{0,63}$")
 OBJECT_ID_RE = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 MAX_OBJECTS = 10_000
@@ -128,6 +130,8 @@ def validate_document(doc) -> dict:
                 _fail(f"{kind} {object_id!r}: use 1-64 lowercase letters, numbers, underscores; start with a letter")
             if kind == "recipe":
                 _check_recipe(obj)
+            if kind == "vfx" and obj["props"].get("schema") != "studio.vfx/1":
+                _fail(f"vfx {object_id!r}: props.schema must be studio.vfx/1")
         key = (ID_SPACES.get(kind, kind), object_id)
         if key in names:
             _fail(f"Duplicate {kind} id {object_id!r}")

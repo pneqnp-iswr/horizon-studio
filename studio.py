@@ -45,6 +45,9 @@ WEB_SCRIPTS = {
     'desktop_bridge.js': b'HorizonDesktop',
     'workbench_ui.js': b'HorizonWorkbench',
     'roadmap_explorer.js': b'HorizonRoadmap',
+    'vfx_engine.js': b'HorizonVfx',
+    'vfx_ui.js': b'HorizonVfxStudio',
+    'command_palette.js': b'HorizonPalette',
 }
 # Every file the packaged application needs at runtime, relative to the repository root.
 ROADMAP_ICONS = tuple(sorted(f'assets/roadmap/icons/{icon.name}'

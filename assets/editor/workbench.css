@@ -302,3 +302,43 @@ body:not([data-tab=structure]) #structureCanvas{display:none}
 .sprite.redstone{background:#db4c58;border-radius:999px} .sprite.coal{background:#353c48;border-radius:7px} .sprite.glowstone{background:#f1d679;border-radius:7px} .sprite.stick{width:6px;height:24px;background:#8e653d;transform:rotate(35deg)}
 .sprite.furnace{background:#737c86;border-radius:4px} .sprite.furnace::before{inset:4px;background:linear-gradient(180deg,#50565d 0 35%,#2b2f35 35% 100%);border-radius:2px} .sprite.furnace::after{content:'';position:absolute;left:7px;top:13px;width:10px;height:7px;background:#15171a;border-radius:2px}
 .sprite.crafting{background:linear-gradient(180deg,#8f6847,#5f4127);border-radius:4px} .sprite.crafting::before{inset:3px;border:1px solid rgba(255,255,255,.22);background:linear-gradient(90deg,transparent 33%,rgba(255,255,255,.08) 33% 36%,transparent 36% 66%,rgba(255,255,255,.08) 66% 69%,transparent 69%),linear-gradient(transparent 33%,rgba(255,255,255,.08) 33% 36%,transparent 36% 66%,rgba(255,255,255,.08) 66% 69%,transparent 69%)}
+
+/* HS-025: VFX Studio */
+.i-vfx{--icon:url(/assets/editor/icons/vfx.svg)}
+.vfx-studio .source-head{align-items:center}
+.vfx-badge{margin-left:auto;padding:4px 8px;border:2px solid var(--gold2);color:var(--gold3);font:700 11px var(--font-pixel);text-transform:uppercase;white-space:nowrap}
+.vfx-main{display:grid;grid-template-columns:200px minmax(0,1fr) 300px;gap:12px;min-height:0;overflow:auto}
+.vfx-effects{display:flex;flex-direction:column;gap:8px;min-height:0}
+.vfx-list{display:grid;align-content:start;gap:2px;margin:0;padding:6px;list-style:none;overflow:auto;border:1px solid var(--line);background:var(--night);min-height:120px}
+.vfx-list button{display:grid;justify-items:start;width:100%;min-height:36px;border:0;background:transparent;box-shadow:none;color:var(--muted);text-align:left}
+.vfx-list button.selected{background:var(--cyan0);color:var(--cyan3)}
+.vfx-list small{font:11px var(--font-pixel);opacity:.8}
+.vfx-stage{display:flex;flex-direction:column;gap:8px;min-width:0}
+.vfx-stage canvas{width:100%;height:clamp(170px,42vh,480px);object-fit:contain;image-rendering:pixelated;border:1px solid var(--line2);background:#0d1020}
+.vfx-transport{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.vfx-timeline{display:flex;align-items:center;gap:6px;flex:1;min-width:160px}.vfx-timeline input{flex:1}
+.vfx-transport output{font:12px var(--font-pixel);color:var(--muted);min-width:72px}
+.vfx-diagnostics{display:grid;gap:4px;margin:0;padding:0;list-style:none;font-size:12px}
+.vfx-diagnostics li{padding:6px 8px;border-left:3px solid var(--line2);background:var(--night);color:var(--muted)}
+.vfx-diagnostics .vfx-warning{border-color:var(--gold2)}.vfx-diagnostics .vfx-error{border-color:var(--danger);color:var(--text)}
+.vfx-inspector{display:grid;align-content:start;gap:8px;overflow:auto}
+.vfx-inspector label{display:grid;gap:3px;font-size:12px;color:var(--muted)}.vfx-inspector label.check{display:flex;align-items:center;gap:6px}
+.vfx-inspector fieldset{display:grid;gap:8px;margin:0;padding:8px;border:1px solid var(--line)}
+.vfx-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end}.vfx-row:has(.check){grid-template-columns:1fr 1fr auto}
+.vfx-colors{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.vfx-colors span{flex-basis:100%}
+.vfx-colors input[type=color]{flex:0 0 52px;width:52px;height:32px;padding:2px;cursor:pointer}
+.vfx-inspector [aria-invalid="true"]{outline:2px solid var(--danger)}
+@media(max-width:1120px){.vfx-main{grid-template-columns:180px minmax(0,1fr)}.vfx-inspector{grid-column:1/-1}}
+@media(max-width:760px){.vfx-main{grid-template-columns:1fr}.vfx-badge{white-space:normal}}
+
+/* HS-033: command palette */
+.palette{position:fixed;inset:0;z-index:300;display:flex;justify-content:center;align-items:flex-start;padding-top:12vh;background:rgba(5,7,15,.55)}
+.palette[hidden]{display:none}
+.palette-box{width:min(560px,92vw);background:var(--surface);border:2px solid var(--line2);box-shadow:0 0 0 4px var(--void),0 24px 80px rgba(0,0,0,.7);animation:dialog-in var(--dur) steps(3) both}
+.palette-box input{width:100%;border:0;border-bottom:2px solid var(--stone1);padding:12px 14px;font-size:15px;background:var(--night)}
+.palette-box ul{margin:0;padding:4px;list-style:none;max-height:min(52vh,420px);overflow:auto}
+.palette-box li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 10px;cursor:pointer;color:var(--text)}
+.palette-box li small{color:var(--muted);font-size:11px;white-space:nowrap}
+.palette-box li.active{background:var(--cyan0);color:var(--cyan3)}.palette-box li.active small{color:var(--cyan3)}
+.palette-box kbd{font:11px var(--font-pixel)}
+.palette-empty{margin:0;padding:12px 14px;color:var(--muted)}

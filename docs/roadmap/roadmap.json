@@ -492,7 +492,7 @@
       "id": "HS-033",
       "track": "studio",
       "phase": "F2",
-      "status": "planned",
+      "status": "partial",
       "depends_on": [
         "HS-019"
       ],
@@ -510,7 +510,14 @@
       "engine_requirements": [],
       "validation_target": "browser-e2e",
       "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
-      "evidence": []
+      "evidence": [
+        {
+          "level": "browser-e2e",
+          "ref": "Command palette (Ctrl+K): every top-bar and rail command reachable, the enabled ones offered, keyboard navigation, focus return, Russian labels, axe (tests/e2e/palette.e2e.cjs)",
+          "url": "tests/e2e/palette.e2e.cjs"
+        }
+      ],
+      "missing": "Docking, tabs and saved layouts with reset are not built; the palette is the first part"
     },
     {
       "id": "HS-008",
@@ -850,7 +857,7 @@
       "id": "HS-025",
       "track": "studio",
       "phase": "F5",
-      "status": "planned",
+      "status": "done",
       "depends_on": [
         "HS-005",
         "HS-006"
@@ -868,8 +875,24 @@
       ],
       "engine_requirements": [],
       "validation_target": "browser-e2e",
-      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
-      "evidence": []
+      "design_ref": "docs/architecture/VFX.md",
+      "evidence": [
+        {
+          "level": "browser-e2e",
+          "ref": "VFX Studio in Chromium: deterministic Impact Spark preview and timeline checked against the core's fixture, Studio-preview label, validation refuses bad values, undo/redo, save and reopen through studio.project/1, the .hmod stays byte-identical, Russian UI, axe (tests/e2e/vfx.e2e.cjs)",
+          "url": "tests/e2e/vfx.e2e.cjs"
+        },
+        {
+          "level": "unit",
+          "ref": "studio.vfx/1 validation, seeded closed-form simulation, editor and core agree particle by particle, canonical project round trip, never exported (tests/test_vfx.py, tests/test_vfx_engine.cjs)",
+          "url": "tests/test_vfx.py"
+        },
+        {
+          "level": "docs",
+          "ref": "Model, determinism and what Horizon can do with an effect at 3c1d4b39 (no particle stage in .hshader; native_send_particles is server-side and vanilla-only)",
+          "url": "docs/architecture/VFX.md"
+        }
+      ]
     },
     {
       "id": "HS-026",

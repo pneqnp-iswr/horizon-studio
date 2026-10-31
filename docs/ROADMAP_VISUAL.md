@@ -72,7 +72,7 @@ Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bri
 | HS-019 Native desktop shell (Tauri 2) and workbench UI | Partially verified | HS-007 | desktop-e2e: [Functional E2E on the real window: Linux (WebKitWebDriver) 8/8 and Windows (WebView2 through msedgedriver) 8/8 in CI run 41165780619, PR #24: handshake, editing with stable uids, undo/redo, native save and reopen, officially checked .hmod, Source Workbench, cancelled save, EN/RU, journey, refused export, restart recovery, failure screen](https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41165780619)<br>desktop-smoke: [Windows: frozen core, NSIS install, smoke run, uninstall; portable cold/warm runs (CI run 41143213331)](https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41143213331)<br>unit: [Rust shell tests, core protocol and lifecycle tests (desktop/src, tests/test_launcher.py, tests/test_desktop.py)](../tests/test_desktop.py)<br>browser-e2e: [Workbench layout, empty states, journey, Russian UI without English leftovers](../tests/e2e/workbench.e2e.cjs)<br>docs: [ADR 0002: decision matrix and measurements](../docs/adr/0002-desktop-shell.md) | Publishing desktop artifacts through windows-release.yml with API verification, a recorded code-signing decision and a migration note (ADR 0002); the verified 0.7 EXE stays the released product until then |
 | HS-028 3D viewport editing | Planned | HS-005, HS-019 | — |  |
 | HS-029 Rigging and animation timeline | Planned | HS-028 | — |  |
-| HS-033 Docking workspace, tabs, command palette and onboarding | Planned | HS-019 | — |  |
+| HS-033 Docking workspace, tabs, command palette and onboarding | Partially verified | HS-019 | browser-e2e: [Command palette (Ctrl+K): every top-bar and rail command reachable, the enabled ones offered, keyboard navigation, focus return, Russian labels, axe (tests/e2e/palette.e2e.cjs)](../tests/e2e/palette.e2e.cjs) | Docking, tabs and saved layouts with reset are not built; the palette is the first part |
 
 ### F3 — Visual Scripting · In progress
 
@@ -98,7 +98,7 @@ Entities, components, AI behaviour trees, events, RPG and automation.
 | HS-030 Entity, animal and prefab studio | Planned | HS-012, HS-028, HS-029 | — |  |
 | HS-031 Combat, abilities and boss phases | Planned | HS-030, HS-014, HS-026 | — |  |
 
-### F5 — World & VFX · Planned
+### F5 — World & VFX · Partially verified
 
 Shader graph over .hshader, particles, physics sandbox, dimensions.  
 **Gate:** A visual effect scales across quality profiles; gameplay damage stays independent.
@@ -108,7 +108,7 @@ Shader graph over .hshader, particles, physics sandbox, dimensions.
 | HS-013 .hshader checker + shader graph | Planned | HS-008 | — |  |
 | HS-015 Physics sandbox with debug overlay | Planned | HS-012 | — |  |
 | HS-016 Dimension and noise editor | Planned | HS-008 | — |  |
-| HS-025 VFX asset model and Studio preview | Planned | HS-005, HS-006 | — |  |
+| HS-025 VFX asset model and Studio preview | Done | HS-005, HS-006 | browser-e2e: [VFX Studio in Chromium: deterministic Impact Spark preview and timeline checked against the core's fixture, Studio-preview label, validation refuses bad values, undo/redo, save and reopen through studio.project/1, the .hmod stays byte-identical, Russian UI, axe (tests/e2e/vfx.e2e.cjs)](../tests/e2e/vfx.e2e.cjs)<br>unit: [studio.vfx/1 validation, seeded closed-form simulation, editor and core agree particle by particle, canonical project round trip, never exported (tests/test_vfx.py, tests/test_vfx_engine.cjs)](../tests/test_vfx.py)<br>docs: [Model, determinism and what Horizon can do with an effect at 3c1d4b39 (no particle stage in .hshader; native_send_particles is server-side and vanilla-only)](../docs/architecture/VFX.md) |  |
 | HS-026 Emitter graph, modules, presets and quality profiles | Planned | HS-025, HS-012 | — |  |
 
 ### F6 — Engine Bridge · Planned

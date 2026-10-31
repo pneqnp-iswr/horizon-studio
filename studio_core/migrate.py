@@ -18,8 +18,10 @@ from studio_core.project_schema import (FORMAT, LEGACY_SCHEMAS, SCHEMA, ProjectF
                                         is_ref, is_uid, legacy_uid, validate_document)
 
 GROUPS = (("blocks", "block"), ("items", "item"), ("recipes", "recipe"), ("structures", "structure"))
+# Edited in the editor but never part of the generator request (HS-025 effects are Studio-only).
+EDITOR_GROUPS = GROUPS + (("effects", "vfx"),)
 METADATA_FIELDS = ("id", "name", "version", "author", "description")
-LEGACY_TOP_LEVEL = {"format", "schema", "metadata", "blocks", "items", "recipes", "structures",
+LEGACY_TOP_LEVEL = {"format", "schema", "metadata", "blocks", "items", "recipes", "structures", "effects",
                     "source_overrides", "carry"}
 DOCUMENT_FIELDS = ("format", "schema", "project", "objects", "source_overrides", "extensions", "provenance", "target")
 
@@ -89,7 +91,7 @@ def _from_legacy(data: dict, provenance: dict) -> dict:
     if not isinstance(mod_id, str):
         raise ProjectFormatError("Missing mod ID")
     groups = {}
-    for group, _ in GROUPS:
+    for group, _ in EDITOR_GROUPS:
         entries = data.get(group, [])
         if entries is None:
             entries = []
@@ -117,7 +119,7 @@ def _from_legacy(data: dict, provenance: dict) -> dict:
 
     content = {}
     objects = []
-    for group, kind in GROUPS:
+    for group, kind in EDITOR_GROUPS:
         for entry in groups[group]:
             props = {key: copy.deepcopy(value) for key, value in entry.items() if key not in ("id", "uid")}
             obj = {"uid": uid_for(entry, kind), "kind": kind, "id": entry["id"], "props": props}
@@ -211,7 +213,9 @@ def to_editor_state(doc) -> dict:
     state = {"metadata": {key: doc["project"][key] for key in METADATA_FIELDS if key in doc["project"]}}
     for group, _ in GROUPS:
         state[group] = []
-    kinds = dict((kind, group) for group, kind in GROUPS)
+    kinds = dict((kind, group) for group, kind in EDITOR_GROUPS)
+    if any(obj["kind"] == "vfx" for obj in doc["objects"]):
+        state["effects"] = []  # only when present, so older editor states stay byte-identical
     preserved = []
 
     def local(value, label):

@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 import re
 
-from studio_core.project_schema import validate_document
+from studio_core.project_schema import STUDIO_ONLY_KINDS, validate_document
 
 REGISTRY = Path(__file__).with_name("engine_profiles.json")
 STATUSES = ("official-static", "engine-only", "unsupported")
@@ -104,6 +104,8 @@ def requirements(doc: dict) -> dict[str, list[str]]:
             need("content.recipe", obj)
         elif kind == "structure":
             need("content.structure_nbt", obj)
+        elif kind in STUDIO_ONLY_KINDS:
+            continue  # kept in the project, never exported; studio_core.vfx reports what an engine would need
         else:
             need(f"kind.{kind}", obj)
     return needs

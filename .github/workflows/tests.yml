@@ -37,7 +37,7 @@ jobs:
         with:
           node-version: '22'
       - name: Execute undo/redo journal and workspace sync tests
-        run: node --test tests/test_editor_history.cjs tests/test_editor_workspace.cjs tests/test_editor_model.cjs tests/test_desktop_bridge.cjs tests/test_workbench_ui.cjs tests/test_roadmap_explorer.cjs
+        run: node --test tests/test_editor_history.cjs tests/test_editor_workspace.cjs tests/test_editor_model.cjs tests/test_desktop_bridge.cjs tests/test_workbench_ui.cjs tests/test_roadmap_explorer.cjs tests/test_vfx_engine.cjs tests/test_command_palette.cjs
 
   browser-e2e:
     name: Browser E2E (Chromium)
