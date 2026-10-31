@@ -22,7 +22,7 @@ test('catalog requires the exact schema and refuses fabricated in-game verificat
 test('summary is localized and truthfully labels project-only checks',()=>{
   const item = {description:'Block template',description_ru:'Шаблон блока',counts:{block:1,item:2}};
   assert.match(starters.summary(item,'en'),/^Block template\nblock × 1 · item × 2\nProject schema validated; not tested in the game\./);
-  assert.match(starters.summary(item,'ru'),/^Шаблон блока\nblock × 1 · item × 2\nПроверено как проект; в игре не испытано\./);
+  assert.match(starters.summary(item,'ru'),/^Шаблон блока\nБлоки × 1 · Предметы × 2\nПроверено как проект; в игре не испытано\./);
 });
 
 test('UI wiring is part of the bundled editor, without external CDN dependencies',()=>{
