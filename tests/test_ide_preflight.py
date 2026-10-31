@@ -53,7 +53,7 @@ class IdePreflightTests(unittest.TestCase):
         found = lambda _ctl: {"ctl": ["/safe/horizon-ctl"], "game": None}
         data = report(locate=found)
         self.assertEqual(data["error"]["code"], "VERSION_UNKNOWN")
-        self.assertEqual(data["checks"]["client_discovered"], "not_checked") if False else None
+        self.assertEqual(data["checks"]["client_discovered"], "failed")
         self.assertEqual(data["status"], "blocked")
 
     def test_discovery_refusal_is_machine_readable(self):
