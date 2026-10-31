@@ -960,6 +960,7 @@
     document.querySelectorAll('[data-i18n-title]').forEach(node => node.setAttribute('title',t(node.dataset.i18nTitle)));
     document.querySelectorAll('.language-switch button').forEach(button => button.setAttribute('aria-pressed',String(button.id==='lang-'+locale)));
     window.HorizonStudioRefreshLanguage?.();
+    window.dispatchEvent(new CustomEvent('horizon:language-changed',{detail:{language:locale}}));
   };
   const select = lang => {
     if (!valid(lang)) return;
