@@ -12,5 +12,10 @@
    "hmod_sha256": "55470c1753978d5315d27d3eef5ab13e816be83aaa757e63e16b7887b47152d4",
    "saved_sha256": "ebd3678f20c673e6217b4473fa698e172d12d73c7e40c851525f9becc9a3d0e6"
   }
+ },
+ "rollback": {
+  "input": "rollback-input-0.8.hstudio.json",
+  "saved_by_0_7": "rollback-saved-by-0.7.hstudio.json",
+  "how": "the v0.7.0 core (c816211) opened a current project with an effect, an engine target, a plugin object, extensions and unknown fields, converted it to its editor state and back, and saved it"
  }
 }

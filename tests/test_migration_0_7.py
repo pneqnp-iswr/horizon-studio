@@ -75,5 +75,18 @@ class FilesFrom07Tests(unittest.TestCase):
                             "the history lives in its own file next to them")
 
 
+    def test_rolling_back_to_0_7_keeps_new_data_opaque_and_intact(self):
+        # The real 0.7 core saved a current project (effect, engine target, plugin object, extensions,
+        # unknown fields) after a full editor round trip; nothing it does not understand was lost.
+        sent = (LEGACY / RECORD["rollback"]["input"]).read_bytes()
+        returned = (LEGACY / RECORD["rollback"]["saved_by_0_7"]).read_bytes()
+        self.assertEqual(returned, sent)
+        doc = upgrade(json.loads(returned))
+        self.assertEqual(dumps(doc).encode("utf-8"), returned)
+        kinds = {o["kind"] for o in doc["objects"]}
+        self.assertTrue({"vfx", "acme.widget"} <= kinds)
+        self.assertIn("target", doc)
+
+
 if __name__ == "__main__":
     unittest.main()

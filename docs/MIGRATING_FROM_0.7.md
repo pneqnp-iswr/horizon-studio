@@ -28,6 +28,45 @@ These are tested against real files written by the v0.7.0 core (`tests/test_migr
 - **New:** the AI Creator (the fixture provider is labelled as simulated; Claude only with your key and consent), and
   VFX Studio emitters. Both are optional.
 
+## Settings, backups and data locations
+
+| What | 0.7 EXE | Desktop app |
+|---|---|---|
+| Projects you saved | wherever you saved them | the same files; open them with *Open project* |
+| Autosaved workspaces | `~/.horizon-studio/workspaces` | the same folder, plus one `*.journal.json` per project holding the undo history |
+| AI settings (offline mode, consent, model) | — | `~/.horizon-studio/ai-settings.json` (no secrets) |
+| API keys | — | only in the system credential store (Windows Credential Manager), never in a file |
+| Language and the last opened project | the browser's storage for `127.0.0.1:8787` | the app window's storage: **not remembered between launches yet** (see limitations) |
+
+- **Backup.** Copy your saved `.hstudio.json` files. To keep the autosaves too, copy `~/.horizon-studio/workspaces`.
+  Each workspace also keeps its previous good version (`*.previous`), which Studio uses automatically if the current
+  one is damaged.
+- **Recovery.** If the app or the computer stops mid-save, the workspace is either the old version or the new one,
+  never a mix. A damaged current copy falls back to the previous one, and the editor says so. A damaged history file
+  is reset; the project is kept.
+
+## Upgrading, parallel installations and rollback
+
+- **Parallel installations.** The 0.7 EXE and the desktop app can be installed and run side by side; see the end of
+  this section.
+- **Upgrading.** Later installers install over this one. Your data lives in `~/.horizon-studio`, not in the program
+  folder or the app's own AppData folders, so uninstalling removes the program but not your projects, workspaces or
+  settings. CI checks that the uninstaller removes the program; it does not yet check that `~/.horizon-studio` is left
+  in place.
+- **Rolling back to 0.7 is safe for your files.** This was tested with the real 0.7.0 code: it opens a project saved by
+  the desktop app (with an effect, an engine target, plugin data and extensions) and saves it back byte for byte. It
+  keeps what it does not understand untouched, but it cannot edit effects. Older releases stay downloadable on the
+  releases page.
+- **File associations.** Not set up: double-clicking a `.hstudio.json` file does not open Studio. Use *Open project*.
+
+## Known limitations
+
+- **Settings between launches.** The desktop app does not yet remember the language and the last opened project
+  between launches, because its core uses a new local port each time. Your project is safe in the disk workspace:
+  open it, or type its mod ID and choose *Restore disk*.
+- **Unsigned.** SmartScreen warns on first launch ([SIGNING.md](SIGNING.md)).
+- **No in-game verification.** Loading Studio mods in the Horizon game has not been verified (HS-002).
+
 ## Steps
 
 1. **In 0.7:** *Save project* to get a `.hstudio.json` backup (recommended, even though the disk workspace moves too).
@@ -77,3 +116,15 @@ Horizon Studio 0.7 был одним исполняемым файлом Windows
 - **Обе версии одновременно — безопасно:** каждая запись проверяет ревизию.
 - **Подпись** указана в примечаниях к выпуску и в манифесте по результатам реальной проверки Authenticode
   ([SIGNING.md](SIGNING.md)).
+- **Данные и резервные копии.**
+  - Проекты, рабочие пространства (`~/.horizon-studio/workspaces`, рядом журналы истории `*.journal.json` и
+    предыдущие версии `*.previous`) и настройки ИИ хранятся вне папки программы.
+  - Удаление программы их не трогает.
+  - Ключи API хранятся только в системном хранилище учётных данных.
+- **Откат на 0.7 безопасен для файлов.** Проверено настоящим кодом 0.7.0: он открывает проект настольной версии (с
+  эффектом, целевым движком и данными плагинов) и сохраняет его байт в байт. Непонятное он не трогает, но эффекты
+  редактировать не может.
+- **Ассоциации файлов** не настроены: открывайте проекты через *Открыть проект*.
+- **Ограничение.** Язык и последний открытый проект пока не запоминаются между запусками настольной версии: её ядро
+  каждый раз получает новый локальный порт. Проект при этом сохранён на диске: откройте его или введите ID мода и
+  выберите *Восстановить с диска*.
