@@ -18,9 +18,24 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 // Every driver started, so a scenario that times out cannot leave one running (and keep Node alive).
 const drivers = new Set();
 
+/** Stops a process and everything it started, and lets go of its pipes so Node can exit. */
+function stop(child) {
+  if (child.exitCode === null && child.signalCode === null) {
+    try {
+      if (process.platform === 'win32') execFile('taskkill', ['/PID', String(child.pid), '/T', '/F'], () => {});
+      else process.kill(-child.pid, 'SIGTERM');  // the whole group: driver, WebKitWebDriver, the app
+    } catch (_) {
+      try { child.kill(); } catch (_) { /* already gone */ }
+    }
+  }
+  child.stdout?.destroy();
+  child.stderr?.destroy();
+  child.unref();
+}
+
 function stopAll() {
   for (const child of drivers) {
-    if (child.exitCode === null) child.kill();
+    stop(child);
     drivers.delete(child);
   }
 }
@@ -98,8 +113,8 @@ async function launchWebView2({ app, env, args, nativeDriver }) {
     });
     return new Window(port, session.sessionId, driver, () => log, program);
   } catch (error) {
-    driver.kill();
-    program.kill();
+    stop(driver);
+    stop(program);
     throw new Error(`${error.message}\n${log}`);
   }
 }
@@ -111,7 +126,8 @@ async function launch({ app, env = {}, args = [], driver = process.env.TAURI_DRI
   const nativePort = await freePort();
   const driverArgs = ['--port', String(port), '--native-port', String(nativePort)];
   if (nativeDriver) driverArgs.push('--native-driver', nativeDriver);
-  const child = spawn(driver, driverArgs, { env: { ...process.env, ...env }, stdio: ['ignore', 'pipe', 'pipe'] });
+  // Its own process group, so stopping it also stops WebKitWebDriver and the app it started.
+  const child = spawn(driver, driverArgs, { env: { ...process.env, ...env }, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
   drivers.add(child);
   child.once('exit', () => drivers.delete(child));
   let log = '';
@@ -121,7 +137,7 @@ async function launch({ app, env = {}, args = [], driver = process.env.TAURI_DRI
   for (;;) {
     try { await request(port, 'GET', '/status'); break; } catch (error) {
       if (Date.now() > deadline || child.exitCode !== null) {
-        child.kill();
+        stop(child);
         throw new Error(`tauri-driver did not start: ${log}`);
       }
       await sleep(200);
@@ -133,7 +149,7 @@ async function launch({ app, env = {}, args = [], driver = process.env.TAURI_DRI
       capabilities: { alwaysMatch: { 'tauri:options': { application: app, args } } },
     });
   } catch (error) {
-    child.kill();
+    stop(child);
     throw new Error(`${error.message}\n${log}`);
   }
   return new Window(port, session.sessionId, child, () => log);
@@ -192,9 +208,10 @@ class Window {
     }
     if (this.child.exitCode === null) {
       const exited = new Promise(resolve => this.child.once('exit', resolve));
-      this.child.kill();
+      stop(this.child);
       await Promise.race([exited, sleep(5000)]);
     }
+    stop(this.child);
   }
 }
 
