@@ -1,8 +1,34 @@
 # Changelog
 
-## Unreleased — Desktop transformation, slice A
+## 0.8.0 — Desktop Studio (2026-10-31)
 
-Not in a published release yet; the verified 0.7.0 EXE is unchanged.
+The first desktop release, published as an unsigned prerelease; the classic launcher is still included.
+
+- HS-020 (done): the core owns each project's revision, history and audit trail. Edits, undo, redo and approved AI
+  proposals are typed operations run by one executor, proven byte for byte before they are saved, and recorded in a
+  journal on disk ([TRANSACTIONS.md](docs/architecture/TRANSACTIONS.md), ADR 0003).
+- AI Creator panel: structured requests, the exact context, per-field diffs, apply/reject, cancel, history. The
+  fixture provider is labelled simulated. `create_vfx_asset` makes effects through the same transactions.
+- HS-021 (in progress): provider interface, offline mode, consent, OS credential store, minimal context, and a Claude
+  provider on the official SDK. It has not been exercised against the live API.
+- HS-026 slice: multi-emitter VFX editing with keyframed curves, budgets, a cross-runtime fixture and measured preview
+  cost.
+- PB-001: Preview Bridge content evidence follows the real inventory schema, never a substring.
+- Security review 2:
+  - the core's processes are owned by the shell (Job Object, process group);
+  - `script-src 'self'`, and DOM sinks escaped;
+  - a link allowlist, a private log and a 3-second exit.
+- HS-019: the release workflow builds, gates, publishes and verifies the installer and portable ZIP with the classic
+  EXE. There is a signing policy (docs/SIGNING.md) and a migration guide tested on real 0.7.0 files.
+- The core keeps the language and the last project (`prefs.json`). The desktop window, whose page storage starts empty
+  at every launch, and a fresh browser reopen them. A change made in another window is noticed when you return to
+  this one.
+- Fixed: the core's listen backlog was socketserver's default of 5, less than the six connections a page load opens
+  at once. Windows refused the extra one, so a script could fail to load and the desktop editor started without its
+  bridge (the intermittent desktop E2E timeouts). It is now 128, with a regression test; the desktop E2E reports why
+  a window never became ready and reloads the window twelve times.
+
+### Earlier in this cycle (desktop transformation, slice A)
 
 - HS-023 Preview Bridge (partial): `studio_core/preview_bridge.py` and `horizon_cli.py preview` drive upstream's `horizon-ctl` to start an already-installed Horizon client with the project as a development mod in an isolated folder and test world, after a Launch API check and the person's approval; they take a screenshot and the state, ask the game to confirm the project's items, always end the session and write evidence that never treats a screenshot as proof of loading. Tested against stand-ins; no real client has been driven yet ([PREVIEW_BRIDGE.md](docs/architecture/PREVIEW_BRIDGE.md)).
 - HS-033 (partial): a command palette (Ctrl+K, or the search button on the rail) with every top-bar and rail command, translated labels taken from the controls themselves, prefix/word/fuzzy ranking in English and Russian, keyboard navigation and focus return; it runs the real control, so it behaves exactly like the UI.

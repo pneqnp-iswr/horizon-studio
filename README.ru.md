@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="version" src="https://img.shields.io/badge/version-0.7.0-blue" />
+  <img alt="version" src="https://img.shields.io/badge/version-0.8.0-blue" />
   <img alt="status" src="https://img.shields.io/badge/status-alpha-orange" />
   <img alt="tests" src="https://github.com/pneqnp-iswr/horizon-studio/actions/workflows/tests.yml/badge.svg" />
   <img alt="official check" src="https://github.com/pneqnp-iswr/horizon-studio/actions/workflows/official-content-check.yml/badge.svg" />
@@ -47,7 +47,7 @@ SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9` · с
   <img src="assets/roadmap/current-phase.svg" alt="Текущая фаза: F3 Visual Scripting. Реестр возможностей движка HS-008 в работе; HS-010 и HS-012 запланированы." width="100%" />
 </p>
 
-- **В разработке:** Версия **0.7 — Project Core** (`VERSION` в `master`). Панель выше показывает новейший релиз, чей EXE проверен через GitHub API; версия считается выпущенной только после этого.
+- **В разработке:** Версия **0.8 — Настольная студия** (`VERSION` в `master`). Панель выше показывает новейший релиз, чей EXE проверен через GitHub API; версия считается выпущенной только после этого.
 - **Доказано:** примеры модов проходят официальный `cargo-horizon-mod check`, собранный из закреплённой ревизии Horizon, — в CI и локально.
 - **Доказано в браузере:** сценарии редактора, рабочей области и дорожной карты выполняются в Chromium на каждом pull request (Ubuntu CI), включая автосохранение, восстановление, конфликты ревизий, байты экспортируемого пакета и аудит доступности ([текущий список](docs/BROWSER_E2E.md#current-inventory)).
 - **Ещё не доказано:** загрузка мода Studio в запущенной игре и любое игровое поведение.
