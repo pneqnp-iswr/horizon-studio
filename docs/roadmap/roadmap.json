@@ -958,7 +958,8 @@
       "acceptance": [
         "Never touches personal worlds or accounts",
         "Timeouts and cancellation leave no running game",
-        "A screenshot alone is never recorded as proof that a mod loaded"
+        "A screenshot alone is never recorded as proof that a mod loaded",
+        "game-load needs package items confirmed in real inventory slots; lying, ambiguous or malformed replies never count"
       ],
       "engine_requirements": [
         "game.agent_control"
@@ -969,6 +970,11 @@
         {
           "level": "unit",
           "ref": "Against stand-ins for horizon-ctl and horizon-client: Launch API check, approval, isolated game and home folders, --dev-mod package, screenshot, state, content confirmed by the game, safe end on every failure, evidence levels (tests/test_preview_bridge.py)",
+          "url": "tests/test_preview_bridge.py"
+        },
+        {
+          "level": "unit",
+          "ref": "PB-001 strict content check against the upstream inventory schema (3c1d4b39): only package-defined ids, a control id the game must refuse, an exact +1 in real slots with counts cross-checked, polling for the server's update; lying, ambiguous and malformed stand-ins (give succeeding with nothing added, ids in components, prefixed ids, wrong quantities, 8-slot hotbars, duplicate slots, mismatched counts, list replies, any-id games) never reach game-load; evidence bound to package, build and session; ownership-checked process stop (tests/test_preview_bridge.py)",
           "url": "tests/test_preview_bridge.py"
         },
         {
