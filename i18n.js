@@ -3,6 +3,13 @@
   'use strict';
   const catalog = {
   "en": {
+    "ideStarterTitle": "Starter projects",
+    "ideStarterLoading": "Loading built-in templates…",
+    "ideStarterUse": "Use this starter",
+    "ideStarterNotReady": "Select a starter project.",
+    "ideStarterConfirm": "Replace the current editor project with this starter? The starter will use its example project ID. Save or export any work you want to keep first.",
+    "ideStarterLoaded": "Starter project loaded. Edit and save it as your own.",
+    "ideStarterError": "Could not load a starter"
     "engineTargetLabel": "Build for",
     "engineDefaultOption": "Studio default — {label}",
     "engineUnknownOption": "Unknown revision {revision} (kept as saved)",
@@ -466,6 +473,13 @@
     "doctor_GAME_CHECK_REQUIRED": "Run official cargo horizon-mod check and test the mod in Horizon."
   },
   "ru": {
+    "ideStarterTitle": "Готовые проекты",
+    "ideStarterLoading": "Загрузка встроенных шаблонов…",
+    "ideStarterUse": "Создать из шаблона",
+    "ideStarterNotReady": "Выберите готовый проект.",
+    "ideStarterConfirm": "Заменить текущий проект в редакторе шаблоном? Используется ID примера. Сначала сохраните или экспортируйте нужные изменения.",
+    "ideStarterLoaded": "Проект из шаблона загружен. Отредактируйте и сохраните.",
+    "ideStarterError": "Не удалось загрузить шаблон"
     "engineTargetLabel": "Собирать для",
     "engineDefaultOption": "По умолчанию в Studio — {label}",
     "engineUnknownOption": "Неизвестная ревизия {revision} (сохранена как есть)",
