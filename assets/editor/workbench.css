@@ -385,3 +385,9 @@ body:not([data-tab=structure]) #structureCanvas{display:none}
 .vfx-track{position:relative;flex:1;display:flex;align-items:center}.vfx-track input{flex:1}
 .vfx-marks{position:absolute;left:8px;right:8px;bottom:-4px;height:6px;pointer-events:none}
 .vfx-marks i{position:absolute;width:2px;height:6px;background:var(--gold2);transform:translateX(-1px)}
+
+/* IDE-003 built-in starters: readable descriptions without layout shift. */
+.ide-starter-description{margin:0;white-space:pre-line;min-height:3.3em;line-height:1.5;
+  color:var(--muted);font-size:11px;overflow-wrap:anywhere}
+#ideTemplate{width:100%;min-width:0}
+#ideUseStarter:disabled{cursor:not-allowed;opacity:.6}
