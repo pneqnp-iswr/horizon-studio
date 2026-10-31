@@ -9,7 +9,7 @@ pub const DESCRIPTION: &str =
     "Original pixel-art emoji HUD proof. /pixelchat toggles; multiplayer GIF is not supported.";
 pub const BACKGROUND: u32 = 0xB0_10_19_2B;
 pub const WHITE: u32 = 0xFF_EC_F4_FF;
-pub const COLORS: [u32; 4] = [0xFF_FF_75_9C, 0xFF_FF_E1_80, 0xFF_80_E7_C0, 0xFF_8D_BB_FF];
+pub const COLORS: [u32; 4] = [0xFF_FF_72_9C, 0xFF_FF_E3_81, 0xFF_80_E7_C0, 0xFF_8D_BB_FF];
 pub const NAMES: [&str; 4] = ["heart", "star", "smile", "spark"];
 
 // Five 5-bit rows; bit 4 is the leftmost pixel.
