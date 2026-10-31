@@ -111,14 +111,14 @@ Shader graph over .hshader, particles, physics sandbox, dimensions.
 | HS-025 VFX asset model and Studio preview | Done | HS-005, HS-006 | browser-e2e: [VFX Studio in Chromium: deterministic Impact Spark preview and timeline checked against the core's fixture, Studio-preview label, validation refuses bad values, undo/redo, save and reopen through studio.project/1, the .hmod stays byte-identical, Russian UI, axe (tests/e2e/vfx.e2e.cjs)](../tests/e2e/vfx.e2e.cjs)<br>unit: [studio.vfx/1 validation, seeded closed-form simulation, editor and core agree particle by particle, canonical project round trip, never exported (tests/test_vfx.py, tests/test_vfx_engine.cjs)](../tests/test_vfx.py)<br>docs: [Model, determinism and what Horizon can do with an effect at 3c1d4b39 (no particle stage in .hshader; native_send_particles is server-side and vanilla-only)](../docs/architecture/VFX.md) |  |
 | HS-026 Emitter graph, modules, presets and quality profiles | Planned | HS-025, HS-012 | — |  |
 
-### F6 — Engine Bridge · Planned
+### F6 — Engine Bridge · Partially verified
 
 Upstream-accepted engine capabilities: entities, server events, worldgen, physics, rendering.  
 **Gate:** Real engine integration matrix with no undocumented patches.
 
 | Milestone | Status | Depends on | Evidence | Notes |
 |---|---|---|---|---|
-| HS-023 Horizon Preview Bridge | Planned | HS-001, HS-008 | — |  |
+| HS-023 Horizon Preview Bridge | Partially verified | HS-001, HS-008 | unit: [Against stand-ins for horizon-ctl and horizon-client: Launch API check, approval, isolated game and home folders, --dev-mod package, screenshot, state, content confirmed by the game, safe end on every failure, evidence levels (tests/test_preview_bridge.py)](../tests/test_preview_bridge.py)<br>docs: [Session steps mapped to horizon-ctl at 3c1d4b39; what the evidence may claim; no real client driven yet](../docs/architecture/PREVIEW_BRIDGE.md) | No real Horizon client driven yet: needs an authorized installation (the same blocker as HS-002), so game-load is not reached |
 | HS-027 VFX engine backends | Planned | HS-025, HS-013, HS-010, HS-008 | — |  |
 | HS-032 Engine contracts for entities, worlds and physics | Planned | HS-010, HS-008 | — |  |
 

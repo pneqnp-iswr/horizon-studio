@@ -922,7 +922,7 @@
       "id": "HS-023",
       "track": "studio",
       "phase": "F6",
-      "status": "planned",
+      "status": "partial",
       "depends_on": [
         "HS-001",
         "HS-008"
@@ -942,8 +942,20 @@
         "game.agent_control"
       ],
       "validation_target": "game-load",
-      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
-      "evidence": []
+      "design_ref": "docs/architecture/PREVIEW_BRIDGE.md",
+      "evidence": [
+        {
+          "level": "unit",
+          "ref": "Against stand-ins for horizon-ctl and horizon-client: Launch API check, approval, isolated game and home folders, --dev-mod package, screenshot, state, content confirmed by the game, safe end on every failure, evidence levels (tests/test_preview_bridge.py)",
+          "url": "tests/test_preview_bridge.py"
+        },
+        {
+          "level": "docs",
+          "ref": "Session steps mapped to horizon-ctl at 3c1d4b39; what the evidence may claim; no real client driven yet",
+          "url": "docs/architecture/PREVIEW_BRIDGE.md"
+        }
+      ],
+      "missing": "No real Horizon client driven yet: needs an authorized installation (the same blocker as HS-002), so game-load is not reached"
     },
     {
       "id": "HS-027",
