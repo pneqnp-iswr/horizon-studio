@@ -458,6 +458,9 @@ class HttpTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         self.server.studio_workspaces = WorkspaceStore(Path(self.tmp.name))
+        from studio_core.credentials import MemoryStore
+        from studio_core.providers import Providers, Settings
+        self.server.studio_providers = Providers(Settings(Path(self.tmp.name) / "ai.json"), MemoryStore())
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
 
@@ -519,8 +522,11 @@ class HttpTests(unittest.TestCase):
         for body, code in (({"project_id": "../evil"}, 400), ({"project_id": "ruby_demo", "proposal_id": "nope"}, 404)):
             self.assertEqual(self.post("/api/ai/reject", body)[0], code)
         status, refused = self.post("/api/ai/propose", {"project_id": "ruby_demo", "base_revision": wrote["revision"],
-                                                        "provider": "claude", "request": {}})
-        self.assertEqual((status, refused["code"]), (400, "UNKNOWN_PROVIDER"), "no live provider is wired in yet")
+                                                        "provider": "claude", "request": {"text": "Add a gem"}})
+        self.assertEqual((status, refused["code"]), (400, "CONSENT_REQUIRED"), "nothing leaves without consent")
+        status, unknown = self.post("/api/ai/propose", {"project_id": "ruby_demo", "base_revision": wrote["revision"],
+                                                        "provider": "somebody", "request": {}})
+        self.assertEqual((status, unknown["code"]), (400, "UNKNOWN_PROVIDER"))
 
 
 if __name__ == "__main__":

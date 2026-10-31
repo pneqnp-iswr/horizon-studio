@@ -207,9 +207,20 @@
   <div class="source-head"><div><h2 id="aiHeading" data-i18n="aiTitle">AI Creator</h2><p data-i18n="aiIntro">Ask for a change, review exactly what it does, then apply it as one step you can undo.</p></div><span id="aiProviderBadge" class="vfx-badge ai-badge" data-i18n="aiSimulatedBadge">Simulated · fixture provider</span><button id="closeAi" type="button" data-i18n="close">Close</button></div>
   <div class="ai-main">
     <form id="aiRequest" class="ai-request">
-      <label><span data-i18n="aiProvider">Provider</span><select id="aiProvider"><option value="fixture" data-i18n="aiProviderFixture">Fixture — simulated, offline</option></select></label>
-      <p class="ai-note" data-i18n="aiProviderNote">No live model is connected in this build. The fixture provider turns the structured requests below into operations; it does not read free text, and nothing leaves this computer.</p>
-      <label><span data-i18n="aiIntent">Request</span><select id="aiIntent"><option value="material_set" data-i18n="aiIntent_material_set">Add a material set</option><option value="update" data-i18n="aiIntent_update">Change a block or item</option><option value="impact_effect" data-i18n="aiIntent_impact_effect">Add an Impact Spark effect</option></select></label>
+      <label><span data-i18n="aiProvider">Provider</span><select id="aiProvider"><option value="fixture" data-i18n="aiProviderFixture">Fixture — simulated, offline</option><option value="claude" data-i18n="aiProviderClaude">Claude (Anthropic) — sends a project summary</option></select></label>
+      <p id="aiProviderNote" class="ai-note" data-i18n="aiProviderNote">No live model is connected in this build. The fixture provider turns the structured requests below into operations; it does not read free text, and nothing leaves this computer.</p>
+      <fieldset id="aiRemote" class="ai-fields" hidden>
+        <legend data-i18n="aiRemoteSettings">Claude settings</legend>
+        <ul id="aiRemoteStatus" class="ai-plan" aria-live="polite"></ul>
+        <label><span data-i18n="aiModel">Model</span><select id="aiModel"></select></label>
+        <label><span data-i18n="aiEffort">Effort</span><select id="aiEffort"><option value="low">low</option><option value="medium">medium</option><option value="high">high</option></select></label>
+        <label><span data-i18n="aiKey">Anthropic API key</span><input id="aiKey" type="password" autocomplete="off" spellcheck="false" maxlength="512"/></label>
+        <div class="toolbar"><button id="aiSaveKey" type="button" data-i18n="aiSaveKey">Store in the system credential store</button><button id="aiForgetKey" type="button" class="danger ghost" data-i18n="aiForgetKey">Forget key</button></div>
+        <label class="check-row"><input id="aiConsent" type="checkbox"/><span data-i18n="aiConsentLabel">Allow sending what is shown under “What the provider receives” to Anthropic</span></label>
+        <label class="check-row"><input id="aiOffline" type="checkbox"/><span data-i18n="aiOfflineLabel">Offline mode: never send project data anywhere</span></label>
+      </fieldset>
+      <div id="aiFields_text" class="ai-fields" hidden><label><span data-i18n="aiText">Describe the change</span><textarea id="aiText" rows="3" maxlength="2000"></textarea></label></div>
+      <label id="aiIntentLabel"><span data-i18n="aiIntent">Request</span><select id="aiIntent"><option value="material_set" data-i18n="aiIntent_material_set">Add a material set</option><option value="update" data-i18n="aiIntent_update">Change a block or item</option><option value="impact_effect" data-i18n="aiIntent_impact_effect">Add an Impact Spark effect</option></select></label>
       <div id="aiFields_material_set" class="ai-fields">
         <label><span data-i18n="aiMaterial">Material ID</span><input id="aiMaterial" value="topaz" maxlength="48" spellcheck="false" autocomplete="off"/></label>
         <label><span data-i18n="aiMaterialName">Name</span><input id="aiMaterialName" value="Topaz" maxlength="60"/></label>
@@ -232,6 +243,7 @@
     <div class="ai-review" aria-live="polite">
       <h3 data-i18n="aiProposal">Proposal</h3>
       <p id="aiSummary" class="ai-summary"></p>
+      <p id="aiUsage" class="ai-note" hidden></p>
       <ol id="aiPlan" class="ai-plan" aria-label="Operations" data-i18n-aria-label="aiOperations"></ol>
       <div id="aiDiff" class="ai-diff"></div>
       <ul id="aiDiagnostics" class="vfx-diagnostics" aria-label="Validation" data-i18n-aria-label="aiValidation"></ul>

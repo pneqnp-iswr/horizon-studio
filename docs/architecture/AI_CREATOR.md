@@ -99,15 +99,43 @@ Tests:
 - `tests/test_transactions.py` covers `create_vfx_asset`: preview, accept, undo, redo, a manual edit, a restart,
   deterministic particles, and the unchanged package.
 
-## Providers and privacy (HS-021, planned)
+## Providers and privacy (HS-021, in progress)
 
-- One interface, `propose(request, context) -> operations`. `FixtureProvider` is the deterministic reference used in
-  tests and the CLI; live providers (Claude first, then other compatible APIs, optional local inference) live in their
-  own module and never touch the project model directly.
-- API keys go to the operating system's credential store, never into project files, workspace snapshots or Git.
-- No project data leaves the machine without an explicit, per-provider authorization; an offline mode disables every
-  network provider and Studio stays fully usable.
-- Model choice is per project and per request; the audit log records the provider and model name.
+`studio_core/providers.py` and `studio_core/credentials.py`. One interface for every provider:
+`propose(request, context) -> operations`. Model output is untrusted input; the executor validates every operation.
+
+| | Fixture | Claude (Anthropic) |
+|---|---|---|
+| Where it runs | in the core, offline | Anthropic's Messages API, through the official `anthropic` SDK (optional dependency: without it the provider says so) |
+| Request | structured intents | free text, up to 2,000 characters |
+| Tools offered | — | exactly `create_asset`, `update_asset`, `delete_asset`, `create_vfx_asset`: no shell, files, network, export, build or approvals |
+| Gates before anything is sent | none needed | offline mode off, the person's consent recorded with what it covers, a key in the OS credential store; one request at a time |
+| Call | in process | streamed, cancellable between events (`/api/ai/cancel`); timeout 120 s; the SDK's retries (2) for 429, 5xx and connection errors; server-side refusal fallback enabled (`fallbacks: "default"`) |
+| Reported | — | tokens in and out, and an estimated cost at list price for the model that actually answered |
+| Verified | browser E2E | unit tests against a stand-in SDK client; **never exercised against the live API in this repository** |
+
+- **What a remote model receives** (`minimal_context`, shown verbatim in the panel before consent via `/api/ai/payload`):
+  - the project's id, name and version, and the engine target;
+  - counts per kind (plugin kinds are counted as "other", not named);
+  - up to 200 assets as `kind:id` with a few scalar properties (name, template, rarity, hardness, light, type, count…);
+  - the request text.
+
+  Never sent: textures, source overrides, extensions, provenance, plugin objects, effect curves, file paths, keys.
+- **Credentials.** Keys are stored by the operating system only:
+  - Windows: Credential Manager;
+  - Linux: the Secret Service through `secret-tool`, with the key on stdin;
+  - anywhere: `keyring` if installed.
+
+  Without such a store, Studio refuses to save a key rather than write a file. The editor sends a key once, to
+  `/api/ai/credentials`, clears the field, and only ever learns whether a key is stored. Tests check that the key never
+  appears in any file Studio writes, any response, the page or browser storage.
+- **Consent and offline mode** are kept in `~/.horizon-studio/ai-settings.json` (no secrets). Offline mode switches off
+  every remote provider.
+- **Models:** `claude-opus-5-5` (default), `claude-sonnet-5-5`, `claude-haiku-5-5`, `claude-fable-5-1`; effort
+  low/medium/high.
+- **Not built yet:** OpenAI-compatible APIs and local inference servers; token-level progress in the panel (the call
+  is streamed and cancellable, but the panel shows only "asking"); a live smoke test with a real key, which needs the
+  owner's key and explicit approval.
 
 ## Using it today
 

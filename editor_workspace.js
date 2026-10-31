@@ -165,11 +165,12 @@
     }
 
     // -- AI proposals: the core plans and validates; a person approves or rejects. -------------
-    async function propose(request,provider='fixture'){
+    async function propose(request,provider='fixture',requestId=null){
       await queue;
       if(disk.mode!=='ready'||disk.revision===null)
         throw new TransactionError('The project is not attached to a workspace','DETACHED');
-      const r=await call('/api/ai/propose',{project_id:disk.id,base_revision:disk.revision,provider,request});
+      const r=await call('/api/ai/propose',{project_id:disk.id,base_revision:disk.revision,provider,request,
+        ...(requestId?{request_id:requestId}:{})});
       if(isConflict(r)){conflict();throw failure(r);}
       if(!r.ok)throw failure(r);
       return r.data;

@@ -195,11 +195,13 @@ def _summary(changes: dict) -> str:
 class ProjectService:
     """Transactions for the projects in one workspace folder. Thread-safe within a process."""
 
-    def __init__(self, store: WorkspaceStore, *, clock=time.time, providers: dict | None = None):
+    def __init__(self, store: WorkspaceStore, *, clock=time.time, providers: dict | None = None, registry=None):
         self.store = store
         self.clock = clock
         self.providers = dict(PROVIDERS if providers is None else providers)
+        self.registry = registry  # studio_core.providers.Providers: remote providers, consent, offline mode
         self.proposals: dict[str, dict] = {}
+        self.cancels: dict[str, threading.Event] = {}
         self._lock = threading.RLock()
 
     # -- the journal ---------------------------------------------------------------
@@ -422,14 +424,33 @@ class ProjectService:
         for key in [k for k, p in self.proposals.items() if now - p["created_at"] > PROPOSAL_TTL]:
             del self.proposals[key]
 
-    def propose(self, project_id: str, request: dict, *, provider: str = "fixture", base_revision: str,
-                actor: str | None = None) -> dict:
-        """Ask a provider for operations on the stored project; returns a proposal to review."""
-        if provider not in self.providers:
+    def cancel(self, request_id: str) -> bool:
+        """Stops a provider call that is still running (between streamed events)."""
+        event = self.cancels.get(request_id)
+        if event is not None:
+            event.set()
+        return event is not None
+
+    def _source(self, provider: str, cancel: threading.Event):
+        if provider in self.providers:
+            return self.providers[provider]()
+        if self.registry is None:
             raise TransactionError("UNKNOWN_PROVIDER", f"No provider {provider!r} is configured")
+        try:
+            return self.registry.create(provider, cancel)
+        except ToolError as exc:
+            raise TransactionError(exc.code, str(exc)) from exc
+
+    def propose(self, project_id: str, request: dict, *, provider: str = "fixture", base_revision: str,
+                actor: str | None = None, request_id: str | None = None) -> dict:
+        """Ask a provider for operations on the stored project; returns a proposal to review.
+
+        A remote provider runs outside the lock (it can take a while); the result is checked against
+        the revision again before it becomes a proposal."""
         if not isinstance(request, dict):
             raise TransactionError("BAD_REQUEST", "request must be an object")
-        source = self.providers[provider]()
+        cancel = threading.Event()
+        source = self._source(provider, cancel)
         actor = actor or f"ai:{source.name}"
         with self._lock:
             self._expire()
@@ -437,23 +458,40 @@ class ProjectService:
             if base_revision != journal["revision"]:
                 raise TransactionError("REVISION_CONFLICT", "The project changed since this editor read it",
                                        revision=journal["revision"])
-            session = Session(current)
-            try:
-                proposal = run_request(session, source, request, actor=actor)
-            except ToolError as exc:
+        if request_id:
+            self.cancels[request_id] = cancel
+        session = Session(current)
+        try:
+            proposal = run_request(session, source, request, actor=actor)
+        except ToolError as exc:
+            with self._lock:
+                current, journal, _note, _backup = self._current(project_id)
                 self._audit(journal, actor, "proposal_refused", code=exc.code)
                 self._save_journal(journal)
-                raise TransactionError(exc.code, str(exc), exc.diagnostics) from exc
+            raise TransactionError(exc.code, str(exc), exc.diagnostics) from exc
+        finally:
+            if request_id:
+                self.cancels.pop(request_id, None)
+        with self._lock:
+            current, journal, _note, _backup = self._current(project_id)
+            if journal["revision"] != proposal.base_revision:
+                self._audit(journal, actor, "proposal_refused", code="STALE_PROPOSAL")
+                self._save_journal(journal)
+                raise TransactionError("STALE_PROPOSAL", "The project changed while the provider was answering; "
+                                                         "ask again", revision=journal["revision"])
             if len(self.proposals) >= MAX_PROPOSALS:
                 oldest = min(self.proposals, key=lambda k: self.proposals[k]["created_at"])
                 del self.proposals[oldest]
             key = uuid.uuid4().hex
+            usage = getattr(source, "usage", None)
             self.proposals[key] = {"project_id": project_id, "actor": actor, "provider": source.name,
+                                   "remote": bool(getattr(source, "remote", False)), "usage": usage,
                                    "base_revision": journal["revision"], "document": proposal.document,
                                    "operations": proposal.operations, "changes": proposal.changes,
                                    "diagnostics": proposal.diagnostics, "created_at": self.clock(),
                                    "request": copy.deepcopy(request)}
-            self._audit(journal, actor, "proposed", proposal=key, operations=len(proposal.operations))
+            self._audit(journal, actor, "proposed", proposal=key, operations=len(proposal.operations),
+                        **({"usage": usage} if usage else {}))
             self._save_journal(journal)
             return self.proposal_view(key, current)
 
@@ -461,7 +499,8 @@ class ProjectService:
         p = self.proposals[key]
         before = current if current is not None else self._current(p["project_id"])[0]
         return {"id": key, "project_id": p["project_id"], "actor": p["actor"], "provider": p["provider"],
-                "simulated": p["provider"] == "fixture", "base_revision": p["base_revision"],
+                "simulated": p["provider"] == "fixture", "remote": p.get("remote", False), "usage": p.get("usage"),
+                "base_revision": p["base_revision"],
                 "result_revision": revision(p["document"]), "operations": copy.deepcopy(p["operations"]),
                 "summary": _summary(p["changes"]), "changes": copy.deepcopy(p["changes"]),
                 "diagnostics": copy.deepcopy(p["diagnostics"]), "diff": describe(before, p["document"]),

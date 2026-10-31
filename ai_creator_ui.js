@@ -41,13 +41,63 @@
   }
 
   /**
-   * ctx: {t, sync (the editor's transaction client), snapshot() -> editor state, status(text,error),
-   *       undo(), assets() -> [{kind,id,name}]}
+   * ctx: {t, sync (the editor's transaction client), post(path, body) -> Response, snapshot() -> editor
+   *       state, status(text,error), undo(), assets() -> [{kind,id,name}]}
    */
   function mount(ctx){
     const $=id=>document.getElementById(id);
     const t=(key,values)=>ctx.t(key,values);
-    const ui={proposal:null,asking:0,cancelled:new Set(),applied:null};
+    const ui={proposal:null,asking:0,cancelled:new Set(),applied:null,remote:null,requestId:null};
+    const provider=()=>$('aiProvider').value;
+    const remote=()=>provider()!=='fixture';
+
+    async function call(path,body){
+      const response=await ctx.post(path,JSON.stringify(body));
+      let data={};try{data=await response.json();}catch(error){data={};}
+      if(!response.ok){const error=new Error(data.error||'Request failed');error.code=data.code;throw error;}
+      return data;
+    }
+    /** Claude's state, as the core reports it: never the key, only whether one is stored. */
+    async function loadRemote(){
+      try{ui.remote=await call('/api/ai/providers',{});}catch(error){ui.remote=null;setError(error.message);}
+      renderRemote();
+    }
+    function renderRemote(){
+      const on=remote();
+      $('aiRemote').hidden=!on;$('aiFields_text').hidden=!on;$('aiIntentLabel').hidden=on;
+      for(const name of ['material_set','update','impact_effect'])if(on)$('aiFields_'+name).hidden=true;
+      if(!on)showFields();
+      $('aiProviderBadge').textContent=t(on?'aiRemoteBadge':'aiSimulatedBadge');
+      $('aiProviderNote').textContent=t(on?'aiRemoteNote':'aiProviderNote');
+      const status=ui.remote,claude=status&&status.providers.find(p=>p.id==='claude');
+      if(!on||!claude)return;
+      const line=(ok,key,values)=>`<li class="ai-step ${ok?'done':'redo'}">${esc(ok?'✓':'✗')} ${esc(t(key,values))}</li>`;
+      $('aiRemoteStatus').innerHTML=[line(claude.sdk,claude.sdk?'aiSdkPresent':'aiSdkMissing'),
+        line(claude.key_stored,claude.key_stored?'aiKeyStored':'aiKeyMissing',{store:status.store||t('aiNoStore')}),
+        line(Boolean(claude.consent),claude.consent?'aiConsentGiven':'aiConsentMissing'),
+        line(!status.offline,status.offline?'aiOfflineOn':'aiOfflineOff'),
+        line(claude.exercised_live,'aiNotExercised')].join('');
+      $('aiModel').innerHTML=claude.models.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');
+      $('aiModel').value=claude.model;$('aiEffort').value=claude.effort;
+      $('aiConsent').checked=Boolean(claude.consent);$('aiOffline').checked=status.offline;
+      $('aiSaveKey').disabled=!status.store;$('aiForgetKey').disabled=!claude.key_stored;
+    }
+    async function settings(body){
+      try{ui.remote=await call('/api/ai/settings',body);setError('');}catch(error){setError(explain(error));}
+      renderRemote();context();
+    }
+    async function saveKey(){
+      const key=$('aiKey').value;$('aiKey').value='';  // the field never keeps it
+      if(!key.trim())return;
+      try{await call('/api/ai/credentials',{name:'anthropic',key});ctx.status(t('aiKeySaved'));setError('');}
+      catch(error){setError(explain(error));}
+      await loadRemote();
+    }
+    async function forgetKey(){
+      try{await call('/api/ai/credentials',{name:'anthropic',key:null});ctx.status(t('aiKeyForgotten'));}
+      catch(error){setError(explain(error));}
+      await loadRemote();
+    }
 
     function setError(message){$('aiError').hidden=!message;$('aiError').textContent=message||'';}
     function busy(on){
@@ -64,6 +114,7 @@
       if([...$('aiAsset').options].some(o=>o.value===current))$('aiAsset').value=current;
     }
     function request(){
+      if(remote())return {text:$('aiText').value.trim()};
       if(intent()==='material_set'){
         return {intent:'material_set',material:$('aiMaterial').value.trim(),name:$('aiMaterialName').value.trim()||undefined,
           rarity:$('aiRarity').value};
@@ -77,8 +128,16 @@
       return {intent:'impact_effect',id:$('aiEffectId').value.trim(),name:$('aiEffectName').value.trim()||undefined,
         ...(seed?{seed:Number(seed)}:{})};
     }
-    /** What the provider receives: the core gives it inspect_project (metadata, target, counts, revision). */
-    function context(){
+    /** What the provider receives. For a remote provider, the exact payload the core would send. */
+    async function context(){
+      if(remote()){
+        if(!ctx.sync.id||!$('aiText').value.trim()){$('aiContextView').textContent=t('aiPayloadEmpty');return;}
+        try{
+          const sent=await call('/api/ai/payload',{project_id:ctx.sync.id,request:request()});
+          $('aiContextView').textContent=JSON.stringify(sent,null,2);
+        }catch(error){$('aiContextView').textContent=error.message;}
+        return;
+      }
       const s=ctx.snapshot();
       const counts={blocks:s.blocks.length,items:s.items.length,recipes:s.recipes.length,structures:s.structures.length,effects:(s.effects||[]).length};
       $('aiContextView').textContent=JSON.stringify({project:{id:s.metadata.id,name:s.metadata.name,version:s.metadata.version},
@@ -88,6 +147,9 @@
     function render(){
       const p=ui.proposal;
       $('aiApply').disabled=!p||p.errors>0;$('aiReject').disabled=!p;
+      $('aiUsage').hidden=!(p&&p.usage);
+      if(p&&p.usage)$('aiUsage').textContent=t('aiUsage',{model:p.usage.model,input:p.usage.input_tokens,
+        output:p.usage.output_tokens,cost:p.usage.estimated_cost_usd.toFixed(4)});
       if(!p){
         $('aiSummary').textContent=t('aiNoProposal');$('aiPlan').innerHTML='';$('aiDiff').innerHTML='';$('aiDiagnostics').innerHTML='';
         return;
@@ -111,9 +173,10 @@
       setError('');ui.applied=null;$('aiUndo').hidden=true;
       if(ui.proposal){await discard();}
       const ticket=++ui.asking;
+      ui.requestId=globalThis.crypto?.randomUUID?.()||String(Date.now());
       busy(true);
       try{
-        const proposal=await ctx.sync.propose(request(),$('aiProvider').value);
+        const proposal=await ctx.sync.propose(request(),provider(),ui.requestId);
         if(ui.cancelled.has(ticket)){await ctx.sync.reject(proposal.id).catch(()=>{});return;}  // asked, then cancelled
         proposal.errors=proposal.diagnostics.filter(d=>d.level==='error').length;
         ui.proposal=proposal;render();
@@ -124,10 +187,16 @@
         if(ticket===ui.asking)busy(false);
       }
     }
-    function cancel(){ui.cancelled.add(ui.asking);busy(false);$('aiProgress').textContent=t('aiCancelled');}
+    function cancel(){
+      ui.cancelled.add(ui.asking);busy(false);$('aiProgress').textContent=t('aiCancelled');
+      if(ui.requestId)call('/api/ai/cancel',{request_id:ui.requestId}).catch(()=>{});  // stops a remote call mid-stream
+    }
     function explain(error){
       const known={STALE_PROPOSAL:'aiStale',REVISION_CONFLICT:'aiConflict',DETACHED:'aiDetached',UNKNOWN_PROPOSAL:'aiExpired',
-        UNKNOWN_ASSET:'aiUnknownAsset',INVALID_RESULT:'aiInvalid',UNSUPPORTED_REQUEST:'aiUnsupported',BAD_REQUEST:'aiBadRequest'};
+        UNKNOWN_ASSET:'aiUnknownAsset',INVALID_RESULT:'aiInvalid',UNSUPPORTED_REQUEST:'aiUnsupported',BAD_REQUEST:'aiBadRequest',
+        OFFLINE:'aiErrOffline',CONSENT_REQUIRED:'aiErrConsent',CREDENTIAL_MISSING:'aiErrKey',PROVIDER_UNAVAILABLE:'aiErrSdk',
+        STORE_UNAVAILABLE:'aiErrStore',RATE_LIMITED:'aiErrRate',REFUSED:'aiErrRefused',PROVIDER_ERROR:'aiErrProvider',
+        NO_OPERATIONS:'aiErrNothing',CANCELLED:'aiCancelled',IN_USE:'aiInvalid'};
       return known[error.code]?t(known[error.code],{error:error.message}):error.message;
     }
     async function apply(){
@@ -151,8 +220,9 @@
     async function reject(){await discard();ctx.status(t('aiRejected'));}
 
     function open(){
-      $('aiDialog').hidden=false;assetOptions();context();render();renderHistory();showFields();
-      $('aiIntent').focus();
+      $('aiDialog').hidden=false;assetOptions();render();renderHistory();showFields();
+      loadRemote().then(context);
+      $('aiProvider').focus();
     }
     function close(){$('aiDialog').hidden=true;$('openAi').focus();}
 
@@ -161,6 +231,15 @@
     $('aiDialog').addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();close();}});
     $('aiRequest').addEventListener('submit',propose);
     $('aiIntent').addEventListener('change',showFields);
+    $('aiProvider').addEventListener('change',()=>{discard();renderRemote();context();});
+    $('aiSaveKey').addEventListener('click',saveKey);
+    $('aiForgetKey').addEventListener('click',forgetKey);
+    $('aiConsent').addEventListener('change',()=>settings({provider:'claude',consent:$('aiConsent').checked}));
+    $('aiOffline').addEventListener('change',()=>settings({offline:$('aiOffline').checked}));
+    $('aiModel').addEventListener('change',()=>settings({provider:'claude',model:$('aiModel').value}));
+    $('aiEffort').addEventListener('change',()=>settings({provider:'claude',effort:$('aiEffort').value}));
+    let typing=null;
+    $('aiText').addEventListener('input',()=>{clearTimeout(typing);typing=setTimeout(context,300);});
     $('aiCancel').addEventListener('click',cancel);
     $('aiApply').addEventListener('click',apply);
     $('aiReject').addEventListener('click',reject);

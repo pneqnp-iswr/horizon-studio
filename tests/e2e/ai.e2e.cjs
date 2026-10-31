@@ -161,6 +161,56 @@ e2e('a material set and an Impact Spark effect go through the same transactions;
   assert.deepEqual((await editorState(page)).items.map(i => i.id), ['ruby', 'topaz']);
 });
 
+e2e('Claude is used only after a stored key, consent and online mode; the key never reaches the page (HS-021)', async ({ page }) => {
+  const KEY = 'sk-ant-e2e-NEVER-IN-THE-PAGE-0123456789';
+  const seen = [];
+  page.on('response', async response => {
+    if (response.url().includes('/api/ai/')) seen.push(await response.text().catch(() => ''));
+  });
+  await loadDemo(page);
+  await page.click('#openAi');
+  await page.selectOption('#aiProvider', 'claude');
+  assert.equal(await page.textContent('#aiProviderBadge'), await t(page, 'aiRemoteBadge'));
+  await page.waitForFunction(() => document.querySelectorAll('#aiRemoteStatus li').length === 5);
+  const status = await page.textContent('#aiRemoteStatus');
+  assert.ok(status.includes(await t(page, 'aiNotExercised')), 'the panel says the live API was not exercised');
+  assert.ok(status.includes(await t(page, 'aiConsentMissing')));
+  // The exact payload is visible before anything can be sent; it carries no texture, override or plugin data.
+  await page.fill('#aiText', 'Add a sapphire material set');
+  await page.waitForFunction(() => document.querySelector('#aiContextView').textContent.includes('Request: Add a sapphire'));
+  const sent = await page.textContent('#aiContextView');
+  assert.ok(sent.includes('item:ruby') && !sent.includes('data:image') && !sent.includes('source_overrides'));
+
+  const tryPropose = async key => {
+    await page.click('#aiPropose');
+    await page.waitForSelector('#aiError:not([hidden])');
+    const text = await page.textContent('#aiError');
+    await page.$eval('#aiError', el => { el.hidden = true; });
+    return text;
+  };
+  assert.equal(await tryPropose(), await t(page, 'aiErrConsent'));
+  await page.fill('#aiKey', KEY);
+  await page.click('#aiSaveKey');
+  await page.waitForFunction(k => document.querySelector('#aiRemoteStatus').textContent.includes(k), await t(page, 'aiKeyStored', { store: 'memory' }));
+  assert.equal(await page.inputValue('#aiKey'), '', 'the field does not keep the key');
+  await page.check('#aiConsent');
+  await page.waitForFunction(k => document.querySelector('#aiRemoteStatus').textContent.includes(k), await t(page, 'aiConsentGiven'));
+  // This test environment has no Anthropic SDK and no network: the core says so instead of pretending.
+  const unavailable = await tryPropose();
+  assert.ok(unavailable.startsWith((await t(page, 'aiErrSdk', { error: '' })).trim()) ||
+            unavailable.startsWith((await t(page, 'aiErrProvider', { error: '' })).trim()), unavailable);
+  await page.check('#aiOffline');
+  await page.waitForFunction(k => document.querySelector('#aiRemoteStatus').textContent.includes(k), await t(page, 'aiOfflineOn'));
+  assert.equal(await tryPropose(), await t(page, 'aiErrOffline'));
+  await page.click('#aiForgetKey');
+  await page.waitForFunction(() => document.querySelector('#aiForgetKey').disabled);
+
+  const stored = await page.evaluate(() => JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage }));
+  assert.ok(!stored.includes(KEY), 'never in browser storage');
+  assert.ok(!(await page.content()).includes(KEY), 'never in the page');
+  assert.ok(seen.length > 0 && seen.every(body => !body.includes(KEY)), 'never in a response');
+});
+
 e2e('the AI Creator is translated, says it is simulated and passes automated accessibility rules', async ({ page }) => {
   await loadDemo(page);
   await page.click('#lang-ru');

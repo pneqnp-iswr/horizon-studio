@@ -438,18 +438,30 @@ def workspace_for(server):
         return server.studio_workspaces
 
 
+def providers_for(server):
+    """HS-021: AI providers, the person's AI settings (no secrets) and the OS credential store."""
+    from studio_core.credentials import default_store
+    from studio_core.providers import Providers, Settings
+    with _workspace_lock:
+        if not hasattr(server, 'studio_providers'):
+            server.studio_providers = Providers(Settings(studio_home() / 'ai-settings.json'), default_store())
+        return server.studio_providers
+
+
 def transactions_for(server):
     """HS-020: the one owner of each project's revision, history and AI proposals."""
     from studio_core.transactions import ProjectService
     store = workspace_for(server)
+    registry = providers_for(server)
     with _workspace_lock:
         if not hasattr(server, 'studio_transactions'):
-            server.studio_transactions = ProjectService(store)
+            server.studio_transactions = ProjectService(store, registry=registry)
         return server.studio_transactions
 
 
 TX_PATHS = ('/api/tx/open', '/api/tx/commit', '/api/tx/undo', '/api/tx/redo', '/api/tx/history',
-            '/api/ai/propose', '/api/ai/commit', '/api/ai/reject')
+            '/api/ai/propose', '/api/ai/commit', '/api/ai/reject', '/api/ai/cancel', '/api/ai/providers',
+            '/api/ai/settings', '/api/ai/credentials', '/api/ai/payload')
 
 
 def _text(payload, key, required=True):
@@ -500,7 +512,44 @@ def transaction_request(server, path: str, payload) -> dict:
     if path == '/api/ai/propose':
         return service.propose(_text(payload, 'project_id'), payload.get('request'),
                                provider=_text(payload, 'provider', False) or 'fixture',
-                               base_revision=_text(payload, 'base_revision'))
+                               base_revision=_text(payload, 'base_revision'),
+                               request_id=_text(payload, 'request_id', False))
+    if path == '/api/ai/cancel':
+        return {'cancelled': service.cancel(_text(payload, 'request_id'))}
+    registry = providers_for(server)
+    if path == '/api/ai/providers':
+        return registry.status()
+    if path == '/api/ai/settings':
+        consent = payload.get('consent')
+        if consent is not None and not isinstance(consent, bool):
+            fail('consent must be true or false')
+        offline = payload.get('offline')
+        if offline is not None and not isinstance(offline, bool):
+            fail('offline must be true or false')
+        registry.settings.update(offline=offline, provider=_text(payload, 'provider', False), consent=consent,
+                                 model=_text(payload, 'model', False), effort=_text(payload, 'effort', False))
+        return registry.status()
+    if path == '/api/ai/credentials':
+        # The key goes into the OS credential store and is never sent back, logged or written to a file.
+        from studio_core.credentials import CredentialError
+        name, key = _text(payload, 'name'), payload.get('key')
+        if registry.credentials is None:
+            raise TransactionError('STORE_UNAVAILABLE', 'This computer has no credential store Studio can use; '
+                                                        'the key was not saved')
+        try:
+            if key is None:
+                registry.credentials.delete(name)
+            else:
+                registry.credentials.set(name, key)
+        except CredentialError as exc:
+            raise TransactionError(exc.code, str(exc)) from None
+        return {'name': name, 'key_stored': bool(registry.credentials.get(name))}
+    if path == '/api/ai/payload':
+        # Exactly what a remote provider would receive for this request (shown before consent).
+        from studio_core.providers import DEFAULT_MODEL, minimal_context, payload as build_payload
+        opened = service.open(_text(payload, 'project_id'))
+        model = registry.status()['providers'][1].get('model', DEFAULT_MODEL)
+        return build_payload(payload.get('request') or {}, minimal_context(opened['document']), model)
     if path == '/api/ai/commit':
         return view(service.commit_proposal(_text(payload, 'project_id'), _text(payload, 'proposal_id'),
                                             expected_revision=_text(payload, 'expected_revision')))

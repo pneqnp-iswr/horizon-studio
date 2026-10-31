@@ -727,7 +727,23 @@
       "engine_requirements": [],
       "validation_target": "unit",
       "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
-      "evidence": []
+      "evidence": [
+        {
+          "level": "unit",
+          "ref": "Provider interface, offline mode, consent, OS credential store (Windows Credential Manager, Secret Service via stdin, memory for tests), minimal context, exact payload preview, Claude provider on the official SDK (streamed, cancellable, retries, refusal fallback, usage and cost) against a stand-in client; keys never in any written file or response (tests/test_providers.py). Not exercised against the live API",
+          "url": "tests/test_providers.py"
+        },
+        {
+          "level": "browser-e2e",
+          "ref": "AI Creator: Claude is used only after a stored key, consent and online mode; the exact payload is shown first; the key never reaches the page, browser storage or a response (tests/e2e/ai.e2e.cjs)",
+          "url": "tests/e2e/ai.e2e.cjs"
+        },
+        {
+          "level": "docs",
+          "ref": "Providers and privacy",
+          "url": "docs/architecture/AI_CREATOR.md"
+        }
+      ]
     },
     {
       "id": "HS-014",
