@@ -453,6 +453,14 @@ class Handler(BaseHTTPRequestHandler):
             return self.response(403, 'application/json; charset=utf-8', b'{"error":"Untrusted request origin or host"}')
         if self.path == '/api/session':
             return self.response(200, 'application/json; charset=utf-8', json_bytes({'token': session_token(self.server)}))
+        if self.path == '/api/engine-profiles':
+            # HS-008: every audited engine profile, for the editor's target selector and comparison.
+            from studio_core.capabilities import load_registry
+            registry = load_registry()
+            return self.response(200, 'application/json; charset=utf-8', json_bytes({
+                'default': registry['default'],
+                'profiles': [{key: profile.get(key) for key in ('engine', 'revision', 'label', 'label_ru', 'content_api', 'capabilities')}
+                             for profile in registry['profiles']]}))
         if self.path == '/api/journey':
             from studio_core.journey import view
             try:

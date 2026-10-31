@@ -135,6 +135,8 @@ class RoadmapGovernanceTests(unittest.TestCase):
     def test_engine_contracts_are_documented(self):
         self.assert_rejected(lambda d: d["engine_contracts"][0].update(status="maybe"), "status must be one of")
         self.assert_rejected(lambda d: d["engine_contracts"][0].pop("source"), "needs source")
+        self.assert_rejected(lambda d: d["engine_contracts"].append(dict(d["engine_contracts"][0], id="native.particles")),
+                             "already a capability-registry entry")
 
     def test_v1_documents_upgrade_but_never_pass_without_governance(self):
         old = {"schema": roadmap.PREVIOUS_SCHEMA, **{k: copy.deepcopy(v) for k, v in DATA.items() if k != "schema"}}

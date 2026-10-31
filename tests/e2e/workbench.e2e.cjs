@@ -2,7 +2,7 @@
 /* Desktop workbench chrome in a real browser: empty states, the development journey,
  * the engine-target card and its export gate, and a fully translated Russian UI. */
 const assert = require('node:assert/strict');
-const { e2e, t, waitStatus, editorState } = require('./harness.cjs');
+const { e2e, t, waitStatus, editorState, download } = require('./harness.cjs');
 
 async function showExplorer(page) {
   if (!(await page.isVisible('#demo'))) {
@@ -240,4 +240,41 @@ e2e('automated WCAG 2.1 AA rules pass on the main workbench states (axe-core)', 
   await page.click('#openJourney');
   await page.waitForSelector('.jr-card');
   await audit('journey in Russian');
+});
+
+e2e('a project chooses its engine target, sees the differences and keeps the choice (HS-008)', async ({ page }) => {
+  const NEW = '3c1d4b39c6823dca9751118a0b13e6084d019d64';
+  await showExplorer(page);
+  await page.click('#demo');
+  await waitStatus(page, await t(page, 'demoLoaded'));
+  await page.waitForFunction(() => document.querySelectorAll('#engineTargetSelect option').length >= 3);
+  assert.equal(await page.inputValue('#engineTargetSelect'), '');
+  await page.selectOption('#engineTargetSelect', NEW);
+  await page.waitForFunction(() => document.querySelector('#engineStatus').textContent.startsWith('Horizon 3c1d4b3'));
+  assert.equal((await editorState(page)).target.revision, NEW);
+  assert.equal(await page.isVisible('#engineDiff'), true);
+  await page.click('#engineDiffTitle');
+  const diff = await page.textContent('#engineDiffList');
+  assert.ok(diff.includes('native.particles') && diff.includes(await t(page, 'capStatus_engine-only')), diff);
+  // Undo returns to the default engine; redo brings the choice back.
+  await page.click('#undoEdit');
+  await page.waitForFunction(() => document.querySelector('#engineStatus').textContent.startsWith('Horizon d2186eb'));
+  assert.equal(await page.inputValue('#engineTargetSelect'), '');
+  await page.click('#redoEdit');
+  await page.waitForFunction(rev => document.querySelector('#engineTargetSelect').value === rev, NEW);
+  // The saved studio.project/1 file records the target, and opening it restores the selection.
+  const saved = JSON.parse((await download(page, '#saveProject')).toString('utf8'));
+  assert.deepEqual(saved.target, { engine: 'horizon', revision: NEW });
+  saved.target.revision = 'f'.repeat(40);
+  await page.setInputFiles('#projectFile', { name: 'future.hstudio.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(saved)) });
+  await page.waitForFunction(() => /ffffff/.test(document.querySelector('#engineTargetSelect').selectedOptions[0]?.textContent || ''));
+  // An unknown revision promises nothing: export is refused with the reason and the project is kept.
+  const before = await editorState(page);
+  let downloaded = false;
+  page.on('download', () => { downloaded = true; });
+  await page.click('#exportHmod');
+  await page.waitForFunction(() => document.querySelector('#status').classList.contains('error'));
+  assert.match(await page.textContent('#status'), /ffffffff/);
+  assert.equal(downloaded, false);
+  assert.deepEqual(await editorState(page), before);
 });

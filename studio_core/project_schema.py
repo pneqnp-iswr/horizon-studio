@@ -80,6 +80,17 @@ def _check_recipe(obj: dict):
             _fail(f"{label}: each slot must be empty, a reference or a resource name")
 
 
+TARGET_REVISION_RE = re.compile(r"[0-9a-f]{40}")
+
+
+def check_target(target) -> dict:
+    """The engine a project is built for (HS-008): {"engine": "horizon", "revision": <full SHA>}."""
+    if (not isinstance(target, dict) or set(target) != {"engine", "revision"} or target["engine"] != "horizon"
+            or not isinstance(target["revision"], str) or not TARGET_REVISION_RE.fullmatch(target["revision"])):
+        _fail('target must be {"engine": "horizon", "revision": <40 lowercase hex characters>}')
+    return target
+
+
 def validate_document(doc) -> dict:
     """Return ``doc`` if it is structurally a ``studio.project/1`` document.
 
@@ -128,6 +139,8 @@ def validate_document(doc) -> dict:
     for field in ("extensions", "provenance"):
         if not isinstance(doc.get(field, {}), dict):
             _fail(f"{field} must be an object")
+    if "target" in doc:
+        check_target(doc["target"])
     return doc
 
 

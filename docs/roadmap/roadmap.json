@@ -3,7 +3,7 @@
   "updated": "2026-10-31",
   "source": "docs/roadmap/master-2026-10-30.md",
   "current_phase": "F3",
-  "active_milestone": "HS-008",
+  "active_milestone": "HS-020",
   "next_milestones": [
     "HS-009",
     "HS-010"
@@ -511,7 +511,7 @@
       "id": "HS-008",
       "track": "studio",
       "phase": "F3",
-      "status": "in_progress",
+      "status": "done",
       "depends_on": [
         "HS-005"
       ],
@@ -531,6 +531,11 @@
       "design_ref": "docs/ENGINE_CAPABILITIES.md",
       "evidence": [
         {
+          "level": "official-static",
+          "ref": "CI run 41152431321: the official checker built at d2186eb and at 3c1d4b39 accepts every example and migration fixture (one matrix leg per profile, PR #22)",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41152431321"
+        },
+        {
           "level": "unit",
           "ref": "First slice: registry, project requirements, CLI capabilities (tests/test_capabilities.py)",
           "url": "docs/ENGINE_CAPABILITIES.md"
@@ -544,6 +549,21 @@
           "level": "browser-e2e",
           "ref": "In the editor: engine card, the journey's 'In this build', export blocked with the reason and data kept",
           "url": "tests/e2e/workbench.e2e.cjs"
+        },
+        {
+          "level": "official-static",
+          "ref": "Second profile 3c1d4b39: official checker built at that revision accepts all examples and migration fixtures; CI matrix leg per profile",
+          "url": "docs/COMPATIBILITY_EVIDENCE.md"
+        },
+        {
+          "level": "browser-e2e",
+          "ref": "Target selection, profile differences, undo, save/open, unknown revision blocks export (tests/e2e/workbench.e2e.cjs)",
+          "url": "tests/e2e/workbench.e2e.cjs"
+        },
+        {
+          "level": "unit",
+          "ref": "Target schema, editor round trip, CLI export gate, workflow matrix equals registry (tests/test_capabilities.py)",
+          "url": "tests/test_capabilities.py"
         }
       ]
     },
@@ -602,7 +622,7 @@
       "id": "HS-020",
       "track": "studio",
       "phase": "F3",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "HS-005",
         "HS-006",
@@ -1219,14 +1239,6 @@
     }
   ],
   "engine_contracts": [
-    {
-      "id": "native.particles",
-      "status": "available",
-      "title": "Server particle emission (GameLevel::native_send_particles, native hooks API 11+)",
-      "title_ru": "Отправка частиц сервером (GameLevel::native_send_particles, хуки API 11+)",
-      "note": "Vanilla ParticleType values on an authoritative level only; Item, Trail and Vibration refused; returns accepted, not delivered",
-      "source": "horizon-rust/horizon@3c1d4b39 crates/horizon-client/src/game/native_hooks.rs"
-    },
     {
       "id": "game.agent_control",
       "status": "available",

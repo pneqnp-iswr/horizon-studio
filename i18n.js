@@ -3,6 +3,14 @@
   'use strict';
   const catalog = {
   "en": {
+    "engineTargetLabel": "Build for",
+    "engineDefaultOption": "Studio default — {label}",
+    "engineUnknownOption": "Unknown revision {revision} (kept as saved)",
+    "engineDiffTitle": "Differences from the default engine ({count})",
+    "capStatus_official-static": "Studio builds it",
+    "capStatus_engine-only": "engine only",
+    "capStatus_unsupported": "not supported",
+    "capStatus_absent": "not in this profile",
     "jrMap": "Pixel map of the whole journey",
     "jrRoadmap": "Roadmap",
     "jrShowcase": "Showcase",
@@ -282,6 +290,14 @@
     "doctor_GAME_CHECK_REQUIRED": "Run official cargo horizon-mod check and test the mod in Horizon."
   },
   "ru": {
+    "engineTargetLabel": "Собирать для",
+    "engineDefaultOption": "По умолчанию в Studio — {label}",
+    "engineUnknownOption": "Неизвестная ревизия {revision} (сохранена как есть)",
+    "engineDiffTitle": "Отличия от движка по умолчанию ({count})",
+    "capStatus_official-static": "Studio собирает",
+    "capStatus_engine-only": "только в движке",
+    "capStatus_unsupported": "не поддерживается",
+    "capStatus_absent": "нет в этом профиле",
     "jrMap": "Пиксельная карта всего пути",
     "jrRoadmap": "Дорожная карта",
     "jrShowcase": "Витрина",

@@ -205,6 +205,11 @@ def known_requirements(data: dict) -> dict[str, str]:
     return known
 
 
+def _registry_capabilities() -> set[str]:
+    from studio_core.capabilities import load_registry
+    return {name for profile in load_registry()["profiles"] for name in profile["capabilities"]}
+
+
 def _cycle(ids: dict) -> list[str]:
     """One dependency cycle, if any, as a list of milestone ids."""
     state, stack = {}, []
@@ -245,6 +250,8 @@ def _governance_errors(data: dict, ids: dict) -> list[str]:
             errors.append(f"engine contract {cid!r} needs a unique id")
             continue
         seen.add(cid)
+        if cid in _registry_capabilities():
+            errors.append(f"engine contract {cid} is already a capability-registry entry; keep one source")
         if contract.get("status") not in CONTRACT_STATUSES:
             errors.append(f"engine contract {cid}: status must be one of {', '.join(CONTRACT_STATUSES)}")
         for field in ("title", "title_ru", "note", "source"):

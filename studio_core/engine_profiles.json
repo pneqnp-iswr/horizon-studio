@@ -104,12 +104,12 @@
           "status": "engine-only",
           "api": "native hooks 7 (NATIVE_HOOKS_API) or a pinned horizon_revision",
           "stability": "experimental",
-          "side": "client",
+          "side": "both",
           "backend": "hnmod",
           "permissions": [
             "native code with the player's rights, not sandboxed"
           ],
-          "contract": "horizon-mixin.toml plus .rs helpers hooking named game functions (horizon-mixins); built per instance by the launcher",
+          "contract": "horizon-mixin.toml plus .rs helpers hooking named game functions or the native hook points (client and integrated/authoritative server); built per instance by the launcher",
           "source": "docs/native-mods.md; crates/horizon-client/src/game/native_hooks.rs (NATIVE_HOOKS_API = 7)",
           "note": "Horizon builds trusted native .hnmod mods; Studio cannot author them yet (HS-010)",
           "note_ru": "Horizon собирает доверенные нативные моды .hnmod; Studio пока не умеет их создавать (HS-010)"
@@ -137,6 +137,170 @@
           "source": "master roadmap section 12",
           "note": "No content-mod registry or verified native hook for custom entities at this revision (master roadmap section 12)",
           "note_ru": "На этой ревизии нет ни реестра контентных модов, ни проверенного нативного хука для своих сущностей (раздел 12 мастер-плана)"
+        },
+        "native.particles": {
+          "status": "unsupported",
+          "api": null,
+          "stability": "not-started",
+          "side": "server",
+          "backend": null,
+          "permissions": [],
+          "contract": "none: native hooks API 7 has no particle emission (added in API 11)",
+          "source": "crates/horizon-client/src/game/native_hooks.rs (NATIVE_HOOKS_API = 7)",
+          "note": "This revision has no hook to emit particles; target a profile with native hooks API 11 or later",
+          "note_ru": "На этой ревизии нет хука для частиц; выберите профиль с нативными хуками API 11 или новее"
+        }
+      }
+    },
+    {
+      "engine": "horizon",
+      "revision": "3c1d4b39c6823dca9751118a0b13e6084d019d64",
+      "label": "Horizon 3c1d4b3 (audited upstream main, 2026-10-31)",
+      "label_ru": "Horizon 3c1d4b3 (проверенный upstream main, 2026-10-31)",
+      "content_api": "0.2",
+      "capabilities": {
+        "content.block": {
+          "status": "official-static",
+          "api": "content 0.2",
+          "stability": "preview",
+          "side": "both",
+          "backend": "hmod",
+          "permissions": [
+            "registries"
+          ],
+          "contract": "data/<id>/horizon/block/<block>.json copying a vanilla template, plus model, blockstate and item files",
+          "source": "crates/horizon-mods/src/manifest.rs Capability::Registries; docs/mods.md 'Content mods (API 0.2)' (unchanged at 3c1d4b3: docs/mods.md api = \"0.2\")",
+          "evidence": "docs/COMPATIBILITY_EVIDENCE.md"
+        },
+        "content.item": {
+          "status": "official-static",
+          "api": "content 0.2",
+          "stability": "preview",
+          "side": "both",
+          "backend": "hmod",
+          "permissions": [
+            "registries"
+          ],
+          "contract": "data/<id>/horizon/item/<item>.json copying a vanilla template; components patch max_stack_size and rarity",
+          "source": "crates/horizon-mods/src/manifest.rs Capability::Registries (unchanged at 3c1d4b3: docs/mods.md api = \"0.2\")",
+          "evidence": "docs/COMPATIBILITY_EVIDENCE.md"
+        },
+        "content.lang": {
+          "status": "official-static",
+          "api": "content 0.2",
+          "stability": "preview",
+          "side": "both",
+          "backend": "hmod",
+          "permissions": [
+            "registries"
+          ],
+          "contract": "assets/<id>/lang/en_us.json and ru_ru.json, copied verbatim into the resource root",
+          "source": "crates/horizon-client/src/mod_content.rs (mod files copied into the resource root) (unchanged at 3c1d4b3: docs/mods.md api = \"0.2\")",
+          "evidence": "docs/COMPATIBILITY_EVIDENCE.md"
+        },
+        "content.recipe": {
+          "status": "official-static",
+          "api": "content 0.2",
+          "stability": "preview",
+          "side": "both",
+          "backend": "hmod",
+          "permissions": [
+            "registries"
+          ],
+          "contract": "data/<id>/recipe/<recipe>.json in the vanilla recipe format",
+          "source": "crates/horizon-client/src/mod_content.rs (data files copied into the resource root) (unchanged at 3c1d4b3: docs/mods.md api = \"0.2\")",
+          "evidence": "docs/COMPATIBILITY_EVIDENCE.md"
+        },
+        "content.loot_table": {
+          "status": "official-static",
+          "api": "content 0.2",
+          "stability": "preview",
+          "side": "both",
+          "backend": "hmod",
+          "permissions": [
+            "registries"
+          ],
+          "contract": "data/<id>/loot_table/blocks/<block>.json in the vanilla loot table format",
+          "source": "crates/horizon-client/src/mod_content.rs (data files copied into the resource root) (unchanged at 3c1d4b3: docs/mods.md api = \"0.2\")",
+          "evidence": "docs/COMPATIBILITY_EVIDENCE.md"
+        },
+        "content.block_tag": {
+          "status": "official-static",
+          "api": "content 0.2",
+          "stability": "preview",
+          "side": "both",
+          "backend": "hmod",
+          "permissions": [
+            "registries"
+          ],
+          "contract": "additions to data/minecraft/tags/block/ (or data/c/tags/), merged in load order like a data pack",
+          "source": "crates/horizon-client/src/mod_content.rs (tag merging) (unchanged at 3c1d4b3: docs/mods.md api = \"0.2\")",
+          "evidence": "docs/COMPATIBILITY_EVIDENCE.md"
+        },
+        "content.structure_nbt": {
+          "status": "official-static",
+          "api": "content 0.2",
+          "stability": "preview",
+          "side": "both",
+          "backend": "hmod",
+          "permissions": [
+            "registries"
+          ],
+          "contract": "data/<id>/structure/<structure>.nbt structure templates; placement needs worldgen data or commands",
+          "source": "crates/horizon-client/src/mod_content.rs (worldgen/structure templates) (unchanged at 3c1d4b3: docs/mods.md api = \"0.2\")",
+          "evidence": "docs/COMPATIBILITY_EVIDENCE.md"
+        },
+        "native.hook_mod": {
+          "status": "engine-only",
+          "api": "native hooks 22 (NATIVE_HOOKS_API) or a pinned horizon_revision",
+          "stability": "experimental",
+          "side": "both",
+          "backend": "hnmod",
+          "permissions": [
+            "native code with the player's rights, not sandboxed"
+          ],
+          "contract": "horizon-mixin.toml plus .rs helpers hooking named game functions or the native hook points; API 8+ adds server commands and players, API 15+ block entities, API 19+ mod screens, API 22 world-change guards",
+          "source": "docs/native-mods.md; crates/horizon-client/src/game/native_hooks.rs (NATIVE_HOOKS_API = 22)",
+          "note": "Horizon builds trusted native .hnmod mods; Studio cannot author them yet (HS-010)",
+          "note_ru": "Horizon собирает доверенные нативные моды .hnmod; Studio пока не умеет их создавать (HS-010)"
+        },
+        "native.particles": {
+          "status": "engine-only",
+          "api": "native hooks 11+ (GameLevel::native_send_particles)",
+          "stability": "experimental",
+          "side": "server",
+          "backend": "hnmod",
+          "permissions": [
+            "native code with the player's rights, not sandboxed"
+          ],
+          "contract": "native_send_particles(options, state, at, spread, speed, count) on an authoritative level: vanilla ParticleType values only; Item, Trail and Vibration refused; block types need a block state; the result means accepted, not delivered",
+          "source": "crates/horizon-client/src/game/native_hooks.rs (GameLevel::native_send_particles, API 11)",
+          "note": "Vanilla particle types emitted by the server only; no custom textures, shapes or GPU effects. Studio does not generate emitters for it yet (HS-027)",
+          "note_ru": "Только ванильные частицы с сервера; без своих текстур, форм и GPU-эффектов. Studio пока не создаёт для этого эмиттеры (HS-027)"
+        },
+        "shader.pack": {
+          "status": "engine-only",
+          "api": "shader 0.1",
+          "stability": "experimental",
+          "side": "client",
+          "backend": "hshader",
+          "permissions": [],
+          "contract": "WGSL sky, material and post stages checked by horizon-shader (new, check, pack)",
+          "source": "docs/shaders.md (shader API 0.1, experimental); crates/horizon-shader-api",
+          "note": "Horizon checks .hshader packs; Studio has no shader authoring yet (HS-013)",
+          "note_ru": "Horizon проверяет пакеты .hshader; создавать шейдеры в Studio пока нельзя (HS-013)"
+        },
+        "entity.custom": {
+          "status": "unsupported",
+          "api": null,
+          "stability": "not-started",
+          "side": "both",
+          "backend": null,
+          "permissions": [],
+          "contract": "none at this revision",
+          "source": "master roadmap section 12",
+          "note": "No content-mod registry or verified native hook for custom entities at this revision; API 22 only observes attacks on existing entities",
+          "note_ru": "На этой ревизии нет ни реестра контентных модов, ни проверенного нативного хука для своих сущностей; API 22 лишь наблюдает атаки на существующие сущности"
         }
       }
     }

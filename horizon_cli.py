@@ -126,6 +126,14 @@ def main(argv=None) -> int:
             else: print(f"Official .hmod check: {'PASS' if result.ok else 'FAIL'} (sha256 {result.sha256})"+
                         (f" — {result.error}" if result.error else ''))
             return 0 if result.ok else 1
+        # HS-008: never write a package the target engine cannot load; the project file is not changed.
+        from studio_core.capabilities import check as capability_check
+        blocked=[d for d in capability_check(read_document(args.project))['diagnostics'] if d['level']=='error']
+        if blocked:
+            for issue in blocked:
+                print(f"ERROR   {issue['code']}: {issue['message']}",file=sys.stderr)
+            print('Export blocked: the target engine cannot load this project (see docs/ENGINE_CAPABILITIES.md)',file=sys.stderr)
+            return 1
         artifact = hmod_zip(project) if args.command=='build' else project_zip(project)
         filename = f"{project['id']}.hmod" if args.command=='build' else f"{project['id']}-source.zip"
         output=args.output or (Path('dist')/filename)

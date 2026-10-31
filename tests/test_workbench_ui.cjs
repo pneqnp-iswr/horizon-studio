@@ -36,3 +36,19 @@ test('every empty state exists in both languages and only the demo kinds offer t
     }
   }
 });
+
+test('profile differences and the target selector (HS-008)', () => {
+  const t = translator('en');
+  const base = { revision: 'a'.repeat(40), label: 'Old', capabilities: { 'content.block': { status: 'official-static' }, 'native.particles': { status: 'unsupported' } } };
+  const next = { revision: 'b'.repeat(40), label: 'New', label_ru: 'Новый', capabilities: { 'content.block': { status: 'official-static' },
+    'native.particles': { status: 'engine-only', note: 'vanilla only', note_ru: 'только ванильные' }, 'shader.pack': { status: 'engine-only' } } };
+  const diff = workbench.profileDiff(base, next);
+  assert.deepEqual(diff.map(d => [d.capability, d.from, d.to]), [['native.particles', 'unsupported', 'engine-only'], ['shader.pack', 'absent', 'engine-only']]);
+  assert.match(workbench.diffMarkup(diff, 'ru', translator('ru')), /только ванильные/);
+  const data = { default: base.revision, profiles: [base, next] };
+  const options = workbench.targetOptionsMarkup(data, { engine: 'horizon', revision: next.revision }, 'ru', translator('ru'));
+  assert.match(options, new RegExp(`value="${next.revision}" selected>Новый`));
+  const unknown = workbench.targetOptionsMarkup(data, { engine: 'horizon', revision: 'c'.repeat(40) }, 'en', t);
+  assert.match(unknown, /Unknown revision ccccccc/);
+  assert.match(workbench.targetOptionsMarkup(data, null, 'en', t), /value="" selected>Studio default — Old/);
+});

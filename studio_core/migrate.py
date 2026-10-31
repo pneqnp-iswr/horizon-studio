@@ -21,7 +21,7 @@ GROUPS = (("blocks", "block"), ("items", "item"), ("recipes", "recipe"), ("struc
 METADATA_FIELDS = ("id", "name", "version", "author", "description")
 LEGACY_TOP_LEVEL = {"format", "schema", "metadata", "blocks", "items", "recipes", "structures",
                     "source_overrides", "carry"}
-DOCUMENT_FIELDS = ("format", "schema", "project", "objects", "source_overrides", "extensions", "provenance")
+DOCUMENT_FIELDS = ("format", "schema", "project", "objects", "source_overrides", "extensions", "provenance", "target")
 
 
 def source_schema(data) -> int | str | None:
@@ -74,6 +74,10 @@ def from_editor_state(state) -> dict:
     for key, value in extra_fields.items():
         if key not in DOCUMENT_FIELDS:
             doc[key] = copy.deepcopy(value)
+    # The editor's engine target, or one kept from older editor states in document_extra.
+    target = state.get("target", extra_fields.get("target"))
+    if target is not None:
+        doc["target"] = copy.deepcopy(target)
     return validate_document(doc)
 
 
@@ -231,6 +235,8 @@ def to_editor_state(doc) -> dict:
             entry["grid"] = [local(cell, label) for cell in entry.get("grid", [])]
         state[kinds[obj["kind"]]].append(entry)
     state["source_overrides"] = copy.deepcopy(doc.get("source_overrides", {}))
+    if "target" in doc:
+        state["target"] = copy.deepcopy(doc["target"])
     state["carry"] = {
         "project_extra": {k: copy.deepcopy(v) for k, v in doc["project"].items() if k not in METADATA_FIELDS},
         "preserved_objects": preserved,
