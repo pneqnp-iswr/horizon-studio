@@ -1,0 +1,37 @@
+name: PixelChat Native Source Checks
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'pixelchat/native/**'
+      - 'tests/test_pixelchat_native.py'
+      - '.github/workflows/pixelchat-native.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'pixelchat/native/**'
+      - 'tests/test_pixelchat_native.py'
+      - '.github/workflows/pixelchat-native.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  native-logic:
+    name: Rust unit tests and formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure Rust 1.95.0
+        run: |
+          rustup toolchain install 1.95.0 --profile minimal
+          rustup component add rustfmt --toolchain 1.95.0
+      - name: Format check
+        run: cargo +1.95.0 fmt --manifest-path pixelchat/native/Cargo.toml -- --check
+      - name: Unit tests
+        run: cargo +1.95.0 test --manifest-path pixelchat/native/Cargo.toml --offline
+      - name: Manifest and hook contract tests
+        run: python3 -m unittest tests.test_pixelchat_native -v
