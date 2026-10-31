@@ -1,0 +1,83 @@
+{
+ "metadata": {
+  "id": "ruby_demo",
+  "name": "Ruby Demo",
+  "version": "0.1.0",
+  "author": "Creator",
+  "description": "Example with two recipes, a block and a gem (edited in 0.7)"
+ },
+ "blocks": [
+  {
+   "id": "ruby_block",
+   "uid": "46e2add5-6199-59c8-a0e2-e099ee79df6b",
+   "name": "Block of Ruby",
+   "template": "minecraft:iron_block",
+   "hardness": 4,
+   "light": 3
+  }
+ ],
+ "items": [
+  {
+   "id": "ruby",
+   "uid": "8b03ca85-7f82-5cce-8341-9e419bd69a90",
+   "name": "Ruby",
+   "template": "minecraft:diamond",
+   "rarity": "rare",
+   "max_stack_size": 64
+  }
+ ],
+ "recipes": [
+  {
+   "id": "ruby_block",
+   "uid": "743a94d3-6aab-5005-b9e3-43d67678a736",
+   "type": "shaped",
+   "result": "@ruby_block",
+   "count": 1,
+   "grid": [
+    "@ruby",
+    "@ruby",
+    "@ruby",
+    "@ruby",
+    "@ruby",
+    "@ruby",
+    "@ruby",
+    "@ruby",
+    "@ruby"
+   ]
+  },
+  {
+   "id": "ruby_from_block",
+   "uid": "45c2b836-6fea-5822-af74-8497103b5092",
+   "type": "shapeless",
+   "result": "@ruby",
+   "count": 9,
+   "grid": [
+    "@ruby_block",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ]
+  }
+ ],
+ "structures": [],
+ "source_overrides": {},
+ "carry": {
+  "project_extra": {},
+  "preserved_objects": [],
+  "extensions": {},
+  "provenance": {
+   "migrations": [
+    {
+     "from": 2,
+     "to": "studio.project/1"
+    }
+   ]
+  },
+  "document_extra": {}
+ }
+}

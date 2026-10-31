@@ -1,0 +1,149 @@
+{
+ "metadata": {
+  "id": "workshop_showcase",
+  "name": "Workshop Showcase",
+  "version": "0.4.0",
+  "author": "Horizon Studio Team",
+  "description": "Visual creator examples: bilingual items, tool tags and six NBT structure generators. (edited in 0.7)"
+ },
+ "blocks": [
+  {
+   "id": "beacon_block",
+   "uid": "2aa0b7e8-4f5b-53ad-bccb-c09c8af6a9d0",
+   "name": "Beacon Block",
+   "name_ru": "Маячный блок",
+   "template": "minecraft:amethyst_block",
+   "hardness": 3,
+   "light": 15,
+   "requires_tool": true,
+   "mining_tool": "pickaxe",
+   "tool_tier": "iron"
+  }
+ ],
+ "items": [
+  {
+   "id": "shard",
+   "uid": "eaa0be65-dad7-5ca0-a091-f5a76782728f",
+   "name": "Prismatic Shard",
+   "name_ru": "Призматический осколок",
+   "template": "minecraft:amethyst_shard",
+   "rarity": "rare",
+   "max_stack_size": 64
+  }
+ ],
+ "recipes": [
+  {
+   "id": "shard_from_vanilla",
+   "uid": "f7e88e31-5783-5f70-ae3b-96b5c16b8814",
+   "type": "shapeless",
+   "count": 1,
+   "result": "@shard",
+   "grid": [
+    "minecraft:amethyst_shard",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ]
+  },
+  {
+   "id": "beacon_craft",
+   "uid": "f0a9b475-5ffd-5629-92a4-fe0dfce9edd7",
+   "type": "shaped",
+   "count": 1,
+   "result": "@beacon_block",
+   "grid": [
+    "@shard",
+    "@shard",
+    "@shard",
+    "@shard",
+    "@shard",
+    "@shard",
+    "@shard",
+    "@shard",
+    "@shard"
+   ]
+  }
+ ],
+ "structures": [
+  {
+   "id": "island",
+   "uid": "90de05b8-d21b-5378-b5ee-3c416e808d77",
+   "kind": "floating_island",
+   "theme": "end",
+   "size": 19,
+   "seed": 17,
+   "rotation": 90,
+   "mirror": "x"
+  },
+  {
+   "id": "crystals",
+   "uid": "970b05fb-26b7-582f-9540-c941ef29bbab",
+   "kind": "crystal_grove",
+   "theme": "quartz",
+   "size": 19,
+   "seed": 99,
+   "rotation": 180,
+   "mirror": "z"
+  },
+  {
+   "id": "arena",
+   "uid": "3beeeb59-924a-56c7-882d-4e805a6a7b48",
+   "kind": "battle_arena",
+   "theme": "nether",
+   "size": 25,
+   "seed": 42,
+   "rotation": 0,
+   "mirror": "none"
+  },
+  {
+   "id": "maze",
+   "uid": "16db865d-929f-5084-a93e-8b1f538e5970",
+   "kind": "labyrinth",
+   "theme": "stone",
+   "size": 17,
+   "seed": 1337,
+   "rotation": 270,
+   "mirror": "x"
+  },
+  {
+   "id": "tower",
+   "uid": "1295a9bc-e166-53f2-b5cd-5ce05e6a23e2",
+   "kind": "spiral_tower",
+   "theme": "prismarine",
+   "size": 21,
+   "seed": 8,
+   "rotation": 0,
+   "mirror": "none"
+  },
+  {
+   "id": "dome",
+   "uid": "875e6c7e-5eb9-554a-80f6-baf2d650a2d7",
+   "kind": "sky_dome",
+   "theme": "copper",
+   "size": 19,
+   "seed": 7,
+   "rotation": 90,
+   "mirror": "none"
+  }
+ ],
+ "source_overrides": {},
+ "carry": {
+  "project_extra": {},
+  "preserved_objects": [],
+  "extensions": {},
+  "provenance": {
+   "migrations": [
+    {
+     "from": 4,
+     "to": "studio.project/1"
+    }
+   ]
+  },
+  "document_extra": {}
+ }
+}

@@ -51,6 +51,13 @@ jobs:
     needs: guard
     uses: ./.github/workflows/official-content-check.yml
 
+  desktop:
+    name: Desktop app (installer, portable ZIP, manifest)
+    needs: guard
+    uses: ./.github/workflows/desktop.yml
+    with:
+      release: true
+
   build:
     name: Build and smoke-test the Windows executable
     needs: [guard, tests, official]
@@ -137,7 +144,7 @@ jobs:
 
   publish:
     name: Publish and verify the GitHub release
-    needs: [guard, build]
+    needs: [guard, build, desktop]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -153,8 +160,22 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: windows-release-build
-          path: dist
+          path: build-exe
+      - name: Download this run's tested desktop build
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-windows-release-build
+          path: build-desktop
+      - name: One set of assets, one SHA256SUMS.txt
+        run: |
+          mkdir dist
+          exe="HorizonStudio-$VERSION-Windows-x64.exe"
+          setup="HorizonStudio-$VERSION-Windows-x64-setup.exe"
+          zip="HorizonStudio-$VERSION-Windows-x64-portable.zip"
+          cp "build-exe/$exe" build-exe/build-manifest.json "build-desktop/$setup" "build-desktop/$zip" build-desktop/desktop-manifest.json dist/
+          python scripts/desktop_release.py verify --dist build-desktop --manifest build-desktop/desktop-manifest.json
+          python scripts/release.py checksums --dist dist "$exe" build-manifest.json "$setup" "$zip" desktop-manifest.json
       - name: Publish (draft, upload, verify, then publish; never replaces assets)
-        run: python scripts/release.py publish --repo "$GITHUB_REPOSITORY" --version "$VERSION" --commit "$GITHUB_SHA" --dist dist --notes RELEASE_NOTES.md
+        run: python scripts/release.py publish --repo "$GITHUB_REPOSITORY" --version "$VERSION" --commit "$GITHUB_SHA" --dist dist --notes RELEASE_NOTES.md --desktop
       - name: Independent verification through the GitHub API
         run: python scripts/release.py verify --repo "$GITHUB_REPOSITORY" --version "$VERSION" --commit "$GITHUB_SHA"

@@ -41,28 +41,50 @@ Only artifacts built in the same run are published; nothing from pull requests r
 
 Executables are **unsigned**; `build-manifest.json` says so. The manifest records version, tag, commit, platform, Python and PyInstaller versions, executable size and SHA-256, build time (UTC), gate results and smoke-test checks. It is evidence of how this build was made, not a code signature.
 
-## Desktop release candidates (preview, not published)
+## The desktop app in releases
 
-The Tauri desktop build is not released yet; the verified 0.7 EXE stays the released product until every gate in
-[ADR 0002](adr/0002-desktop-shell.md) holds. Every `desktop.yml` run on Windows still builds a full candidate, so the
-pipeline is proven before it is trusted:
+`windows-release.yml` builds the desktop app with `desktop.yml` itself (`workflow_call`, `release: true`), so the
+installer and the portable ZIP pass the same gates on the same commit as the EXE:
+- Rust tests on Windows and Linux;
+- the frozen core's smoke test;
+- the portable smoke runs (cold, warm, every window size);
+- launching the ZIP exactly as shipped;
+- an install–smoke–uninstall cycle;
+- functional E2E on the real window.
 
-1. The core is frozen and smoke-tested. The shell and the NSIS installer are built, the portable folder is zipped, and
-   the build's own smoke runs, an install–smoke–uninstall cycle and functional E2E on the real window all pass.
-2. The portable ZIP is launched exactly as shipped (extracted to a fresh folder).
-3. `Get-AuthenticodeSignature` records each shipped file's signing status. Nothing is described as signed unless
-   Windows says `Valid`.
-4. `scripts/desktop_release.py` writes `desktop-manifest.json` (`horizon-studio.desktop-manifest/1`) and
-   `SHA256SUMS.txt`, then verifies every artifact against both. The manifest holds:
-   - the commit;
-   - each artifact's size and SHA-256;
+Every `desktop.yml` run on a branch builds the same thing as a *preview* candidate.
+
+1. `Get-AuthenticodeSignature` records each shipped file's signing status. Nothing is described as signed unless
+   Windows says `Valid` ([SIGNING.md](SIGNING.md)).
+2. `scripts/desktop_release.py` writes `desktop-manifest.json` (`horizon-studio.desktop-manifest/1`) and verifies
+   every artifact against it and against `SHA256SUMS.txt`. The manifest holds:
+   - the commit, and each artifact's size and SHA-256;
    - the portable ZIP's layout (the shell needs its `core/` folder; it is not a single-file executable);
-   - the smoke results;
-   - the signing status;
-   - every ADR 0002 parity gate with `passed` true or false;
-   - `release_ready`, which is true only when all of them pass and the signing state is not mixed.
-5. The candidate and its manifest are kept as a workflow artifact for 14 days.
+   - the smoke results and the signing status;
+   - every ADR 0002 parity gate, judged from evidence:
+     - `desktop-e2e`: from this run;
+     - `release-pipeline`: only in the release channel;
+     - `signing-decision`: from the owner's decision file, which the build must honour;
+     - `migration-note`: from [MIGRATING_FROM_0.7.md](MIGRATING_FROM_0.7.md);
+   - `release_ready`, true only when every gate passes;
+   - `prerelease`, true for every unsigned build.
+3. The publish job takes the EXE build and the desktop build of the same run and writes one `SHA256SUMS.txt` for all
+   five files. It then publishes with `release.py publish --desktop`, which refuses a desktop build that is not
+   release-ready, from another commit or version, or unsigned but not a prerelease.
+4. Verification through the API covers the desktop assets too:
+   - every one is in `SHA256SUMS.txt` and matches `desktop-manifest.json`;
+   - every one can be downloaded;
+   - an unsigned build published as a full release fails.
 
-The script cannot publish: it has no GitHub client, and a test checks that. Publishing desktop artifacts will be added
-to `windows-release.yml` with the same same-commit gates and API verification as the EXE, and only together with a
-recorded signing decision and a migration note. No VERSION bump comes before that.
+Release assets from the first desktop release on:
+
+| Asset | What it is |
+|---|---|
+| `HorizonStudio-<v>-Windows-x64-setup.exe` | NSIS installer (per user, no administrator rights) |
+| `HorizonStudio-<v>-Windows-x64-portable.zip` | Portable folder: `HorizonStudio.exe` plus `core/`; extract the whole archive |
+| `desktop-manifest.json` | What the desktop build proved, including signing status and parity gates |
+| `HorizonStudio-<v>-Windows-x64.exe` | The classic single-file launcher (the 0.7 product), kept alongside |
+| `build-manifest.json` | The EXE's build record |
+| `SHA256SUMS.txt` | Checksums of all of the above |
+
+No VERSION bump happens before the owner's signing decision is recorded and every gate passes.

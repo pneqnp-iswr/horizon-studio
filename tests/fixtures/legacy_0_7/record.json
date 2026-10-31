@@ -1,0 +1,16 @@
+{
+ "generated_by": "v0.7.0 (c816211) core, scratch script; HOME isolated",
+ "version": "0.7.0",
+ "projects": {
+  "ruby_demo": {
+   "workspace_revision": "c26c10d8cb5718d47f08d58371b7bd76d633592d88f03925e740bcbd5525695f",
+   "hmod_sha256": "07ca6e27cf5aaeceed1cbe6cf6c1caf6e181a3d04ab40ea681e08d43709679a0",
+   "saved_sha256": "c26c10d8cb5718d47f08d58371b7bd76d633592d88f03925e740bcbd5525695f"
+  },
+  "workshop_showcase": {
+   "workspace_revision": "ebd3678f20c673e6217b4473fa698e172d12d73c7e40c851525f9becc9a3d0e6",
+   "hmod_sha256": "55470c1753978d5315d27d3eef5ab13e816be83aaa757e63e16b7887b47152d4",
+   "saved_sha256": "ebd3678f20c673e6217b4473fa698e172d12d73c7e40c851525f9becc9a3d0e6"
+  }
+ }
+}

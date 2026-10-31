@@ -92,6 +92,32 @@ class Build:
         self.dir.cleanup()
 
 
+def desktop_build(build, ready=True):
+    """Adds a desktop installer, portable ZIP and manifest (as desktop.yml's release channel makes them)."""
+    import zipfile
+    from scripts import desktop_release as dr
+    setup, portable, _ = release.desktop_names(VERSION)
+    (build.dist / setup).write_bytes(b"MZ nsis installer")
+    with zipfile.ZipFile(build.dist / portable, "w") as archive:
+        for name in ("HorizonStudio.exe", "core/horizon-studio-core.exe"):
+            archive.writestr(f"HorizonStudio-{VERSION}/{name}", b"MZ" + name.encode())
+    smoke = build.dist / "smoke"
+    smoke.mkdir()
+    (smoke / "portable.metrics.json").write_text(json.dumps({"label": "portable", "ok": True, "report": {"shell": {}}}))
+    signing = {"overall": "unsigned", "files": {setup: "NotSigned", "HorizonStudio.exe": "NotSigned",
+                                                "core/horizon-studio-core.exe": "NotSigned"}}
+    decision = {"policy": "unsigned-prerelease", "approved_by": "owner", "approved_at": "2026-10-31",
+                "evidence": "test", "honoured": True}
+    parity = {gate: True for gate in dr.PARITY_GATES} if ready else {"desktop-e2e": True}
+    manifest = dr.build_manifest(VERSION, COMMIT, build.dist / setup, build.dist / portable,
+                                 {gate: "success" for gate in dr.BUILD_GATES}, dr.smoke_results(smoke), signing, parity,
+                                 channel="release", decision=decision if ready else None)
+    (build.dist / release.DESKTOP_MANIFEST).write_text(json.dumps(manifest), encoding="utf-8")
+    names = [release.exe_name(VERSION), "build-manifest.json", *release.desktop_names(VERSION)]
+    (build.dist / "SHA256SUMS.txt").write_text(release.checksums(build.dist, names), encoding="ascii")
+    return build
+
+
 class NotesTests(unittest.TestCase):
     def test_accepts_matching_notes(self):
         self.assertEqual(release.check_notes(NOTES, VERSION), [])
@@ -160,6 +186,40 @@ class PublishTests(unittest.TestCase):
         kinds = [w[0] for w in self.gh.writes]
         self.assertEqual(kinds, ["create", "upload", "upload", "upload", "update"])
         self.assertFalse(self.gh.find_release(f"v{VERSION}")["draft"])
+
+    def test_the_desktop_app_is_published_and_verified_with_the_release(self):
+        desktop_build(self.build)
+        result = release.publish(self.gh, VERSION, COMMIT, self.build.dist, NOTES, prerelease=False, desktop=True)
+        self.assertEqual(result["status"], "published")
+        self.assertTrue(result["prerelease"], "an unsigned desktop build is always a prerelease")
+        self.assertEqual(result["desktop"]["signing"], "unsigned")
+        self.assertEqual([a["name"] for a in result["desktop"]["assets"]], list(release.desktop_names(VERSION)))
+        published = {a["name"] for a in self.gh.find_release(f"v{VERSION}")["assets"]}
+        self.assertEqual(published, set(release.asset_names(VERSION, desktop=True)))
+        # A rerun finds it complete and writes nothing.
+        writes = len(self.gh.writes)
+        self.assertEqual(release.publish(self.gh, VERSION, COMMIT, self.build.dist, NOTES, desktop=True)["status"],
+                         "already verified")
+        self.assertEqual(len(self.gh.writes), writes)
+
+    def test_a_desktop_build_that_is_not_release_ready_is_never_uploaded(self):
+        desktop_build(self.build, ready=False)
+        with self.assertRaisesRegex(ReleaseError, "not release-ready"):
+            release.publish(self.gh, VERSION, COMMIT, self.build.dist, NOTES, desktop=True)
+        self.assertEqual(self.gh.writes, [])
+
+    def test_a_tampered_desktop_asset_or_a_full_release_of_an_unsigned_build_fails_verification(self):
+        desktop_build(self.build)
+        release.publish(self.gh, VERSION, COMMIT, self.build.dist, NOTES, desktop=True)
+        rel = self.gh.releases[0]
+        rel["prerelease"] = False
+        with self.assertRaisesRegex(ReleaseError, "full release"):
+            release.verify(self.gh, VERSION, COMMIT)
+        rel["prerelease"] = True
+        setup = next(a for a in rel["assets"] if a["name"].endswith("-setup.exe"))
+        setup["digest"] = "sha256:" + "0" * 64
+        with self.assertRaisesRegex(ReleaseError, "setup.exe"):
+            release.verify(self.gh, VERSION, COMMIT)
 
     def test_rerun_reports_already_verified_and_writes_nothing(self):
         self.publish()
@@ -262,7 +322,12 @@ class BundleAndWorkflowTests(unittest.TestCase):
         self.assertIn("uses: ./.github/workflows/tests.yml", block("tests"))
         self.assertIn("uses: ./.github/workflows/official-content-check.yml", block("official"))
         self.assertRegex(block("build"), r"needs: \[guard, tests, official\]")
-        self.assertRegex(block("publish"), r"needs: \[guard, build\]")
+        self.assertRegex(block("publish"), r"needs: \[guard, build, desktop\]")
+        self.assertIn("uses: ./.github/workflows/desktop.yml", block("desktop"))
+        self.assertIn("release: true", block("desktop"))
+        self.assertIn("--desktop", block("publish"))
+        self.assertNotIn("contents: write", block("desktop"))
+        self.assertIn("workflow_call:", (ROOT / ".github" / "workflows" / "desktop.yml").read_text(encoding="utf-8"))
         self.assertIn("contents: write", block("publish"))
         self.assertNotIn("contents: write", block("build"))
         self.assertIn("refs/heads/master", block("guard"))
