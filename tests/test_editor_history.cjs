@@ -47,10 +47,10 @@ test('large snapshots evict old frames rather than corrupt them',()=>{
   assert.equal(journal.undo().value.length,400);
 });
 
-test('browser inline script parses as ECMAScript (guard integration)',()=>{
-  const fs=require('node:fs'),vm=require('node:vm');
-  const html=fs.readFileSync(require('node:path').join(__dirname,'..','index.html'),'utf8');
-  const inline=html.split('<script>').slice(1).map(part=>part.split('</script>')[0]);
-  assert.ok(inline.length>0,'inline editor script missing');
-  for(const source of inline)new vm.Script(source,{filename:'index.html'});
+test('the editor application script parses and the page has no inline script (CSP script-src self)',()=>{
+  const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+  const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
+  assert.equal(html.split('<script>').length,1,'index.html must not carry an inline script');
+  assert.ok(html.includes('<script src="/editor_app.js"></script>'));
+  new vm.Script(fs.readFileSync(path.join(__dirname,'..','editor_app.js'),'utf8'),{filename:'editor_app.js'});
 });

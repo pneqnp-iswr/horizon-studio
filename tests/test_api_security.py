@@ -38,6 +38,30 @@ class ApiSecurityTests(unittest.TestCase):
         default.update(headers or {})
         return self.request('POST', '/api/preview', body=b'{}', headers=default)
 
+    def test_pages_may_run_only_scripts_from_the_studio_origin(self):
+        # S3/CSP: no inline <script>, no inline event handler, no eval; the policy says so too.
+        import re
+        status, headers, page = self.request('GET', '/', headers={'Host': f"127.0.0.1:{self.server.server_address[1]}"})
+        self.assertEqual(status, 200)
+        policy = dict(part.strip().split(' ', 1) for part in headers['Content-Security-Policy'].split(';') if part.strip())
+        self.assertEqual(policy['script-src'], "'self'")
+        for directive, value in (('object-src', "'none'"), ('base-uri', "'none'"), ('frame-ancestors', "'none'")):
+            self.assertEqual(policy[directive], value)
+        self.assertEqual(policy['connect-src'], "'self'")
+        import studio
+        desktop = dict(part.strip().split(' ', 1) for part in studio.content_security_policy(True).split(';'))
+        self.assertEqual(desktop['connect-src'], "'self' ipc: http://ipc.localhost", 'the shell IPC, and only for connections')
+        self.assertEqual({k: v for k, v in desktop.items() if k != 'connect-src'},
+                         {k: v for k, v in policy.items() if k != 'connect-src'})
+        html = page.decode('utf-8')
+        self.assertEqual(re.findall(r'<script(?![^>]*\bsrc=)[^>]*>', html), [], 'inline scripts')
+        self.assertEqual(re.findall(r'\son[a-z]+\s*=', html), [], 'inline event handlers')
+        root = Path(__file__).resolve().parents[1]
+        import studio
+        for name in studio.WEB_SCRIPTS:
+            source = (root / name).read_text(encoding='utf-8')
+            self.assertIsNone(re.search(r'\beval\(|new Function\(|setTimeout\([\'"`]', source), name)
+
     def test_session_endpoint_is_not_cacheable(self):
         status, headers, data = self.request('GET', '/api/session')
         self.assertEqual(status, 200)

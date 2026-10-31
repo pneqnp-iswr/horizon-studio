@@ -6,6 +6,7 @@
 mod core;
 mod files;
 mod options;
+mod tree;
 
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -27,6 +28,9 @@ use crate::options::Options;
 const MAIN: &str = "main";
 const CORE_START_TIMEOUT: Duration = Duration::from_secs(60);
 const CORE_STOP_TIMEOUT: Duration = Duration::from_secs(10);
+/// When the application exits the window is already gone; a core that has not stopped at EOF by
+/// then is killed sooner. Nothing is lost: every edit was already committed to disk atomically.
+const CORE_EXIT_TIMEOUT: Duration = Duration::from_secs(3);
 
 #[derive(Default)]
 struct Timeline {
@@ -81,6 +85,21 @@ fn navigation_allowed(url: &Url, origin: &Mutex<Option<Url>>) -> bool {
     is_shell_page(url) || is_core_page(url, &origin.lock().unwrap())
 }
 
+/// Hosts the editor links to (documentation, issues and the native mod template live on GitHub).
+const EXTERNAL_HOSTS: [&str; 1] = ["github.com"];
+
+/// Which new-window requests go to the system browser: https links to the hosts the editor links
+/// to, without credentials or an explicit port. Anything else (another scheme, another host, a
+/// `user@host` URL that disguises its destination) is refused, and the shell never hosts it.
+fn external_link_allowed(url: &Url) -> bool {
+    url.scheme() == "https"
+        && url.username().is_empty()
+        && url.password().is_none()
+        && url.port().is_none()
+        && url.host_str().is_some_and(|host| EXTERNAL_HOSTS.contains(&host))
+        && url.as_str().len() <= 2048
+}
+
 /// Editor -> shell: native "Save as" for exports and project files. The bytes arrive as
 /// the raw request body; the suggested file name in the `x-file-name` header.
 #[tauri::command]
@@ -91,10 +110,7 @@ async fn save_file(app: AppHandle, request: Request<'_>) -> Result<Value, String
     check_size(bytes.len())?;
     let name = suggested_name(request.headers().get("x-file-name").and_then(|v| v.to_str().ok()))?;
     let shell = app.state::<Shell>();
-    if shell.saving.swap(true, Ordering::SeqCst) {
-        return Err("A save dialog is already open".into());
-    }
-    let _open = Release(&shell.saving);
+    let _open = one_dialog(&shell.saving)?;
     // Test builds only (cargo feature `e2e`, never shipped): the native dialog cannot be driven by
     // WebDriver, so desktop E2E answers it from the environment instead.
     #[cfg(feature = "e2e")]
@@ -123,6 +139,15 @@ fn finish_save(chosen: Option<PathBuf>, bytes: &[u8]) -> Result<Value, String> {
     write_atomically(&path, bytes).map_err(|e| format!("Could not save {}: {e}", path.display()))?;
     let saved = path.file_name().map(|n| n.to_string_lossy().into_owned());
     Ok(json!({ "saved": true, "name": saved, "bytes": bytes.len() }))
+}
+
+/// One native dialog at a time: a second request while one is open is refused, not queued, so the
+/// editor can never stack dialogs (or race two saves) behind the person's back.
+fn one_dialog(flag: &AtomicBool) -> Result<Release<'_>, String> {
+    if flag.swap(true, Ordering::SeqCst) {
+        return Err("A save dialog is already open".into());
+    }
+    Ok(Release(flag))
 }
 
 /// Clears the flag it guards when dropped.
@@ -231,6 +256,8 @@ fn boot(app: AppHandle) {
         timeline.core_ready_ms = Some(shell.elapsed());
         timeline.core = Some(json!({
             "launch": core.launch.kind(), "pid": core.pid, "version": core.version, "protocol": core::PROTOCOL,
+            // S2: whether the shell owns the core's process tree, and how (job-object, process-group).
+            "process_tree": if core.contained() { tree::kind() } else { "not-contained" },
         }));
     }
     *shell.origin.lock().unwrap() = Some(url.clone());
@@ -360,7 +387,7 @@ fn main() {
                     .on_new_window(move |url, _features| {
                         // Links that open a new window (documentation, the native mod
                         // template) go to the system browser; the shell never hosts them.
-                        if url.scheme() == "https" {
+                        if external_link_allowed(&url) {
                             let _ = opener.opener().open_url(url.as_str(), None::<&str>);
                         }
                         NewWindowResponse::Deny
@@ -408,7 +435,7 @@ fn main() {
             if let Some(shell) = app.try_state::<Shell>() {
                 shell.finished.store(true, Ordering::SeqCst);
                 if let Some(core) = shell.core.lock().unwrap().take() {
-                    core.stop(CORE_STOP_TIMEOUT);
+                    core.stop(CORE_EXIT_TIMEOUT);
                 }
             }
         }
@@ -418,6 +445,52 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::atomic::AtomicUsize;
+
+    #[test]
+    fn only_one_dialog_opens_even_when_requests_race() {
+        let flag = AtomicBool::new(false);
+        let winners = AtomicUsize::new(0);
+        let barrier = std::sync::Barrier::new(8);
+        thread::scope(|scope| {
+            for _ in 0..8 {
+                scope.spawn(|| {
+                    barrier.wait();
+                    if let Ok(open) = one_dialog(&flag) {
+                        winners.fetch_add(1, Ordering::SeqCst);
+                        thread::sleep(Duration::from_millis(100));  // the dialog is open
+                        drop(open);
+                    }
+                });
+            }
+        });
+        assert_eq!(winners.load(Ordering::SeqCst), 1, "exactly one of the racing requests opened a dialog");
+        assert!(one_dialog(&flag).is_ok(), "the next one may open once it closed");
+    }
+
+    #[test]
+    fn only_known_https_links_reach_the_system_browser() {
+        for allowed in ["https://github.com/pneqnp-iswr/horizon-studio/issues/11", "https://github.com/horizon-rust/horizon"] {
+            assert!(external_link_allowed(&Url::parse(allowed).unwrap()), "{allowed}");
+        }
+        for denied in [
+            "http://github.com/",
+            "https://evil.example/",
+            "https://github.com.evil.example/",
+            "https://github.com@evil.example/",
+            "https://user:pass@github.com/",
+            "https://github.com:8443/",
+            "file:///etc/passwd",
+            "javascript:alert(1)",
+            "ms-settings:privacy",
+        ] {
+            if let Ok(url) = Url::parse(denied) {
+                assert!(!external_link_allowed(&url), "{denied}");
+            }
+        }
+        let long = format!("https://github.com/{}", "a".repeat(3000));
+        assert!(!external_link_allowed(&Url::parse(&long).unwrap()));
+    }
 
     #[test]
     fn navigation_is_limited_to_the_splash_and_the_core() {

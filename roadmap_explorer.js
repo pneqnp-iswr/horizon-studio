@@ -16,7 +16,9 @@
   }
   const pick=(obj,key,lang)=>lang==='ru'&&obj[key+'_ru']?obj[key+'_ru']:obj[key];
   const byId=view=>new Map(view.milestones.map(m=>[m.id,m]));
-  const link=(url,text)=>`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(text)}</a>`;
+  // Only https links and repository-relative paths become links; anything else (javascript:, data:, …) is text.
+  const safeUrl=url=>typeof url==='string'&&(/^https:\/\//i.test(url)||/^(?![a-z][a-z0-9+.-]*:|\/\/)[\w./#-]+$/i.test(url));
+  const link=(url,text)=>safeUrl(url)?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(text)}</a>`:esc(text);
 
   function phaseProgress(view,phase){
     const items=view.milestones.filter(m=>m.phase===phase.id&&m.track==='studio');
@@ -167,7 +169,7 @@
       if(reveal&&!filterMilestones(view,state).some(m=>m.id===id)){state.phase='all';state.query='';state.statuses=new Set(STATUSES);state.track='all';$('#roadmapSearch').value='';}
       if(state.tab!=='roadmap')state.tab='roadmap';
       render();
-      const card=container.querySelector(`.jr-card[data-milestone="${id}"]`);
+      const card=container.querySelector(`.jr-card[data-milestone="${CSS.escape(id)}"]`);
       card?.scrollIntoView?.({block:'nearest'});
       if(focusDetail)$('#milestoneDetail').focus();else card?.focus();
     }

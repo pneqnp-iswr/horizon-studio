@@ -207,6 +207,29 @@ e2e('Source Workbench validates, applies, undoes and exports JSON overrides', as
   await page.waitForFunction(() => !Object.keys(JSON.parse(localStorage.getItem('horizonStudio_v02')).source_overrides).length);
 });
 
+e2e('hostile project content is shown as text, never as markup (S3)', async ({ page }) => {
+  const evil = '<img src=x data-pwned onerror="window.__pwned=1">';
+  const spark = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests', 'fixtures', 'vfx_impact_spark.json'), 'utf8')).effect;
+  const project = {
+    format: 'horizon-studio', schema: 3,
+    metadata: { id: 'hostile_demo', name: evil, version: '1.0.0', author: evil, description: evil },
+    blocks: [{ id: 'hostile_block', name: evil, template: 'minecraft:stone', hardness: 1, light: 0 }],
+    items: [{ id: 'hostile_item', name: evil, template: 'minecraft:diamond', rarity: evil }],
+    recipes: [{ id: 'hostile_recipe', type: evil, result: '@hostile_item', count: 1, grid: ['@hostile_item', '', '', '', '', '', '', '', ''] }],
+    structures: [{ id: 'hostile_tower', kind: evil, theme: evil, size: evil, seed: 1, rotation: evil, mirror: evil }],
+    effects: [{ id: 'hostile_fx', uid: '11111111-1111-4111-8111-111111111111', ...spark, name: evil }],
+  };
+  await page.setInputFiles('#projectFile', { name: `${evil}.hstudio.json`, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(project)) });
+  await page.waitForFunction(() => document.querySelector('#modId').value === 'hostile_demo');
+  for (const tab of ['#blockTab', '#itemTab', '#recipeTab', '#structureTab']) await page.click(tab);
+  await page.click('#openVfx');
+  await page.waitForSelector('#vfxDialog:not([hidden])');
+  await page.click('#closeVfx');
+  const injected = await page.evaluate(() => ({ elements: document.querySelectorAll('[data-pwned]').length, ran: window.__pwned ?? null }));
+  assert.deepEqual(injected, { elements: 0, ran: null });
+  assert.ok((await page.textContent('body')).includes('<img src=x data-pwned'), 'the text itself is shown');
+});
+
 e2e('the unedited demo exports exactly the officially checked .hmod', async ({ page }) => {
   await loadDemo(page);
   const hmod = await download(page, '#exportHmod');

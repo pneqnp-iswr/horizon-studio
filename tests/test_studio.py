@@ -216,7 +216,9 @@ class I18nTests(unittest.TestCase):
         self.assertIn('id="lang-en"',page)
         self.assertIn('id="lang-ru"',page)
         self.assertIn('src="/i18n.js"',page)
-        self.assertIn('window.HorizonI18n.init()',page)
+        self.assertIn('src="/editor_app.js"',page)
+        app=(Path(__file__).resolve().parents[1] / 'editor_app.js').read_text(encoding='utf-8')
+        self.assertIn('window.HorizonI18n.init()',app)
 
     def test_translatable_elements_reference_translation_keys(self):
         import re

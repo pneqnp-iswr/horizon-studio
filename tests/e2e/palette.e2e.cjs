@@ -2,6 +2,7 @@
 /* HS-033: the command palette in a real browser: every workbench command is reachable from the
  * keyboard, runs the real control, and the palette is translated and accessible. */
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const { e2e, t, waitStatus } = require('./harness.cjs');
 
 const options = page => page.$$eval('#paletteList [role=option]', items => items.map(li => li.dataset.command));
@@ -63,7 +64,8 @@ e2e('the palette is translated and passes automated accessibility rules', async 
     if (process.env.CI) throw new Error('axe-core must be installed in CI');
     return;
   }
-  await page.addScriptTag({ path: axe });
+  // The page's CSP refuses inline scripts, which is what addScriptTag inserts; DevTools evaluation is not a page script.
+  await page.evaluate(fs.readFileSync(axe, 'utf8'));
   const result = await page.evaluate(() => window.axe.run(document.querySelector('#paletteDialog'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] }));
   assert.deepEqual(result.violations.map(v => `${v.id} (${v.nodes.map(n => n.target.join(' ')).join(', ')})`), []);
 });

@@ -109,7 +109,8 @@ e2e('VFX Studio is translated and passes automated accessibility rules', async (
     if (process.env.CI) throw new Error('axe-core must be installed in CI');
     return;
   }
-  await page.addScriptTag({ path: axe });
+  // The page's CSP refuses inline scripts, which is what addScriptTag inserts; DevTools evaluation is not a page script.
+  await page.evaluate(fs.readFileSync(axe, 'utf8'));
   const result = await page.evaluate(() => window.axe.run(document.querySelector('#vfxDialog'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] }));
   assert.deepEqual(result.violations.map(v => `${v.id} (${v.nodes.map(n => n.target.join(' ')).join(', ')})`), []);
 });
