@@ -3,7 +3,7 @@
   "updated": "2026-10-31",
   "source": "docs/roadmap/master-2026-10-30.md",
   "current_phase": "F3",
-  "active_milestone": "HS-008",
+  "active_milestone": "HS-020",
   "next_milestones": [
     "HS-009",
     "HS-010"
@@ -511,7 +511,7 @@
       "id": "HS-008",
       "track": "studio",
       "phase": "F3",
-      "status": "in_progress",
+      "status": "done",
       "depends_on": [
         "HS-005"
       ],
@@ -530,6 +530,11 @@
       "validation_target": "official-static",
       "design_ref": "docs/ENGINE_CAPABILITIES.md",
       "evidence": [
+        {
+          "level": "official-static",
+          "ref": "CI run 41152431321: the official checker built at d2186eb and at 3c1d4b39 accepts every example and migration fixture (one matrix leg per profile, PR #22)",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41152431321"
+        },
         {
           "level": "unit",
           "ref": "First slice: registry, project requirements, CLI capabilities (tests/test_capabilities.py)",
@@ -617,7 +622,7 @@
       "id": "HS-020",
       "track": "studio",
       "phase": "F3",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "HS-005",
         "HS-006",

@@ -7,7 +7,7 @@ Last updated: 2026-10-31. Master before this update: `22535de` (PR #20). Roadmap
 - **F0 — Foundation:** code complete; gate still lacks a real-game load record (HS-002 blocked on an authorized Horizon installation).
 - **F1 — Project Core:** done — HS-005, HS-006, HS-007.
 - **F2 — Creative Editor:** **HS-019 native desktop shell and workbench UI, partial** (slice A of the desktop transformation, PR #19). Missing: desktop release pipeline, an E2E run driving the shell's own window, a signing decision.
-- **F3 — Visual Scripting (current):** **HS-008 engine capability registry**: registry with Horizon's API levels, two audited profiles (`d2186eb`, `3c1d4b39`), project target selection with comparison, editor and CLI export gates; the official checker runs once per profile in CI.
+- **F3 — Visual Scripting (current):** **HS-008 engine capability registry — done** (CI run 41152431321, PR #22): registry with Horizon's API levels, two audited profiles (`d2186eb`, `3c1d4b39`), project target selection with comparison, editor and CLI export gates; the official checker runs once per profile in CI. **Active milestone: HS-020** (AI Creator tool contract).
 - **Latest release: v0.7.0** (PR #15 → tag on `c816211`, run 41136925994): `HorizonStudio-0.7.0-Windows-x64.exe`, 12 170 186 bytes, SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9`, unsigned; verified through the API. It stays the released product until the desktop build meets the gates in [ADR 0002](../adr/0002-desktop-shell.md).
 
 ## Roadmap v2 (engineering cycle 2)
@@ -44,7 +44,7 @@ Last updated: 2026-10-31. Master before this update: `22535de` (PR #20). Roadmap
 | HS-005 project document + migration | **done** | PR #7; migrated fixtures pass the pinned checker (run `41124192941`) |
 | HS-006 durable workspace + undo | **done** | PR #8 (Python fault injection, Node journal); PR #10 browser E2E: autosave, fresh-browser recovery, 409 conflicts, undo/redo |
 | HS-007 browser E2E + UI modules | **done** | PR #10: 13 Chromium scenarios in CI; PR #14: `editor_model.js` and `editor_render.js` (state logic and card markup) join `editor_api.js`/`editor_workspace.js`, 22 Node tests; the inline script only wires the DOM |
-| HS-008 engine capability registry | **in progress** | PR #16 (registry, CLI); PR #19 (API levels, editor card, export gate, journey; browser E2E) |
+| HS-008 engine capability registry | **done** | PR #16 (registry, CLI); PR #19 (API levels, editor card, export gate, journey; browser E2E) |
 | HS-019 desktop shell + workbench UI | **partial** | PR #19; `desktop.yml` run 41143213331; [DESKTOP.md](../DESKTOP.md) |
 
 ## Compatibility status (by level)
