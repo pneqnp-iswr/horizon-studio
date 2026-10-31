@@ -13,11 +13,10 @@ import threading
 import urllib.error
 import urllib.request
 import webbrowser
-from http.server import ThreadingHTTPServer
 from pathlib import Path
 
 from security.request_policy import session_token
-from studio import HOST, PORT, Handler
+from studio import HOST, PORT, Handler, StudioHTTPServer
 
 
 def app_version() -> str:
@@ -27,7 +26,7 @@ def app_version() -> str:
         return "development"
 
 
-class ExclusiveHTTPServer(ThreadingHTTPServer):
+class ExclusiveHTTPServer(StudioHTTPServer):
     """An ephemeral-port server no other socket may share.
 
     ``HTTPServer`` sets SO_REUSEADDR, which on Windows lets another local process bind the same
@@ -44,11 +43,11 @@ class ExclusiveHTTPServer(ThreadingHTTPServer):
         super().server_bind()
 
 
-def start_server(*, smoke_test: bool = False, exclusive: bool = False) -> ThreadingHTTPServer:
+def start_server(*, smoke_test: bool = False, exclusive: bool = False) -> StudioHTTPServer:
     """Prefer a stable origin for browser localStorage across regular launches."""
     port = 0 if smoke_test or exclusive else PORT
     try:
-        server = (ExclusiveHTTPServer if exclusive else ThreadingHTTPServer)((HOST, port), Handler)
+        server = (ExclusiveHTTPServer if exclusive else StudioHTTPServer)((HOST, port), Handler)
     except OSError as exc:
         raise RuntimeError(
             f"Unable to start Horizon Studio on http://{HOST}:{PORT}. "

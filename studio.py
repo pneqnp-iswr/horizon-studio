@@ -565,6 +565,20 @@ def content_security_policy(desktop: bool) -> str:
             f"connect-src {connect}; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
 
 
+class StudioHTTPServer(ThreadingHTTPServer):
+    """The local server for the editor, in the browser and in the desktop app.
+
+    The handler speaks HTTP/1.0, so every request is a new connection, and a page load opens one
+    per script and icon, up to six at a time. socketserver's default listen backlog of 5 is less
+    than that: on Windows a connection that does not fit is refused at once, the script it carried
+    fails to load and the editor starts half-built (seen in the desktop E2E as a missing
+    desktop_bridge.js). Linux only delays such a connection, so the backlog is set here for both.
+    """
+
+    request_queue_size = 128
+    daemon_threads = True
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         stream = getattr(self.server, 'studio_log', sys.stdout)  # the desktop core keeps stdout for its protocol
@@ -725,7 +739,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     port = int(sys.argv[1]) if len(sys.argv) > 1 else PORT
-    with ThreadingHTTPServer((HOST, port), Handler) as server:
+    with StudioHTTPServer((HOST, port), Handler) as server:
         print(f'Horizon Studio running locally at http://{HOST}:{server.server_address[1]}')
         print('Ctrl+C to stop. All assets stay on this computer.')
         try:
