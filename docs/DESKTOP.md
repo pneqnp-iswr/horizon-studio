@@ -93,13 +93,18 @@ each `desktop.yml` run's `desktop-windows-evidence` artifact.
 ## Desktop E2E
 
 Smoke runs prove that the packaged application starts, shows the editor and stops its core. The functional suite goes
-further: it drives the real shell window, its WebView and its core through [tauri-driver](https://v2.tauri.app/develop/tests/webdriver/)
-(WebKitWebDriver on Linux, msedgedriver matching the installed WebView2 on Windows), with a scratch home folder per
-scenario. It is not the browser suite: nothing here talks to a separately started localhost server.
+further: it drives the real shell window, its WebView and its core, with a scratch data folder per scenario. On Linux
+it goes through [tauri-driver](https://v2.tauri.app/develop/tests/webdriver/) and WebKitWebDriver. On Windows the
+harness starts the test build itself with a WebView2 DevTools port and its own WebView2 data folder, and attaches
+msedgedriver (matching the installed WebView2) to it. Letting msedgedriver start the app failed in CI with
+"DevToolsActivePort file doesn't exist", most likely because the app sets its own WebView2 browser arguments, which take
+the place of the switches msedgedriver passes through `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS`. It is not the browser suite: nothing here talks to a
+separately started localhost server.
 
 It needs a test build of the shell with the cargo feature `e2e`, which answers the native Save dialog from
 `HORIZON_STUDIO_E2E_SAVE_DIR` (or cancels it with `HORIZON_STUDIO_E2E_CANCEL_SAVE`) and lets a scenario point the shell
-at a missing core (`HORIZON_STUDIO_E2E_CORE`). Packaged builds never have it: the smoke report records `test_build`, and
+at a missing core (`HORIZON_STUDIO_E2E_CORE`). It also turns on the WebView's DevTools and, when asked
+(`HORIZON_STUDIO_E2E_DEVTOOLS_PORT`, `HORIZON_STUDIO_E2E_WEBVIEW_DATA`), opens a DevTools port with its own data folder. Packaged builds never have it: the smoke report records `test_build`, and
 `desktop_probe.py` fails a test build unless told otherwise; `tests/test_desktop.py` checks that no packaging step enables
 the feature.
 

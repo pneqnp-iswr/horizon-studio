@@ -83,7 +83,8 @@ class TestBuildIsolationTests(unittest.TestCase):
             self.assertNotIn("e2e", (DESKTOP / name).read_text(encoding="utf-8"), name)
         main = (DESKTOP / "src" / "main.rs").read_text(encoding="utf-8")
         self.assertIn('"test_build": cfg!(feature = "e2e")', main)
-        for env in ("HORIZON_STUDIO_E2E_SAVE_DIR", "HORIZON_STUDIO_E2E_CANCEL_SAVE"):
+        for env in ("HORIZON_STUDIO_E2E_SAVE_DIR", "HORIZON_STUDIO_E2E_CANCEL_SAVE", "HORIZON_STUDIO_E2E_DEVTOOLS_PORT",
+                    "HORIZON_STUDIO_E2E_WEBVIEW_DATA"):
             line = next(i for i, text in enumerate(main.splitlines()) if env in text)
             self.assertIn('#[cfg(feature = "e2e")]', "\n".join(main.splitlines()[max(0, line - 6):line]), env)
         core = (DESKTOP / "src" / "core.rs").read_text(encoding="utf-8").splitlines()

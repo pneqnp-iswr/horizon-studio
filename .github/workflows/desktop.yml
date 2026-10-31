@@ -200,7 +200,7 @@ jobs:
         # Built after the packages are assembled, so the uploaded builds can never be test builds.
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          cargo install tauri-driver --locked --version $env:TAURI_DRIVER_VERSION
+          # On Windows the harness starts the test build itself and attaches msedgedriver to its WebView2.
           cargo build --release --locked --features e2e --manifest-path desktop/Cargo.toml
           $app = Resolve-Path desktop/target/release/horizon-studio.exe
           if (-not (Test-Path desktop/target/release/core/horizon-studio-core.exe)) { throw "The bundled core is missing next to the test build" }

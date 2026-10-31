@@ -115,6 +115,13 @@ fn finish_save(chosen: Option<PathBuf>, bytes: &[u8]) -> Result<Value, String> {
 }
 
 #[cfg(feature = "e2e")]
+fn e2e_webview() -> Option<(u16, PathBuf)> {
+    let port = std::env::var("HORIZON_STUDIO_E2E_DEVTOOLS_PORT").ok()?.parse().ok()?;
+    let data = PathBuf::from(std::env::var_os("HORIZON_STUDIO_E2E_WEBVIEW_DATA")?);
+    Some((port, data))
+}
+
+#[cfg(feature = "e2e")]
 fn e2e_dialog_answer(name: &str) -> Option<Option<PathBuf>> {
     if std::env::var_os("HORIZON_STUDIO_E2E_CANCEL_SAVE").is_some() {
         return Some(None);
@@ -281,7 +288,7 @@ fn main() {
                 let (width, height) = options.window_size;
                 let guard = origin.clone();
                 let opener = app.handle().clone();
-                WebviewWindowBuilder::new(app, MAIN, WebviewUrl::App("index.html".into()))
+                let window = WebviewWindowBuilder::new(app, MAIN, WebviewUrl::App("index.html".into()))
                     .title("Horizon Studio")
                     .inner_size(width, height)
                     .min_inner_size(960.0, 600.0)
@@ -306,8 +313,18 @@ fn main() {
                                 let _ = window.eval(format!("window.horizonSplash && window.horizonSplash.fail({detail})"));
                             }
                         }
-                    })
-                    .build()?;
+                    });
+                // Test builds only (cargo feature `e2e`): WebView2 opens a DevTools port and uses its own
+                // data folder, so desktop E2E can attach msedgedriver to this window on Windows
+                // (tests/desktop/webdriver.cjs). wry's default arguments are kept.
+                #[cfg(feature = "e2e")]
+                let window = match e2e_webview() {
+                    Some((port, data)) => window.data_directory(data).additional_browser_args(&format!(
+                        "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --remote-debugging-port={port}"
+                    )),
+                    None => window,
+                };
+                window.build()?;
                 let handle = app.handle().clone();
                 thread::spawn(move || boot(handle));
                 if options.smoke() {
