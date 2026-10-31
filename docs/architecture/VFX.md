@@ -38,16 +38,41 @@ effect, 16 keys per curve. Validation reports each problem with a path and a cod
 
 ## The editor
 
-<img src="../screenshots/vfx-studio-1440x900.png" alt="VFX Studio at 1440 by 900: the effect list on the left, the pixel preview of the Impact Spark with play, restart and a timeline at 0.12 seconds showing 28 particles, engine diagnostics stating it is a Studio preview and that Horizon has no custom particle contract, and the inspector with seed, duration, spark count, speed, lifetime, spread, gravity, drag, trail and three colours" width="100%" />
+<img src="../screenshots/vfx-studio-1440x900.png" alt="VFX Studio at 1440 by 900: the effect list, a large pixel preview of an Impact Spark with an added smoke puff (orange sparks over grey smoke), the transport with play, restart, a timeline at 0.18 seconds with a burst mark and 40 particles, engine notes saying it is a Studio preview and that Horizon has no custom particle contract; on the right the effect fields, the emitter list (sparks, flash, smoke with particle counts and blending), template, add, duplicate, move and delete buttons, a budget line '41 particles, low, medium and high profiles fit', and the inspector of the smoke emitter" width="100%" />
 
-Rail → **VFX Studio**. You get:
-- an effect list and an inspector (seed, duration, loop, spark count, speed, lifetime, spread, gravity, drag, trail
-  and three colours);
-- a pixel preview on a canvas with Play, Restart and a timeline that shows the time and how many particles are alive;
-- diagnostics for validation and the target engine.
+Rail → **VFX Studio**: a large preview, a timeline, the emitter list and an inspector. There is no node graph: an
+effect is a list of emitters, and that is what the editor shows.
 
-Edits go through the editor state, so autosave, undo/redo, Save, reopening and workspace recovery cover them. With
-reduced motion the preview does not start by itself.
+- **Effects.** Create (Impact Spark preset), delete, rename; name, seed, duration and loop.
+- **Emitters (HS-026 slice).**
+  - Add one from a template (sparks, flash, smoke puff); duplicate, move up or down, delete (at least one stays, at most
+    8).
+  - Select an emitter to edit it.
+- **Emitter inspector.**
+  - Bursts (time and count, up to 16), shape (point or sphere, radius), direction axis and spread, speed and lifetime
+    ranges, gravity, drag, trail, and blending (additive glow or alpha smoke).
+  - Three curves over a particle's life: size, opacity and colour. Each is a keyframe table (life 0–1 and value) with
+    add and remove; the colour curve also shows a gradient strip.
+- **Timeline.** Play, pause, restart and scrubbing to any time; it is exact, because motion is closed-form. Burst
+  times are marked on the track.
+- **Budgets.** The particle count of every burst of every emitter against three quality profiles (low ≤ 256, medium ≤
+  1,024, high ≤ 2,048). Above 2,048, validation refuses the change.
+- **Validation and history.** Every change is validated first; a refused change marks the field and changes nothing.
+  Each accepted change is one step of the project's shared history (HS-020): undo and redo, autosave, save, reopen,
+  and restart all go through it.
+- **Reduced motion.** With reduced motion the preview never starts by itself.
+
+### Measured (`scripts/vfx_bench.cjs`, Chromium 153.0.8010.12, 4 vCPU Intel(R) Xeon(R) Processor @ 2.80GHz, canvas 960x600 2D)
+
+| Effect | Particles spawned | Alive at most | Simulate (ms/frame) | Simulate + draw (ms/frame) | Seek p50 / p95 (ms) | Heap after spawn |
+|---|---|---|---|---|---|---|
+| impact_spark | 29 | 29 | 0.104 | 0.21 | 0.1 / 0.4 | 18 KiB |
+| ember_storm | 109 | 78 | 0.215 | 0.343 | 0.4 / 0.8 | — |
+| budget_2048 | 2048 | 2048 | 6.464 | 17.212 | 12 / 28.3 | 328 KiB |
+
+The full 2,048-particle budget draws at about 58 frames per second on this machine in headless Chromium with a
+software canvas, so the high profile is the ceiling, not a target. These are Studio-preview numbers, not in-game
+rendering. Raw data: [`vfx-performance.json`](vfx-performance.json).
 
 ## What Horizon can do with it (audited at `3c1d4b39`)
 
@@ -93,4 +118,7 @@ contracts that do not exist.
 |---|---|
 | Model, validation, determinism, fixture, project round trip, unchanged `.hmod`, diagnostics | `tests/test_vfx.py` |
 | Editor engine equals the core particle by particle; PRNG; rendering; engine notes | `tests/test_vfx_engine.cjs` |
+| A four-emitter effect (both blends and shapes, later bursts, four-key curves): Python and the editor agree to 10⁻¹² | `tests/fixtures/vfx_ember_storm.json`, `tests/test_vfx.py`, `tests/test_vfx_engine.cjs` |
 | Deterministic preview and timeline, Studio-preview label, validation, undo/redo, save/reopen, `.hmod` bytes, Russian UI, axe | `tests/e2e/vfx.e2e.cjs` |
+| Emitters added, duplicated, reordered and deleted; bursts and curves edited; refused keys change nothing; undo and redo; save, reopen and the same frame again; no autoplay with reduced motion | `tests/e2e/vfx.e2e.cjs` (HS-026 slice) |
+| Effects created by the AI Creator (`create_vfx_asset`) through the same transactions | `tests/test_transactions.py`, `tests/e2e/ai.e2e.cjs` |

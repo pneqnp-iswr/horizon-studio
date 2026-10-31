@@ -183,7 +183,7 @@
       <button id="vfxNewSpark" type="button" class="primary" data-i18n="vfxNewSpark">New Impact Spark</button><button id="vfxDelete" type="button" class="danger ghost" data-i18n="vfxDelete">Delete effect</button></div>
     <div class="vfx-stage"><canvas id="vfxCanvas" width="320" height="200" role="img" aria-label="Studio preview — not in-game rendering" data-i18n-aria-label="vfxPreviewLabel"></canvas>
       <div class="vfx-transport"><button id="vfxPlay" type="button" aria-pressed="false" data-i18n="vfxPlay">Play</button><button id="vfxRestart" type="button" data-i18n="vfxRestart">Restart</button>
-        <label class="vfx-timeline"><span data-i18n="vfxTimeline">Timeline</span><input id="vfxTime" type="range" min="0" max="0.8" step="0.01" value="0"/></label>
+        <label class="vfx-timeline"><span data-i18n="vfxTimeline">Timeline</span><span class="vfx-track"><input id="vfxTime" type="range" min="0" max="0.8" step="0.01" value="0"/><span id="vfxMarks" class="vfx-marks" aria-hidden="true"></span></span></label>
         <output id="vfxTimeLabel" aria-live="off">0.00 s</output><output id="vfxCount" aria-live="off">0 particles</output></div>
       <label data-i18n="vfxDiagnosticsLabel">Engine and validation</label><ul id="vfxDiagnostics" class="vfx-diagnostics" aria-live="polite"></ul></div>
     <form id="vfxInspector" class="vfx-inspector" hidden>
@@ -192,13 +192,25 @@
       <div class="vfx-row"><label><span data-i18n="vfxFieldSeed">Seed</span><input id="vfxSeed" type="number" min="0" max="4294967295" step="1"/></label>
         <label><span data-i18n="vfxFieldDuration">Duration (s)</span><input id="vfxDuration" type="number" min="0.05" max="10" step="0.05"/></label>
         <label class="check"><input id="vfxLoop" type="checkbox"/><span data-i18n="vfxFieldLoop">Loop</span></label></div>
-      <fieldset><legend data-i18n="vfxSparks">Sparks</legend>
-        <label><span data-i18n="vfxFieldCount">Count</span><input id="vfxSparkCount" type="number" min="1" max="512" step="1"/></label>
+      <fieldset class="vfx-emitters"><legend data-i18n="vfxEmitters">Emitters</legend>
+        <ul id="vfxEmitterList" class="vfx-list" aria-label="Emitters" data-i18n-aria-label="vfxEmitters"></ul>
+        <div class="vfx-row"><label><span data-i18n="vfxTemplate">Template</span><select id="vfxEmitterTemplate"><option value="sparks" data-i18n="vfxTemplate_sparks">Sparks</option><option value="flash" data-i18n="vfxTemplate_flash">Flash</option><option value="smoke" data-i18n="vfxTemplate_smoke">Smoke puff</option></select></label><button id="vfxAddEmitter" type="button" data-i18n="vfxAddEmitter">Add emitter</button></div>
+        <div class="vfx-tools"><button id="vfxDuplicateEmitter" type="button" data-i18n="vfxDuplicate">Duplicate</button><button id="vfxEmitterUp" type="button" data-i18n-aria-label="vfxMoveUp" aria-label="Move up">↑</button><button id="vfxEmitterDown" type="button" data-i18n-aria-label="vfxMoveDown" aria-label="Move down">↓</button><button id="vfxDeleteEmitter" type="button" class="danger ghost" data-i18n="vfxDeleteEmitter">Delete emitter</button></div>
+        <p id="vfxBudget" class="vfx-budget" aria-live="polite"></p>
+      </fieldset>
+      <fieldset id="vfxEmitterInspector"><legend id="vfxEmitterLegend" data-i18n="vfxEmitter">Emitter</legend>
+        <label><span data-i18n="vfxEmitterId">Emitter ID</span><input id="vfxEmitterId" autocomplete="off" spellcheck="false"/></label>
+        <div class="vfx-keys" id="vfxBursts" role="group" aria-label="Bursts" data-i18n-aria-label="vfxBursts"></div>
+        <div class="vfx-row"><label><span data-i18n="vfxShape">Shape</span><select id="vfxShape"><option value="point" data-i18n="vfxShape_point">Point</option><option value="sphere" data-i18n="vfxShape_sphere">Sphere</option></select></label><label><span data-i18n="vfxRadius">Radius (m)</span><input id="vfxRadius" type="number" min="0" max="10" step="0.01"/></label></div>
+        <div class="vfx-axis"><span data-i18n="vfxAxis">Direction axis x, y, z</span><input id="vfxAxisX" type="number" min="-1" max="1" step="0.1" aria-label="x"/><input id="vfxAxisY" type="number" min="-1" max="1" step="0.1" aria-label="y"/><input id="vfxAxisZ" type="number" min="-1" max="1" step="0.1" aria-label="z"/></div>
         <div class="vfx-row"><label><span data-i18n="vfxFieldSpeed">Speed min / max (m/s)</span><input id="vfxSpeedMin" type="number" min="0" max="60" step="0.1"/></label><label><span class="sr-only">max</span><input id="vfxSpeedMax" type="number" min="0" max="60" step="0.1" aria-label="max"/></label></div>
         <div class="vfx-row"><label><span data-i18n="vfxFieldLife">Lifetime min / max (s)</span><input id="vfxLifeMin" type="number" min="0.01" max="10" step="0.01"/></label><label><span class="sr-only">max</span><input id="vfxLifeMax" type="number" min="0.01" max="10" step="0.01" aria-label="max"/></label></div>
         <div class="vfx-row"><label><span data-i18n="vfxFieldSpread">Spread (°)</span><input id="vfxSpread" type="number" min="0" max="180" step="1"/></label><label><span data-i18n="vfxFieldGravity">Gravity (m/s²)</span><input id="vfxGravity" type="number" min="-50" max="50" step="0.1"/></label></div>
         <div class="vfx-row"><label><span data-i18n="vfxFieldDrag">Drag</span><input id="vfxDrag" type="number" min="0" max="20" step="0.1"/></label><label><span data-i18n="vfxFieldStretch">Trail (s)</span><input id="vfxStretch" type="number" min="0" max="0.5" step="0.005"/></label></div>
-        <div class="vfx-colors"><span data-i18n="vfxFieldColors">Colour: start, middle, end</span><input id="vfxColorStart" type="color" aria-label="start"/><input id="vfxColorMid" type="color" aria-label="middle"/><input id="vfxColorEnd" type="color" aria-label="end"/></div>
+        <label><span data-i18n="vfxBlend">Blending</span><select id="vfxBlend"><option value="additive" data-i18n="vfxBlend_additive">Additive (glow)</option><option value="alpha" data-i18n="vfxBlend_alpha">Alpha (smoke)</option></select></label>
+        <div class="vfx-keys" data-curve="size" role="group" aria-label="Size over life" data-i18n-aria-label="vfxCurve_size"></div>
+        <div class="vfx-keys" data-curve="alpha" role="group" aria-label="Opacity over life" data-i18n-aria-label="vfxCurve_alpha"></div>
+        <div class="vfx-keys" data-curve="color" role="group" aria-label="Colour over life" data-i18n-aria-label="vfxCurve_color"></div>
       </fieldset>
     </form>
   </div>

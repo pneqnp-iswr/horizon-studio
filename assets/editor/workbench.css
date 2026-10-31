@@ -369,3 +369,19 @@ body:not([data-tab=structure]) #structureCanvas{display:none}
 @media(max-width:1120px){.ai-main{grid-template-columns:240px minmax(0,1fr)}.ai-history{grid-column:1/-1}}
 @media(max-width:760px){.ai-main{grid-template-columns:1fr}.ai-badge{white-space:normal}}
 .ai-plan li.ai-empty{list-style:none;margin-left:-18px}
+/* HS-026 slice: emitters, bursts and curves of the selected effect. */
+.vfx-emitters .vfx-list{min-height:0;max-height:180px}
+.vfx-tools{display:flex;flex-wrap:wrap;gap:6px}
+.vfx-budget{margin:0;font:12px var(--font-pixel);color:var(--muted)}.vfx-budget.over{color:var(--danger)}
+.vfx-axis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:12px;color:var(--muted)}.vfx-axis span{grid-column:1/-1}
+.vfx-keys{display:grid;gap:4px;padding:6px;border:1px solid var(--line);background:var(--night)}
+.vfx-keys-head{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.vfx-keys-head span:first-child{flex:1}
+.vfx-keys-head button{min-height:28px;padding:2px 8px;font-size:12px}
+.vfx-key{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:end}
+.vfx-key label{display:grid;gap:2px;font-size:11px;color:var(--muted)}
+.vfx-key input[type=color]{width:100%;height:30px;padding:2px}
+.vfx-key button{min-height:30px;padding:2px 8px}
+.vfx-gradient{flex:0 0 72px;height:12px;border:1px solid var(--line2);image-rendering:pixelated}
+.vfx-track{position:relative;flex:1;display:flex;align-items:center}.vfx-track input{flex:1}
+.vfx-marks{position:absolute;left:8px;right:8px;bottom:-4px;height:6px;pointer-events:none}
+.vfx-marks i{position:absolute;width:2px;height:6px;background:var(--gold2);transform:translateX(-1px)}

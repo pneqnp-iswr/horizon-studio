@@ -45,6 +45,15 @@ class VfxModelTests(unittest.TestCase):
     def test_the_editor_fixture_is_current(self):
         fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
         self.assertEqual(fixture["effect"], vfx.impact_spark())
+        self.check_fixture(fixture)
+
+    def test_the_multi_emitter_fixture_is_current(self):
+        fixture = json.loads((ROOT / "tests" / "fixtures" / "vfx_ember_storm.json").read_text(encoding="utf-8"))
+        self.assertEqual(vfx.validate(fixture["effect"]), [])
+        self.assertEqual(len(fixture["effect"]["emitters"]), 4)
+        self.check_fixture(fixture)
+
+    def check_fixture(self, fixture):
         for time, alive in fixture["alive"].items():
             self.assertEqual(len(vfx.simulate(fixture["effect"], float(time))), alive)
         # The fixture was generated on Linux; other platforms' math libraries may round the last bit

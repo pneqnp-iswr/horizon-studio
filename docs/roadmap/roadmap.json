@@ -964,7 +964,18 @@
       "engine_requirements": [],
       "validation_target": "browser-e2e",
       "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
-      "evidence": []
+      "evidence": [
+        {
+          "level": "browser-e2e",
+          "ref": "Vertical slice ahead of HS-012: emitters added from templates, duplicated, reordered and deleted; bursts, shape, axis, blending and size/opacity/colour keyframes edited; per-profile particle budgets; undo/redo, save/reopen and identical frames; Python and the editor agree on a four-emitter effect to 1e-12 (tests/e2e/vfx.e2e.cjs, tests/fixtures/vfx_ember_storm.json). No module graph or quality-profile field in studio.vfx/1 yet",
+          "url": "tests/e2e/vfx.e2e.cjs"
+        },
+        {
+          "level": "docs",
+          "ref": "Editor and measured preview cost (scripts/vfx_bench.cjs)",
+          "url": "docs/architecture/VFX.md"
+        }
+      ]
     },
     {
       "id": "HS-023",
