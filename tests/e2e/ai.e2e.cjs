@@ -68,6 +68,9 @@ e2e('a person and the AI edit the same item through one history: preview, apply,
   await page.click('#closeAi');
   await page.click('#redoEdit');
   await disk(studio, d => ruby(d).props.rarity === 'epic');
+  // The core writes the disk before it answers; reloading before the editor has the answer would (rightly)
+  // offer Restore disk instead, so wait until the editor holds the redone state too.
+  await waitState(page, () => JSON.parse(localStorage.getItem('horizonStudio_v02')).items[0].rarity === 'epic');
 
   // 7-8. The history is the core's: after a reload the AI step is still there and can be undone.
   await page.reload();
