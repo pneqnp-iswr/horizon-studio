@@ -7,6 +7,7 @@ on:
   push:
     branches: [master]
     paths:
+      - tests/desktop/**
       - desktop/**
       - launcher.py
       - studio.py
@@ -17,10 +18,12 @@ on:
       - security/**
       - scripts/build_desktop.py
       - scripts/desktop_probe.py
+      - scripts/msedgedriver_for_webview2.ps1
       - .github/workflows/desktop.yml
   pull_request:
     branches: [master]
     paths:
+      - tests/desktop/**
       - desktop/**
       - launcher.py
       - studio.py
@@ -31,6 +34,7 @@ on:
       - security/**
       - scripts/build_desktop.py
       - scripts/desktop_probe.py
+      - scripts/msedgedriver_for_webview2.ps1
       - .github/workflows/desktop.yml
   workflow_dispatch:
 
@@ -44,6 +48,7 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   TAURI_CLI: '@tauri-apps/cli@2.12.4'
+  TAURI_DRIVER: '2.1.0'
 
 jobs:
   linux:
@@ -59,8 +64,11 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install -y -q --no-install-recommends libwebkit2gtk-4.1-dev libgtk-3-dev \
-            libsoup-3.0-dev librsvg2-dev xvfb imagemagick
+            libsoup-3.0-dev librsvg2-dev xvfb imagemagick webkit2gtk-driver
           python -m pip install psutil==7.2.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - uses: actions/cache@v4
         with:
           path: |
@@ -79,6 +87,14 @@ jobs:
           xvfb-run -a -s "-screen 0 1600x1000x24" env WEBKIT_DISABLE_DMABUF_RENDERER=1 \
             python scripts/desktop_probe.py --exe desktop/target/debug/horizon-studio \
               --out desktop-evidence --label linux-1440x900 --window-size 1440x900
+      - name: Functional E2E on the real window (WebKitWebDriver)
+        # A separate test build: the cargo feature `e2e` answers the Save dialog from the environment.
+        run: |
+          cargo install tauri-driver --locked --version "$TAURI_DRIVER"
+          cargo build --locked --features e2e --manifest-path desktop/Cargo.toml
+          xvfb-run -a -s "-screen 0 1600x1000x24" env WEBKIT_DISABLE_DMABUF_RENDERER=1 \
+            DESKTOP_APP="$PWD/desktop/target/debug/horizon-studio" \
+            node --test --test-reporter=spec tests/desktop/desktop.e2e.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -107,6 +123,18 @@ jobs:
             ~/.cargo/registry/cache
             desktop/target
           key: desktop-windows-${{ hashFiles('desktop/Cargo.lock') }}
+      - name: Rust unit tests and lints on Windows (durable saves, MoveFileExW, core lifecycle)
+        working-directory: desktop
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          cargo test --locked
+          cargo test --locked --features e2e
+          cargo clippy --locked --all-targets -- -D warnings
+      - name: Use a 1920x1080 desktop for window-size runs
+        run: |
+          try { Set-DisplayResolution -Width 1920 -Height 1080 -Force -ErrorAction Stop } catch { Write-Output "Set-DisplayResolution: $_" }
+          Add-Type -AssemblyName System.Windows.Forms
+          Write-Output ("Screen: " + [System.Windows.Forms.Screen]::PrimaryScreen.Bounds)
       - name: Freeze the project core and smoke-test it
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
@@ -146,9 +174,11 @@ jobs:
       - name: Smoke the portable build (cold, warm, minimum window)
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          python scripts/desktop_probe.py --exe "$env:PORTABLE/HorizonStudio.exe" --out desktop-evidence --label portable-cold-1280x720 --window-size 1280x720
-          python scripts/desktop_probe.py --exe "$env:PORTABLE/HorizonStudio.exe" --out desktop-evidence --label portable-warm-1280x720 --window-size 1280x720
+          python scripts/desktop_probe.py --exe "$env:PORTABLE/HorizonStudio.exe" --out desktop-evidence --label portable-cold-1280x800 --window-size 1280x800
+          python scripts/desktop_probe.py --exe "$env:PORTABLE/HorizonStudio.exe" --out desktop-evidence --label portable-warm-1280x800 --window-size 1280x800
           python scripts/desktop_probe.py --exe "$env:PORTABLE/HorizonStudio.exe" --out desktop-evidence --label portable-960x600 --window-size 960x600
+          python scripts/desktop_probe.py --exe "$env:PORTABLE/HorizonStudio.exe" --out desktop-evidence --label portable-1440x900 --window-size 1440x900
+          python scripts/desktop_probe.py --exe "$env:PORTABLE/HorizonStudio.exe" --out desktop-evidence --label portable-1920x1080 --window-size 1920x1080
       - name: Install silently, smoke the installed app, uninstall
         run: |
           $installer = Resolve-Path $env:INSTALLER
@@ -157,13 +187,41 @@ jobs:
           if (-not $installed) { throw "The installer did not install HorizonStudio.exe under LOCALAPPDATA" }
           Write-Output "Installed at $($installed.FullName)"
           if (-not (Test-Path (Join-Path $installed.DirectoryName 'core/horizon-studio-core.exe'))) { throw "The installed app has no core" }
-          python scripts/desktop_probe.py --exe $installed.FullName --out desktop-evidence --label installed-1280x720 --window-size 1280x720
+          python scripts/desktop_probe.py --exe $installed.FullName --out desktop-evidence --label installed-1280x800 --window-size 1280x800
           if ($LASTEXITCODE -ne 0) { throw "The installed app failed its smoke run" }
           $uninstaller = Join-Path $installed.DirectoryName 'uninstall.exe'
           Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait
           Start-Sleep -Seconds 5
           if (Test-Path $installed.FullName) { throw "The uninstaller left HorizonStudio.exe behind" }
           Write-Output "Uninstalled cleanly"
+      - name: Functional E2E on the real window (WebView2 through msedgedriver)
+        # Built after the packages are assembled, so the uploaded builds can never be test builds.
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          cargo install tauri-driver --locked --version $env:TAURI_DRIVER
+          cargo build --release --locked --features e2e --manifest-path desktop/Cargo.toml
+          $app = Resolve-Path desktop/target/release/horizon-studio.exe
+          if (-not (Test-Path desktop/target/release/core/horizon-studio-core.exe)) { throw "The bundled core is missing next to the test build" }
+          $env:NATIVE_DRIVER = & ./scripts/msedgedriver_for_webview2.ps1 -Destination "$env:RUNNER_TEMP/msedgedriver"
+          $env:DESKTOP_APP = "$app"
+          node --test --test-reporter=spec tests/desktop/desktop.e2e.cjs
+      - name: Print small screenshots into the log for review
+        if: always()
+        shell: python
+        run: |
+          import base64, io
+          from pathlib import Path
+          from PIL import Image
+          for path in sorted(Path("desktop-evidence").glob("*.png")):
+              image = Image.open(path).convert("RGB")
+              image.thumbnail((800, 800))
+              data = io.BytesIO()
+              image.save(data, "JPEG", quality=60)
+              print(f"::group::screenshot {path.name} {Image.open(path).size}")
+              print(f"HS-SCREENSHOT-BEGIN {path.stem}")
+              print(base64.b64encode(data.getvalue()).decode("ascii"))
+              print(f"HS-SCREENSHOT-END {path.stem}")
+              print("::endgroup::")
       - name: Summarize measurements
         if: always()
         shell: python

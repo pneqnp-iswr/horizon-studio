@@ -282,6 +282,13 @@ class TestInventoryTests(unittest.TestCase):
         self.assertEqual(test_inventory.main(["--check"]), 0)
         names = [s["name"] for s in test_inventory.e2e_scenarios()]
         self.assertEqual(len(names), len(set(names)), "scenario names must be unique")
+        desktop = [s["name"] for s in test_inventory.e2e_scenarios("desktop")]
+        self.assertEqual(len(desktop), len(set(desktop)))
+        # The desktop suite covers the HS-019 functional scenarios, apart from the browser suite.
+        for needle in ("handshake", "stable uids", "native save path", "cancelled save", "EN/RU", "restarted window",
+                       "cannot start"):
+            self.assertTrue(any(needle in name for name in desktop), needle)
+        self.assertFalse(set(desktop) & set(names))
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@
 //! window are involved. Architecture and trade-offs: docs/adr/0002-desktop-shell.md.
 
 mod core;
+mod files;
 mod options;
 
 use std::path::{Path, PathBuf};
@@ -12,7 +13,6 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use percent_encoding::percent_decode_str;
 use serde_json::{json, Value};
 use tauri::ipc::{CapabilityBuilder, InvokeBody, Request};
 use tauri::webview::{NewWindowResponse, PageLoadEvent};
@@ -21,12 +21,12 @@ use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_opener::OpenerExt;
 
 use crate::core::Core;
+use crate::files::{check_size, filter_for, suggested_name, write_atomically};
 use crate::options::Options;
 
 const MAIN: &str = "main";
 const CORE_START_TIMEOUT: Duration = Duration::from_secs(60);
 const CORE_STOP_TIMEOUT: Duration = Duration::from_secs(10);
-const MAX_SAVE_BYTES: usize = 256 * 1024 * 1024;
 
 #[derive(Default)]
 struct Timeline {
@@ -75,43 +75,6 @@ fn navigation_allowed(url: &Url, origin: &Mutex<Option<Url>>) -> bool {
     is_shell_page(url) || is_core_page(url, &origin.lock().unwrap())
 }
 
-/// A file name the page suggests for a native "Save as" dialog: a bare name, no paths.
-fn suggested_name(raw: Option<&str>) -> Result<String, String> {
-    let name = percent_decode_str(raw.unwrap_or("export")).decode_utf8_lossy().trim().to_string();
-    let valid = !name.is_empty()
-        && name.len() <= 160
-        && !name.starts_with('.')
-        && !name.chars().any(|c| c.is_control() || matches!(c, '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|'));
-    if valid {
-        Ok(name)
-    } else {
-        Err(format!("Refusing unsafe file name {name:?}"))
-    }
-}
-
-fn filter_for(name: &str) -> Option<(&'static str, &'static str)> {
-    if name.ends_with(".hmod") {
-        Some(("Horizon content mod", "hmod"))
-    } else if name.ends_with(".hstudio.json") {
-        Some(("Horizon Studio project", "json"))
-    } else if name.ends_with(".zip") {
-        Some(("ZIP archive", "zip"))
-    } else {
-        None
-    }
-}
-
-/// Writes next to the target first, then renames, so a failed save never truncates an
-/// existing file.
-fn write_atomically(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
-    let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
-    let temporary = path.with_file_name(format!(".{name}.horizon-studio-{}.tmp", std::process::id()));
-    std::fs::write(&temporary, bytes)?;
-    std::fs::rename(&temporary, path).inspect_err(|_| {
-        let _ = std::fs::remove_file(&temporary);
-    })
-}
-
 /// Editor -> shell: native "Save as" for exports and project files. The bytes arrive as
 /// the raw request body; the suggested file name in the `x-file-name` header.
 #[tauri::command]
@@ -119,10 +82,14 @@ async fn save_file(app: AppHandle, request: Request<'_>) -> Result<Value, String
     let InvokeBody::Raw(bytes) = request.body() else {
         return Err("Expected the file bytes as the request body".into());
     };
-    if bytes.is_empty() || bytes.len() > MAX_SAVE_BYTES {
-        return Err(format!("Refusing to save {} bytes", bytes.len()));
-    }
+    check_size(bytes.len())?;
     let name = suggested_name(request.headers().get("x-file-name").and_then(|v| v.to_str().ok()))?;
+    // Test builds only (cargo feature `e2e`, never shipped): the native dialog cannot be driven by
+    // WebDriver, so desktop E2E answers it from the environment instead.
+    #[cfg(feature = "e2e")]
+    if let Some(answer) = e2e_dialog_answer(&name) {
+        return finish_save(answer, bytes);
+    }
     let mut dialog = app.dialog().file().set_file_name(&name);
     if let Some(window) = app.get_webview_window(MAIN) {
         dialog = dialog.set_parent(&window);
@@ -130,13 +97,29 @@ async fn save_file(app: AppHandle, request: Request<'_>) -> Result<Value, String
     if let Some((label, extension)) = filter_for(&name) {
         dialog = dialog.add_filter(label, &[extension]);
     }
-    let Some(target) = dialog.blocking_save_file() else {
+    let chosen = match dialog.blocking_save_file() {
+        Some(target) => Some(target.into_path().map_err(|e| e.to_string())?),
+        None => None,
+    };
+    finish_save(chosen, bytes)
+}
+
+/// The dialog's answer: `None` is a cancelled dialog and writes nothing.
+fn finish_save(chosen: Option<PathBuf>, bytes: &[u8]) -> Result<Value, String> {
+    let Some(path) = chosen else {
         return Ok(json!({ "saved": false }));
     };
-    let path = target.into_path().map_err(|e| e.to_string())?;
     write_atomically(&path, bytes).map_err(|e| format!("Could not save {}: {e}", path.display()))?;
     let saved = path.file_name().map(|n| n.to_string_lossy().into_owned());
     Ok(json!({ "saved": true, "name": saved, "bytes": bytes.len() }))
+}
+
+#[cfg(feature = "e2e")]
+fn e2e_dialog_answer(name: &str) -> Option<Option<PathBuf>> {
+    if std::env::var_os("HORIZON_STUDIO_E2E_CANCEL_SAVE").is_some() {
+        return Some(None);
+    }
+    std::env::var_os("HORIZON_STUDIO_E2E_SAVE_DIR").map(|dir| Some(PathBuf::from(dir).join(name)))
 }
 
 /// Editor -> shell: the editor finished booting. Returns what the status bar shows.
@@ -240,7 +223,13 @@ fn finish(app: &AppHandle, error: Option<String>) {
             "schema": "horizon-studio.desktop-smoke/1",
             "ok": error.is_none(),
             "error": error,
-            "shell": { "version": env!("CARGO_PKG_VERSION"), "os": std::env::consts::OS, "arch": std::env::consts::ARCH },
+            "shell": {
+                "version": env!("CARGO_PKG_VERSION"),
+                "os": std::env::consts::OS,
+                "arch": std::env::consts::ARCH,
+                // A packaged build must never be a test build; scripts/desktop_probe.py checks this.
+                "test_build": cfg!(feature = "e2e"),
+            },
             "core": timeline.core,
             "page": timeline.page,
             "window": { "width": shell.options.window_size.0, "height": shell.options.window_size.1 },
@@ -371,25 +360,7 @@ mod tests {
     }
 
     #[test]
-    fn save_names_are_bare_file_names() {
-        assert_eq!(suggested_name(Some("ruby_demo.hmod")).unwrap(), "ruby_demo.hmod");
-        assert_eq!(suggested_name(Some("my%20mod-source.zip")).unwrap(), "my mod-source.zip");
-        for bad in ["../evil.hmod", "a%2Fb.hmod", "C:%5Cx.hmod", ".hidden", "", "a\u{7}b"] {
-            assert!(suggested_name(Some(bad)).is_err(), "{bad}");
-        }
-        assert_eq!(filter_for("x.hstudio.json"), Some(("Horizon Studio project", "json")));
-        assert_eq!(filter_for("x.txt"), None);
-    }
-
-    #[test]
-    fn atomic_write_replaces_the_target() {
-        let dir = std::env::temp_dir().join(format!("hs-save-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let target = dir.join("out.hmod");
-        std::fs::write(&target, b"old").unwrap();
-        write_atomically(&target, b"new").unwrap();
-        assert_eq!(std::fs::read(&target).unwrap(), b"new");
-        assert_eq!(std::fs::read_dir(&dir).unwrap().count(), 1, "no temporary file is left behind");
-        std::fs::remove_dir_all(dir).unwrap();
+    fn a_cancelled_dialog_writes_nothing() {
+        assert_eq!(finish_save(None, b"bytes").unwrap(), json!({ "saved": false }));
     }
 }
