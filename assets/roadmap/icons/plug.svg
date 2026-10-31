@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16" shape-rendering="crispEdges" role="img" aria-labelledby="title desc">
+<title id="title">Phase icon: plug</title>
+<desc id="desc">Pixel phase icon 'plug' from scripts/roadmap.py</desc>
+<path fill="#1f9fbd" d="M7 14h2v2h-2z"/>
+<path fill="#3e4755" d="M6 12h4v2h-4z"/>
+<path fill="#7a4e12" d="M3 8h2v2h-2z"/>
+<path fill="#7f8999" d="M4 3h2v3h-2zM10 3h2v3h-2z"/>
+<path fill="#c48a24" d="M2 7h12v1h-12zM2 8h1v2h-1zM5 8h9v2h-9zM2 10h12v2h-12z"/>
+<path fill="#f0bd4a" d="M2 6h12v1h-12z"/>
+</svg>

@@ -1,6 +1,6 @@
 # Horizon Studio — Implementation Status
 
-Last updated: 2026-10-31. Master before this update: `05ede74` (PR #18). Roadmap data: [`roadmap.json`](roadmap.json) → [visual roadmap](../ROADMAP_VISUAL.md).
+Last updated: 2026-10-31. Master before this update: `22535de` (PR #20). Roadmap data: [`roadmap.json`](roadmap.json) → [visual roadmap](../ROADMAP_VISUAL.md).
 
 ## Roadmap position
 
@@ -9,6 +9,21 @@ Last updated: 2026-10-31. Master before this update: `05ede74` (PR #18). Roadmap
 - **F2 — Creative Editor:** **HS-019 native desktop shell and workbench UI, partial** (slice A of the desktop transformation, PR #19). Missing: desktop release pipeline, an E2E run driving the shell's own window, a signing decision.
 - **F3 — Visual Scripting (current):** **HS-008 engine capability registry in progress**: registry with Horizon's API levels, editor diagnostics and export gate are in; project target selection and a second profile remain.
 - **Latest release: v0.7.0** (PR #15 → tag on `c816211`, run 41136925994): `HorizonStudio-0.7.0-Windows-x64.exe`, 12 170 186 bytes, SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9`, unsigned; verified through the API. It stays the released product until the desktop build meets the gates in [ADR 0002](../adr/0002-desktop-shell.md).
+
+## Roadmap v2 (engineering cycle 2)
+
+- `roadmap.json` moved to schema `horizon-studio.roadmap/2`: every milestone has purpose and scope, deliverable,
+  acceptance criteria, engine requirements, validation target and design reference in EN/RU; the validator also rejects
+  dependency cycles, unknown engine requirements, *done* without evidence at its target, *done* while needing a missing
+  engine contract, and showcase levels verified out of order. The old v1 data migrated with every status and evidence kept.
+- New milestones HS-020 to HS-034 cover AI Creator, live preview, VFX, 3D editing and animation, entities and bosses,
+  engine contracts, docking and the asset ecosystem; existing HS-009, HS-013 to HS-018 were expanded instead of duplicated.
+  PixelChat is the separate experimental track PC-001 to PC-005 (epic #11, PC-001 from PR #20). Showcase SC-001
+  *Crystal Titan* has five acceptance levels, all planned. Map: [CREATIVE_PLATFORM.md](CREATIVE_PLATFORM.md).
+- The in-app Development journey shows the whole graph: nine phases with pixel icons, every milestone with search, status
+  and track filters, dependencies and dependents, engine requirements, evidence and design links; a separate tab lists what
+  the installed build supports, and another the showcase (`/api/journey`, schema `horizon-studio.journey/2`).
+- Test counts in the documentation are generated from the tests (`scripts/test_inventory.py`).
 
 ## Desktop transformation (cycle 4, PR #19)
 
@@ -36,7 +51,9 @@ Last updated: 2026-10-31. Master before this update: `05ede74` (PR #18). Roadmap
 
 - `unit`: Python 3.11/3.12 on Ubuntu and Windows; Node 22 editor-module tests.
 - `official-static`: **pass** for all three examples and their `studio.project/1` migrations on Horizon `d2186eb9` (CI) and upstream `main` `3a5ac7ff` (local drift probe).
-- `browser-e2e`: **pass** — 19 scenarios (editor, workbench, PixelChat), Chromium on Ubuntu CI ([BROWSER_E2E.md](../BROWSER_E2E.md)). Firefox, WebKit and Windows browsers are not covered.
+<!-- roadmap:e2e-count:start -->
+- `browser-e2e`: **pass** — 23 scenarios on the current master (editor, workbench and roadmap explorer, PixelChat), Chromium on Ubuntu CI ([inventory](../BROWSER_E2E.md#current-inventory)). Firefox, WebKit and Windows browsers are not covered.
+<!-- roadmap:e2e-count:end -->
 - `desktop-smoke`: **pass** — the real desktop application starts, reports the editor ready and stops its core cleanly: Windows portable and installed (WebView2), Linux (WebKitGTK, Xvfb). This proves the shell, not game compatibility.
 - `game-content-load`: **not verified** — needs a legally installed client, prepared resources and a GPU session (owner-run or self-hosted runner; decision pending).
 - `gameplay`: **not verified**.
@@ -53,7 +70,7 @@ Last updated: 2026-10-31. Master before this update: `05ede74` (PR #18). Roadmap
 
 - Python: unit, API, launcher (core `--serve` protocol and EOF shutdown), journey, capability and desktop contract tests on 3.11/3.12, Ubuntu and Windows.
 - Node: 28 tests (history, workspace, model, desktop bridge, workbench markup with both real catalogs).
-- Browser E2E: 19/19 locally and in CI.
+- Browser E2E: 21/21 locally and in CI at the merge commit `dc1a936` (this line said 19 before; the two accessibility scenarios were added in the same PR).
 - Rust: `cargo test` (7) and `cargo clippy -D warnings` on Linux.
 - Desktop: `desktop.yml` builds the frozen core and checks its standalone smoke test (officially checked `.hmod` bytes), then installs, runs and uninstalls the NSIS build and runs the portable build three times on Windows; the frozen-core smoke test now also fetches every bundled asset and the journey data. It caught a real defect before release: the registry validation looked for documentation files that a frozen build does not contain.
 

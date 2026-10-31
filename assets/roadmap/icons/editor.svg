@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16" shape-rendering="crispEdges" role="img" aria-labelledby="title desc">
+<title id="title">Phase icon: editor</title>
+<desc id="desc">Pixel phase icon 'editor' from scripts/roadmap.py</desc>
+<path fill="#0c4a5a" d="M3 7h1v1h-1zM3 8h4v2h-4zM3 10h3v1h-3zM6 11h2v2h-2z"/>
+<path fill="#1f9fbd" d="M7 4h1v1h-1zM5 5h2v1h-2zM9 5h2v1h-2zM3 6h2v1h-2zM11 6h2v1h-2zM4 7h2v1h-2zM10 7h2v1h-2z"/>
+<path fill="#2b333e" d="M12 7h1v1h-1zM10 8h3v2h-3zM11 10h2v1h-2zM8 11h3v1h-3zM8 12h2v1h-2z"/>
+<path fill="#58dcef" d="M7 5h1v1h-1zM5 6h3v1h-3zM9 6h2v1h-2zM6 7h2v1h-2zM9 7h1v1h-1z"/>
+<path fill="#79b257" d="M8 0h1v1h-1zM7 1h3v1h-3zM8 2h1v6h-1z"/>
+<path fill="#e0662c" d="M10 10h1v1h-1zM11 11h2v1h-2zM13 12h2v1h-2z"/>
+<path fill="#e8edf4" d="M7 8h3v3h-3z"/>
+<path fill="#f0bd4a" d="M6 10h1v1h-1zM4 11h2v1h-2zM2 12h2v1h-2z"/>
+</svg>

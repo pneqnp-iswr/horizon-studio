@@ -87,6 +87,90 @@ class RoadmapValidationTests(unittest.TestCase):
         self.assertEqual(roadmap.phase_status(data, "F0"), "done")
 
 
+class RoadmapGovernanceTests(unittest.TestCase):
+    """roadmap/2: every milestone carries scope, deliverable, acceptance, engine requirements,
+    a validation target and a design reference, and the graph stays consistent."""
+
+    def assert_rejected(self, mutate, expected):
+        data = copy.deepcopy(DATA)
+        mutate(data)
+        problems = roadmap.validate(data)
+        self.assertTrue(any(expected in p for p in problems), problems)
+
+    def test_file_is_in_canonical_form(self):
+        raw = (ROOT / "docs" / "roadmap" / "roadmap.json").read_text(encoding="utf-8")
+        self.assertEqual(raw, roadmap.dumps(json.loads(raw)))
+
+    def test_rejects_missing_governance_fields(self):
+        for field, expected in (("summary_ru", "needs summary_ru"), ("deliverable", "needs deliverable")):
+            self.assert_rejected(lambda d, f=field: milestone(d, "HS-020").pop(f), expected)
+        self.assert_rejected(lambda d: milestone(d, "HS-020").update(acceptance=[]), "needs acceptance criteria")
+        self.assert_rejected(lambda d: milestone(d, "HS-020").update(validation_target="docs"), "validation_target")
+        self.assert_rejected(lambda d: milestone(d, "HS-020").update(design_ref="docs/NOPE.md"), "design_ref")
+        self.assert_rejected(lambda d: milestone(d, "PC-001").update(track="studio"), "track must be pixelchat")
+
+    def test_rejects_dependency_cycles(self):
+        self.assert_rejected(lambda d: milestone(d, "HS-005").update(depends_on=["HS-020"]), "Dependency cycle")
+
+    def test_rejects_unknown_engine_requirements(self):
+        self.assert_rejected(lambda d: milestone(d, "HS-025").update(engine_requirements=["vfx.magic"]),
+                             "unknown engine requirement 'vfx.magic'")
+
+    def test_an_authoring_ui_is_not_a_runtime(self):
+        """A milestone that needs a missing engine contract cannot be done, whatever its evidence."""
+        def finish(d):
+            milestone(d, "HS-029").update(status="done", depends_on=[], evidence=[
+                {"level": "browser-e2e", "ref": "timeline panel", "url": "docs/BROWSER_E2E.md"}])
+        self.assert_rejected(finish, "HS-029 is done but needs entity.animation_runtime")
+
+    def test_done_needs_evidence_at_its_validation_target(self):
+        self.assert_rejected(lambda d: milestone(d, "HS-007").update(validation_target="desktop-e2e"),
+                             "HS-007 is done without desktop-e2e evidence")
+
+    def test_showcase_levels_climb_in_order(self):
+        self.assert_rejected(lambda d: d["showcases"][0]["levels"][2].update(status="verified"),
+                             "a level cannot be verified before the level below it")
+        self.assert_rejected(lambda d: d["showcases"][0]["milestones"].append("HS-999"), "unknown milestone HS-999")
+
+    def test_engine_contracts_are_documented(self):
+        self.assert_rejected(lambda d: d["engine_contracts"][0].update(status="maybe"), "status must be one of")
+        self.assert_rejected(lambda d: d["engine_contracts"][0].pop("source"), "needs source")
+
+    def test_v1_documents_upgrade_but_never_pass_without_governance(self):
+        old = {"schema": roadmap.PREVIOUS_SCHEMA, **{k: copy.deepcopy(v) for k, v in DATA.items() if k != "schema"}}
+        for item in old["milestones"]:
+            for field in ("track", "summary", "summary_ru", "deliverable", "deliverable_ru", "acceptance",
+                          "engine_requirements", "validation_target", "design_ref"):
+                item.pop(field, None)
+        upgraded = roadmap.upgrade(old)
+        self.assertEqual(upgraded["schema"], roadmap.SCHEMA)
+        self.assertEqual({m["id"] for m in upgraded["milestones"]}, {m["id"] for m in DATA["milestones"]})
+        self.assertTrue(any("needs acceptance criteria" in p for p in roadmap.validate(upgraded)))
+        self.assertEqual(roadmap.upgrade(DATA), DATA)
+
+    def test_every_creative_platform_family_is_traceable(self):
+        ids = {m["id"]: m for m in DATA["milestones"]}
+        families = {
+            "AI Creator": ["HS-020", "HS-021", "HS-022"], "Live preview": ["HS-023", "HS-024", "HS-002"],
+            "VFX Studio": ["HS-025", "HS-026", "HS-013", "HS-027"], "Model and animation": ["HS-028", "HS-009", "HS-029"],
+            "Entity and boss": ["HS-030", "HS-014", "HS-031", "HS-032"], "World and physics": ["HS-016", "HS-015", "HS-032"],
+            "PixelChat": ["PC-001", "PC-002", "PC-003", "PC-004", "PC-005"], "Ecosystem": ["HS-017", "HS-034", "HS-018"],
+        }
+        for family, members in families.items():
+            for mid in members:
+                self.assertIn(mid, ids, f"{family}: {mid}")
+        self.assertEqual(ids["HS-030"]["engine_requirements"], ["entity.custom"], "custom entities stay engine-dependent")
+        self.assertTrue(all(ids[m]["track"] == "pixelchat" for m in families["PixelChat"]))
+        titan = DATA["showcases"][0]
+        self.assertEqual((titan["id"], titan["name"], len(titan["levels"]), len(titan["sequence"])), ("SC-001", "Crystal Titan", 5, 8))
+        self.assertTrue(all(level["status"] == "planned" for level in titan["levels"]))
+
+    def test_phase_progress_ignores_the_experimental_track(self):
+        f7 = roadmap.milestones_of(DATA, "F7")
+        self.assertTrue(f7 and all(m["track"] == "studio" for m in f7))
+        self.assertEqual(len(roadmap.milestones_of(DATA, "F7", "pixelchat")), 5)
+
+
 class ReleaseDataTests(unittest.TestCase):
     RELEASES = json.loads((ROOT / "docs" / "releases" / "releases.json").read_text(encoding="utf-8"))
     VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
@@ -185,6 +269,17 @@ class PixelArtTests(unittest.TestCase):
     def test_text_rejects_unknown_glyphs(self):
         with self.assertRaises(ValueError):
             Canvas(20, 10).text(0, 0, "€", "#ffffff")
+
+
+class TestInventoryTests(unittest.TestCase):
+    def test_documented_e2e_inventory_is_current(self):
+        import shutil
+        if shutil.which("node") is None:
+            self.skipTest("node is not installed")
+        from scripts import test_inventory
+        self.assertEqual(test_inventory.main(["--check"]), 0)
+        names = [s["name"] for s in test_inventory.e2e_scenarios()]
+        self.assertEqual(len(names), len(set(names)), "scenario names must be unique")
 
 
 if __name__ == "__main__":

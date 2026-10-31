@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16" shape-rendering="crispEdges" role="img" aria-labelledby="title desc">
+<title id="title">Phase icon: creature</title>
+<desc id="desc">Pixel phase icon 'creature' (not started) from scripts/roadmap.py</desc>
+<path fill="#1d232c" d="M5 7h1v1h-1zM11 7h1v1h-1zM7 9h2v1h-2z"/>
+<path fill="#2b333e" d="M5 3h6v1h-6zM3 4h10v1h-10zM2 5h12v1h-12zM2 6h2v1h-2zM6 6h4v2h-4zM12 6h2v1h-2zM1 7h3v1h-3zM12 7h3v1h-3zM1 8h14v1h-14zM1 9h6v1h-6zM9 9h6v1h-6zM1 10h14v1h-14zM2 11h12v1h-12z"/>
+<path fill="#3e4755" d="M12 0h1v1h-1zM14 0h1v1h-1zM11 1h5v1h-5zM12 2h3v1h-3zM13 3h1v1h-1z"/>
+<path fill="#7f8999" d="M4 6h2v1h-2zM10 6h2v1h-2zM4 7h1v1h-1zM10 7h1v1h-1z"/>
+</svg>

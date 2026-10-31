@@ -4,6 +4,9 @@
 
 Not in a published release yet; the verified 0.7.0 EXE is unchanged.
 
+- Roadmap v2: governance fields for every milestone (scope, deliverable, acceptance, engine requirements, validation target, design reference, EN/RU), cycle and contradiction checks, creative-platform milestones HS-020 to HS-034, the PixelChat track PC-001 to PC-005 and the Crystal Titan showcase ([CREATIVE_PLATFORM.md](docs/roadmap/CREATIVE_PLATFORM.md)).
+- The Development journey becomes a full roadmap explorer: phases with pixel icons, every milestone, search, status and track filters, dependencies, evidence links; installed capabilities and the showcase on separate tabs.
+- Documentation test counts are generated from the test files instead of being typed by hand.
 - Desktop shell (preview): a Tauri 2 application (`desktop/`) shows the editor in one native window. It starts the bundled project core (`launcher.py --serve`) on a private loopback port, ties the core's lifetime to the window, restricts navigation to the core's origin, grants the editor two commands (`desktop_ready`, `save_file`) for that origin only, and replaces browser downloads with a native Save As that writes atomically. CI builds an NSIS installer and a portable folder, installs, smoke-tests and uninstalls them on Windows ([docs/DESKTOP.md](docs/DESKTOP.md), [ADR 0002](docs/adr/0002-desktop-shell.md)).
 - Workbench UI: top bar, activity rail with original 16×16 pixel icons, project explorer, canvas with empty states, inspector, status bar; design tokens from the pixel-art palette; stepped 100–240 ms motion with reduced-motion support; icon-only toolbars on narrow windows.
 - In-app Development journey: the roadmap from `docs/roadmap/roadmap.json` and, separately, what this build supports from the capability registry.

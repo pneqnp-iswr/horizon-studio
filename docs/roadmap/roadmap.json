@@ -1,153 +1,1423 @@
 {
-  "schema": "horizon-studio.roadmap/1",
+  "schema": "horizon-studio.roadmap/2",
   "updated": "2026-10-31",
   "source": "docs/roadmap/master-2026-10-30.md",
   "current_phase": "F3",
   "active_milestone": "HS-008",
-  "next_milestones": ["HS-009", "HS-010"],
+  "next_milestones": [
+    "HS-009",
+    "HS-010"
+  ],
   "phases": [
-    {"id": "F0", "name": "Foundation", "name_ru": "Фундамент", "icon": "forge",
-     "summary": "Official validator, secure local API, release metadata, real-game smoke harness",
-     "summary_ru": "Официальный валидатор, защищённый локальный API, метаданные релизов, проверка в игре",
-     "gate": "A generated .hmod passes the official checker AND loads in a real game"},
-    {"id": "F1", "name": "Project Core", "name_ru": "Ядро проекта", "icon": "core",
-     "summary": "Canonical project document, migrations, durable workspace, undo, browser E2E",
-     "summary_ru": "Канонический документ проекта, миграции, надёжное рабочее пространство, undo, браузерные E2E",
-     "gate": "Import old project, edit, crash, recover, identical output"},
-    {"id": "F2", "name": "Creative Editor", "name_ru": "Креативный редактор", "icon": "editor",
-     "summary": "Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bridge (HS-011)",
-     "summary_ru": "Модульный UI, док-панели, поиск, выбор в 3D, обмен с Blockbench, мост к Rust (HS-011)",
-     "gate": "Edit a Rust file with diagnostics; model round-trip with a declared loss report"},
-    {"id": "F3", "name": "Visual Scripting", "name_ru": "Визуальное программирование", "icon": "nodes",
-     "summary": "Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (HS-010)",
-     "summary_ru": "Реестр возможностей движка, типизированный IR графов, бэкенды .hmod и нативный .hnmod (HS-010)",
-     "gate": "One graph builds a native mod only on a supported hook contract"},
-    {"id": "F4", "name": "Gameplay Systems", "name_ru": "Игровые системы", "icon": "creature",
-     "summary": "Entities, components, AI behaviour trees, events, RPG and automation",
-     "summary_ru": "Сущности, компоненты, деревья поведения ИИ, события, RPG и автоматизация",
-     "gate": "A smart animal or boss in game with persistence and sync"},
-    {"id": "F5", "name": "World & VFX", "name_ru": "Мир и эффекты", "icon": "portal",
-     "summary": "Shader graph over .hshader, particles, physics sandbox, dimensions",
-     "summary_ru": "Шейдерный граф поверх .hshader, частицы, физическая песочница, измерения",
-     "gate": "A visual effect scales across quality profiles; gameplay damage stays independent"},
-    {"id": "F6", "name": "Engine Bridge", "name_ru": "Мост к движку", "icon": "gear",
-     "summary": "Upstream-accepted engine capabilities: entities, server events, worldgen, physics, rendering",
-     "summary_ru": "Принятые в upstream возможности движка: сущности, серверные события, мир, физика, рендер",
-     "gate": "Real engine integration matrix with no undocumented patches"},
-    {"id": "F7", "name": "Ecosystem", "name_ru": "Экосистема", "icon": "plug",
-     "summary": "Secure plugin SDK, templates, signed releases, publishing",
-     "summary_ru": "Безопасный SDK плагинов, шаблоны, подписанные релизы, публикация",
-     "gate": "A third party adds a new asset type and editor without core edits"},
-    {"id": "F8", "name": "Creative Platform", "name_ru": "Креативная платформа", "icon": "summit",
-     "summary": "Advanced animation, procedural worlds, team assets, eight end-to-end demos",
-     "summary_ru": "Продвинутая анимация, процедурные миры, командные ассеты, восемь сквозных демо",
-     "gate": "Eight demo projects run end to end"}
+    {
+      "id": "F0",
+      "name": "Foundation",
+      "name_ru": "Фундамент",
+      "icon": "forge",
+      "summary": "Official validator, secure local API, release metadata, real-game smoke harness",
+      "summary_ru": "Официальный валидатор, защищённый локальный API, метаданные релизов, проверка в игре",
+      "gate": "A generated .hmod passes the official checker AND loads in a real game"
+    },
+    {
+      "id": "F1",
+      "name": "Project Core",
+      "name_ru": "Ядро проекта",
+      "icon": "core",
+      "summary": "Canonical project document, migrations, durable workspace, undo, browser E2E",
+      "summary_ru": "Канонический документ проекта, миграции, надёжное рабочее пространство, undo, браузерные E2E",
+      "gate": "Import old project, edit, crash, recover, identical output"
+    },
+    {
+      "id": "F2",
+      "name": "Creative Editor",
+      "name_ru": "Креативный редактор",
+      "icon": "editor",
+      "summary": "Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bridge (HS-011)",
+      "summary_ru": "Модульный UI, док-панели, поиск, выбор в 3D, обмен с Blockbench, мост к Rust (HS-011)",
+      "gate": "Edit a Rust file with diagnostics; model round-trip with a declared loss report"
+    },
+    {
+      "id": "F3",
+      "name": "Visual Scripting",
+      "name_ru": "Визуальное программирование",
+      "icon": "nodes",
+      "summary": "Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (HS-010)",
+      "summary_ru": "Реестр возможностей движка, типизированный IR графов, бэкенды .hmod и нативный .hnmod (HS-010)",
+      "gate": "One graph builds a native mod only on a supported hook contract"
+    },
+    {
+      "id": "F4",
+      "name": "Gameplay Systems",
+      "name_ru": "Игровые системы",
+      "icon": "creature",
+      "summary": "Entities, components, AI behaviour trees, events, RPG and automation",
+      "summary_ru": "Сущности, компоненты, деревья поведения ИИ, события, RPG и автоматизация",
+      "gate": "A smart animal or boss in game with persistence and sync"
+    },
+    {
+      "id": "F5",
+      "name": "World & VFX",
+      "name_ru": "Мир и эффекты",
+      "icon": "portal",
+      "summary": "Shader graph over .hshader, particles, physics sandbox, dimensions",
+      "summary_ru": "Шейдерный граф поверх .hshader, частицы, физическая песочница, измерения",
+      "gate": "A visual effect scales across quality profiles; gameplay damage stays independent"
+    },
+    {
+      "id": "F6",
+      "name": "Engine Bridge",
+      "name_ru": "Мост к движку",
+      "icon": "gear",
+      "summary": "Upstream-accepted engine capabilities: entities, server events, worldgen, physics, rendering",
+      "summary_ru": "Принятые в upstream возможности движка: сущности, серверные события, мир, физика, рендер",
+      "gate": "Real engine integration matrix with no undocumented patches"
+    },
+    {
+      "id": "F7",
+      "name": "Ecosystem",
+      "name_ru": "Экосистема",
+      "icon": "plug",
+      "summary": "Secure plugin SDK, templates, signed releases, publishing",
+      "summary_ru": "Безопасный SDK плагинов, шаблоны, подписанные релизы, публикация",
+      "gate": "A third party adds a new asset type and editor without core edits"
+    },
+    {
+      "id": "F8",
+      "name": "Creative Platform",
+      "name_ru": "Креативная платформа",
+      "icon": "summit",
+      "summary": "Advanced animation, procedural worlds, team assets, eight end-to-end demos",
+      "summary_ru": "Продвинутая анимация, процедурные миры, командные ассеты, восемь сквозных демо",
+      "gate": "Eight demo projects run end to end"
+    }
   ],
   "milestones": [
-    {"id": "HS-001", "phase": "F0", "status": "done", "depends_on": [],
-     "title": "Official .hmod checker with pinned engine", "title_ru": "Официальная проверка .hmod на закреплённом движке",
-     "evidence": [
-       {"level": "official-static", "ref": "PR #4, #6; CI run 41121633085",
-        "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41121633085"},
-       {"level": "docs", "ref": "Compatibility evidence ledger", "url": "docs/COMPATIBILITY_EVIDENCE.md"}]},
-    {"id": "HS-002", "phase": "F0", "status": "blocked", "depends_on": ["HS-001"],
-     "title": "Real-game content-load smoke", "title_ru": "Проверка загрузки контента в реальной игре",
-     "blocker": "Needs a legally installed Horizon client, prepared resources and a GPU session; harness ready (PR #5, #6), never run on a real game",
-     "evidence": [
-       {"level": "unit", "ref": "Harness + fake-client contract tests, PR #6",
-        "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/6"},
-       {"level": "docs", "ref": "Game content smoke procedure", "url": "docs/GAME_CONTENT_SMOKE.md"}]},
-    {"id": "HS-003", "phase": "F0", "status": "done", "depends_on": [],
-     "title": "Local API threat hardening", "title_ru": "Защита локального API",
-     "evidence": [{"level": "unit", "ref": "PR #1, API security tests",
-                   "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/1"}]},
-    {"id": "HS-004", "phase": "F0", "status": "done", "depends_on": [],
-     "title": "Release metadata consistency", "title_ru": "Согласованность метаданных релизов",
-     "evidence": [{"level": "unit", "ref": "PR #2, release metadata check",
-                   "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/2"}]},
-    {"id": "HS-005", "phase": "F1", "status": "done", "depends_on": [],
-     "title": "Canonical studio.project/1 + migration", "title_ru": "Канонический studio.project/1 и миграция",
-     "evidence": [
-       {"level": "unit", "ref": "PR #7: golden migrations, byte-identical .hmod",
-        "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/7"},
-       {"level": "official-static", "ref": "Migrated fixtures pass the pinned checker",
-        "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41124192941"},
-       {"level": "docs", "ref": "Project format", "url": "docs/PROJECT_FORMAT.md"}]},
-    {"id": "HS-006", "phase": "F1", "status": "done", "depends_on": ["HS-005"],
-     "title": "Durable workspace, undo/redo, recovery", "title_ru": "Надёжное рабочее пространство, undo/redo, восстановление",
-     "evidence": [
-       {"level": "browser-e2e", "ref": "PR #10: autosave, fresh-browser recovery, 409 conflicts, undo/redo in Chromium",
-        "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/10"},
-       {"level": "unit", "ref": "PR #8; CI run 41128196057 (Python + Node)",
-        "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41128196057"},
-       {"level": "docs", "ref": "Workspace durability", "url": "docs/WORKSPACE_DURABILITY.md"}]},
-    {"id": "HS-007", "phase": "F1", "status": "done", "depends_on": ["HS-006"],
-     "title": "Browser E2E in CI + UI modules", "title_ru": "Браузерные E2E в CI и модули UI",
-     "evidence": [
-       {"level": "browser-e2e", "ref": "PR #10: 13 Chromium scenarios in CI; workspace sync and API client extracted",
-        "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/10"},
-       {"level": "unit", "ref": "PR #14: editor_model.js and editor_render.js extracted with Node tests; inline script reduced to DOM wiring",
-        "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/14"},
-       {"level": "docs", "ref": "Browser E2E scope and limits", "url": "docs/BROWSER_E2E.md"}]},
-    {"id": "HS-009", "phase": "F2", "status": "planned", "depends_on": ["HS-005"],
-     "title": "Blockbench adapter with loss reports", "title_ru": "Адаптер Blockbench с отчётом о потерях", "evidence": []},
-    {"id": "HS-011", "phase": "F2", "status": "planned", "depends_on": ["HS-007"],
-     "title": "Monaco + rust-analyzer + Cargo", "title_ru": "Monaco + rust-analyzer + Cargo", "evidence": []},
-    {"id": "HS-019", "phase": "F2", "status": "partial", "depends_on": ["HS-007"],
-     "title": "Native desktop shell (Tauri 2) and workbench UI", "title_ru": "Настольная оболочка (Tauri 2) и рабочая область",
-     "evidence": [{"level": "desktop-smoke", "ref": "Windows: frozen core, NSIS install, smoke run, uninstall; portable cold/warm runs (CI run 41143213331)",
-                   "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41143213331"},
-                  {"level": "unit", "ref": "Rust shell tests, core protocol and lifecycle tests (desktop/src, tests/test_launcher.py, tests/test_desktop.py)",
-                   "url": "tests/test_desktop.py"},
-                  {"level": "browser-e2e", "ref": "Workbench layout, empty states, journey, Russian UI without English leftovers",
-                   "url": "tests/e2e/workbench.e2e.cjs"},
-                  {"level": "docs", "ref": "ADR 0002: decision matrix and measurements", "url": "docs/adr/0002-desktop-shell.md"}],
-     "missing": "Release pipeline for the desktop artifacts, an E2E run that drives the shell's own window, a code-signing decision; the verified 0.7 EXE stays the released product until then"},
-    {"id": "HS-008", "phase": "F3", "status": "in_progress", "depends_on": ["HS-005"],
-     "title": "Engine capability registry per SHA", "title_ru": "Реестр возможностей движка по SHA",
-     "evidence": [{"level": "unit", "ref": "First slice: registry, project requirements, CLI capabilities (tests/test_capabilities.py)",
-                   "url": "docs/ENGINE_CAPABILITIES.md"},
-                  {"level": "unit", "ref": "Registry fields from Horizon's API levels: API version, stability, side, backend, permissions, contract",
-                   "url": "studio_core/engine_profiles.json"},
-                  {"level": "browser-e2e", "ref": "In the editor: engine card, the journey's 'In this build', export blocked with the reason and data kept",
-                   "url": "tests/e2e/workbench.e2e.cjs"}]},
-    {"id": "HS-010", "phase": "F3", "status": "planned", "depends_on": ["HS-008"],
-     "title": "Trusted native .hnmod build", "title_ru": "Доверенная сборка нативного .hnmod", "evidence": []},
-    {"id": "HS-012", "phase": "F3", "status": "planned", "depends_on": ["HS-008"],
-     "title": "Gameplay IR v1 + event graph", "title_ru": "Игровой IR v1 и граф событий", "evidence": []},
-    {"id": "HS-014", "phase": "F4", "status": "planned", "depends_on": ["HS-012"],
-     "title": "AI behaviour trees with budgets", "title_ru": "Деревья поведения ИИ с бюджетами", "evidence": []},
-    {"id": "HS-013", "phase": "F5", "status": "planned", "depends_on": ["HS-008"],
-     "title": ".hshader checker + shader graph", "title_ru": "Проверка .hshader и шейдерный граф", "evidence": []},
-    {"id": "HS-015", "phase": "F5", "status": "planned", "depends_on": ["HS-012"],
-     "title": "Physics sandbox with debug overlay", "title_ru": "Физическая песочница с отладкой", "evidence": []},
-    {"id": "HS-016", "phase": "F5", "status": "planned", "depends_on": ["HS-008"],
-     "title": "Dimension and noise editor", "title_ru": "Редактор измерений и шума", "evidence": []},
-    {"id": "HS-017", "phase": "F7", "status": "planned", "depends_on": ["HS-007", "HS-008"],
-     "title": "Secure plugin host SDK", "title_ru": "Безопасный SDK хоста плагинов", "evidence": []},
-    {"id": "HS-018", "phase": "F7", "status": "planned", "depends_on": ["HS-017"],
-     "title": "Community publishing", "title_ru": "Публикация для сообщества", "evidence": []}
+    {
+      "id": "HS-001",
+      "track": "studio",
+      "phase": "F0",
+      "status": "done",
+      "depends_on": [],
+      "title": "Official .hmod checker with pinned engine",
+      "title_ru": "Официальная проверка .hmod на закреплённом движке",
+      "summary": "Run the official cargo-horizon-mod check, built from a pinned Horizon revision, on every package Studio exports.",
+      "summary_ru": "Запускать официальную проверку cargo-horizon-mod, собранную на закреплённой ревизии Horizon, для каждого пакета Studio.",
+      "deliverable": "CI job that builds the checker at the pinned SHA and checks every example and migrated fixture.",
+      "deliverable_ru": "CI-задача, собирающая проверку на закреплённом SHA и проверяющая все примеры и мигрированные проекты.",
+      "acceptance": [
+        "All example .hmod packages pass the pinned checker in CI",
+        "Byte-identical packages on every OS"
+      ],
+      "engine_requirements": [
+        "content.block",
+        "content.item",
+        "content.recipe"
+      ],
+      "validation_target": "official-static",
+      "design_ref": "docs/OFFICIAL_VERIFICATION.md",
+      "evidence": [
+        {
+          "level": "official-static",
+          "ref": "PR #4, #6; CI run 41121633085",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41121633085"
+        },
+        {
+          "level": "docs",
+          "ref": "Compatibility evidence ledger",
+          "url": "docs/COMPATIBILITY_EVIDENCE.md"
+        }
+      ]
+    },
+    {
+      "id": "HS-002",
+      "track": "studio",
+      "phase": "F0",
+      "status": "blocked",
+      "depends_on": [
+        "HS-001"
+      ],
+      "title": "Real-game content-load smoke",
+      "title_ru": "Проверка загрузки контента в реальной игре",
+      "summary": "Load a generated content mod in a real Horizon client and record the log and resource evidence.",
+      "summary_ru": "Загрузить созданный контентный мод в настоящем клиенте Horizon и сохранить журнал и доказательства ресурсов.",
+      "deliverable": "Opt-in harness run on an authorized installation with a stored, reviewable result.",
+      "deliverable_ru": "Запуск сценария на легально установленной игре с сохранённым проверяемым результатом.",
+      "acceptance": [
+        "Client log shows the mod's content loaded",
+        "Resource files match the package byte for byte",
+        "Run recorded with engine SHA"
+      ],
+      "engine_requirements": [
+        "content.block",
+        "content.item"
+      ],
+      "validation_target": "game-load",
+      "design_ref": "docs/GAME_CONTENT_SMOKE.md",
+      "evidence": [
+        {
+          "level": "unit",
+          "ref": "Harness + fake-client contract tests, PR #6",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/6"
+        },
+        {
+          "level": "docs",
+          "ref": "Game content smoke procedure",
+          "url": "docs/GAME_CONTENT_SMOKE.md"
+        }
+      ],
+      "blocker": "Needs a legally installed Horizon client, prepared resources and a GPU session; harness ready (PR #5, #6), never run on a real game"
+    },
+    {
+      "id": "HS-003",
+      "track": "studio",
+      "phase": "F0",
+      "status": "done",
+      "depends_on": [],
+      "title": "Local API threat hardening",
+      "title_ru": "Защита локального API",
+      "summary": "Protect the local API: loopback only, per-process token, Host/Origin/Fetch-Metadata checks.",
+      "summary_ru": "Защитить локальный API: только loopback, токен процесса, проверки Host/Origin/Fetch-Metadata.",
+      "deliverable": "request_policy module with regression tests used by every POST route.",
+      "deliverable_ru": "Модуль request_policy с регрессионными тестами для всех POST-маршрутов.",
+      "acceptance": [
+        "Cross-origin and DNS-rebinding requests are refused",
+        "Every POST needs the session token"
+      ],
+      "engine_requirements": [],
+      "validation_target": "unit",
+      "design_ref": "SECURITY.md",
+      "evidence": [
+        {
+          "level": "unit",
+          "ref": "PR #1, API security tests",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/1"
+        }
+      ]
+    },
+    {
+      "id": "HS-004",
+      "track": "studio",
+      "phase": "F0",
+      "status": "done",
+      "depends_on": [],
+      "title": "Release metadata consistency",
+      "title_ru": "Согласованность метаданных релизов",
+      "summary": "Keep version, changelog, release notes and window titles consistent and checked.",
+      "summary_ru": "Держать версию, changelog, заметки к релизу и заголовки согласованными и проверяемыми.",
+      "deliverable": "check_release_metadata.py and release gates.",
+      "deliverable_ru": "check_release_metadata.py и ворота релиза.",
+      "acceptance": [
+        "A mismatched version fails CI",
+        "Release notes match the tag"
+      ],
+      "engine_requirements": [],
+      "validation_target": "unit",
+      "design_ref": "docs/RELEASING.md",
+      "evidence": [
+        {
+          "level": "unit",
+          "ref": "PR #2, release metadata check",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/2"
+        }
+      ]
+    },
+    {
+      "id": "HS-005",
+      "track": "studio",
+      "phase": "F1",
+      "status": "done",
+      "depends_on": [],
+      "title": "Canonical studio.project/1 + migration",
+      "title_ru": "Канонический studio.project/1 и миграция",
+      "summary": "One canonical project document with stable object IDs and automatic migration of older projects.",
+      "summary_ru": "Один канонический документ проекта со стабильными ID и автоматической миграцией старых проектов.",
+      "deliverable": "studio.project/1 schema, migrations, CLI migrate and graph.",
+      "deliverable_ru": "Схема studio.project/1, миграции, CLI migrate и graph.",
+      "acceptance": [
+        "Migrated fixtures build byte-identical packages",
+        "Unknown kinds and fields are preserved"
+      ],
+      "engine_requirements": [],
+      "validation_target": "official-static",
+      "design_ref": "docs/PROJECT_FORMAT.md",
+      "evidence": [
+        {
+          "level": "unit",
+          "ref": "PR #7: golden migrations, byte-identical .hmod",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/7"
+        },
+        {
+          "level": "official-static",
+          "ref": "Migrated fixtures pass the pinned checker",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41124192941"
+        },
+        {
+          "level": "docs",
+          "ref": "Project format",
+          "url": "docs/PROJECT_FORMAT.md"
+        }
+      ]
+    },
+    {
+      "id": "HS-006",
+      "track": "studio",
+      "phase": "F1",
+      "status": "done",
+      "depends_on": [
+        "HS-005"
+      ],
+      "title": "Durable workspace, undo/redo, recovery",
+      "title_ru": "Надёжное рабочее пространство, undo/redo, восстановление",
+      "summary": "Crash-safe disk workspace, revision conflicts, undo and redo.",
+      "summary_ru": "Устойчивое к сбоям рабочее пространство, конфликты ревизий, отмена и повтор.",
+      "deliverable": "WorkspaceStore, undo journal and workspace sync in the editor.",
+      "deliverable_ru": "WorkspaceStore, журнал отмены и синхронизация в редакторе.",
+      "acceptance": [
+        "A crashed session recovers its last revision",
+        "A stale tab gets a conflict, never a silent overwrite"
+      ],
+      "engine_requirements": [],
+      "validation_target": "browser-e2e",
+      "design_ref": "docs/WORKSPACE_DURABILITY.md",
+      "evidence": [
+        {
+          "level": "browser-e2e",
+          "ref": "PR #10: autosave, fresh-browser recovery, 409 conflicts, undo/redo in Chromium",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/10"
+        },
+        {
+          "level": "unit",
+          "ref": "PR #8; CI run 41128196057 (Python + Node)",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41128196057"
+        },
+        {
+          "level": "docs",
+          "ref": "Workspace durability",
+          "url": "docs/WORKSPACE_DURABILITY.md"
+        }
+      ]
+    },
+    {
+      "id": "HS-007",
+      "track": "studio",
+      "phase": "F1",
+      "status": "done",
+      "depends_on": [
+        "HS-006"
+      ],
+      "title": "Browser E2E in CI + UI modules",
+      "title_ru": "Браузерные E2E в CI и модули UI",
+      "summary": "Drive the real editor in a browser in CI and split the editor into tested modules.",
+      "summary_ru": "Проверять настоящий редактор в браузере в CI и разделить его на протестированные модули.",
+      "deliverable": "Playwright suite and UMD editor modules with Node tests.",
+      "deliverable_ru": "Набор Playwright и UMD-модули редактора с тестами Node.",
+      "acceptance": [
+        "Editor workflows pass in Chromium on every PR",
+        "State logic runs in Node tests"
+      ],
+      "engine_requirements": [],
+      "validation_target": "browser-e2e",
+      "design_ref": "docs/BROWSER_E2E.md",
+      "evidence": [
+        {
+          "level": "browser-e2e",
+          "ref": "PR #10: 13 Chromium scenarios in CI; workspace sync and API client extracted",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/10"
+        },
+        {
+          "level": "unit",
+          "ref": "PR #14: editor_model.js and editor_render.js extracted with Node tests; inline script reduced to DOM wiring",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/14"
+        },
+        {
+          "level": "docs",
+          "ref": "Browser E2E scope and limits",
+          "url": "docs/BROWSER_E2E.md"
+        }
+      ]
+    },
+    {
+      "id": "HS-009",
+      "track": "studio",
+      "phase": "F2",
+      "status": "planned",
+      "depends_on": [
+        "HS-005"
+      ],
+      "title": "Blockbench adapter with loss reports",
+      "title_ru": "Адаптер Blockbench с отчётом о потерях",
+      "summary": "Import and export Blockbench models with a report of everything a conversion loses.",
+      "summary_ru": "Импорт и экспорт моделей Blockbench с отчётом обо всём, что теряется при преобразовании.",
+      "deliverable": ".bbmodel cuboid/UV adapter with a loss report and round-trip tests.",
+      "deliverable_ru": "Адаптер .bbmodel (кубоиды и UV) с отчётом о потерях и тестами туда-обратно.",
+      "acceptance": [
+        "Cuboids, UVs and textures survive a round trip",
+        "Animations, meshes and locators are listed as lost when unsupported"
+      ],
+      "engine_requirements": [
+        "content.block"
+      ],
+      "validation_target": "unit",
+      "design_ref": "docs/research/EDITOR_ECOSYSTEM_COMPARISON.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-011",
+      "track": "studio",
+      "phase": "F2",
+      "status": "planned",
+      "depends_on": [
+        "HS-007"
+      ],
+      "title": "Monaco + rust-analyzer + Cargo",
+      "title_ru": "Monaco + rust-analyzer + Cargo",
+      "summary": "Professional Rust editing: Monaco, rust-analyzer diagnostics and Cargo builds inside Studio.",
+      "summary_ru": "Профессиональная правка Rust: Monaco, диагностика rust-analyzer и сборки Cargo внутри Studio.",
+      "deliverable": "Code editor panel with LSP diagnostics and cancellable Cargo runs.",
+      "deliverable_ru": "Панель кода с диагностикой LSP и отменяемыми запусками Cargo.",
+      "acceptance": [
+        "Edit a Rust file and see diagnostics",
+        "Builds are cancellable and isolated"
+      ],
+      "engine_requirements": [
+        "native.hook_mod"
+      ],
+      "validation_target": "unit",
+      "design_ref": "docs/roadmap/master-2026-10-30.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-019",
+      "track": "studio",
+      "phase": "F2",
+      "status": "partial",
+      "depends_on": [
+        "HS-007"
+      ],
+      "title": "Native desktop shell (Tauri 2) and workbench UI",
+      "title_ru": "Настольная оболочка (Tauri 2) и рабочая область",
+      "summary": "Horizon Studio as one installable desktop application with parity to the browser editor.",
+      "summary_ru": "Horizon Studio как одно устанавливаемое настольное приложение на уровне браузерного редактора.",
+      "deliverable": "Tauri 2 shell, workbench UI, functional E2E on the real window, desktop release gates.",
+      "deliverable_ru": "Оболочка Tauri 2, рабочая область, функциональные E2E на настоящем окне, ворота настольного релиза.",
+      "acceptance": [
+        "Installer and portable build install, run and uninstall in CI",
+        "Functional E2E drives the real window",
+        "Desktop artifacts pass the same-commit release gates"
+      ],
+      "engine_requirements": [],
+      "validation_target": "desktop-e2e",
+      "design_ref": "docs/adr/0002-desktop-shell.md",
+      "evidence": [
+        {
+          "level": "desktop-smoke",
+          "ref": "Windows: frozen core, NSIS install, smoke run, uninstall; portable cold/warm runs (CI run 41143213331)",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41143213331"
+        },
+        {
+          "level": "unit",
+          "ref": "Rust shell tests, core protocol and lifecycle tests (desktop/src, tests/test_launcher.py, tests/test_desktop.py)",
+          "url": "tests/test_desktop.py"
+        },
+        {
+          "level": "browser-e2e",
+          "ref": "Workbench layout, empty states, journey, Russian UI without English leftovers",
+          "url": "tests/e2e/workbench.e2e.cjs"
+        },
+        {
+          "level": "docs",
+          "ref": "ADR 0002: decision matrix and measurements",
+          "url": "docs/adr/0002-desktop-shell.md"
+        }
+      ],
+      "missing": "Release pipeline for the desktop artifacts, an E2E run that drives the shell's own window, a code-signing decision; the verified 0.7 EXE stays the released product until then"
+    },
+    {
+      "id": "HS-028",
+      "track": "studio",
+      "phase": "F2",
+      "status": "planned",
+      "depends_on": [
+        "HS-005",
+        "HS-019"
+      ],
+      "title": "3D viewport editing",
+      "title_ru": "Редактирование в 3D-окне",
+      "summary": "Real 3D editing: transform gizmos, outliner, cuboids and meshes, pivots, UV editor and texture painting.",
+      "summary_ru": "Настоящее 3D-редактирование: гизмо, иерархия, кубоиды и меши, опорные точки, редактор UV и рисование текстур.",
+      "deliverable": "Viewport with picking, gizmos, hierarchy and UV/texture tools on the canonical model.",
+      "deliverable_ru": "3D-окно с выбором, гизмо, иерархией и инструментами UV и текстур на каноническом документе.",
+      "acceptance": [
+        "Edits are undoable and saved with stable IDs",
+        "Models export through supported content formats only"
+      ],
+      "engine_requirements": [
+        "content.block"
+      ],
+      "validation_target": "browser-e2e",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-029",
+      "track": "studio",
+      "phase": "F2",
+      "status": "planned",
+      "depends_on": [
+        "HS-028"
+      ],
+      "title": "Rigging and animation timeline",
+      "title_ru": "Риггинг и таймлайн анимации",
+      "summary": "Bones, pivots, keyframes, blending, state machines, event tracks and procedural animation with preview.",
+      "summary_ru": "Кости, опорные точки, ключевые кадры, смешивание, машины состояний, дорожки событий и процедурная анимация с предпросмотром.",
+      "deliverable": "Animation timeline shared with VFX sequencing; runtime playback only with an engine contract.",
+      "deliverable_ru": "Таймлайн анимации, общий с VFX; воспроизведение в игре — только при контракте движка.",
+      "acceptance": [
+        "Animations play in the Studio preview",
+        "Export is blocked until the engine has an animation runtime"
+      ],
+      "engine_requirements": [
+        "entity.animation_runtime"
+      ],
+      "validation_target": "browser-e2e",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-033",
+      "track": "studio",
+      "phase": "F2",
+      "status": "planned",
+      "depends_on": [
+        "HS-019"
+      ],
+      "title": "Docking workspace, tabs, command palette and onboarding",
+      "title_ru": "Док-панели, вкладки, палитра команд и знакомство",
+      "summary": "Resizable docking panels, document tabs, contextual inspectors, a global command palette, shortcuts, asset search and first-run onboarding.",
+      "summary_ru": "Изменяемые док-панели, вкладки документов, контекстные инспекторы, палитра команд, горячие клавиши, поиск ресурсов и первое знакомство.",
+      "deliverable": "Workbench layout system with keyboard-first navigation and contextual disclosure instead of a crowded rail.",
+      "deliverable_ru": "Система раскладки с навигацией с клавиатуры и контекстным раскрытием вместо перегруженной ленты.",
+      "acceptance": [
+        "Every command reachable from the palette",
+        "Layouts persist and reset",
+        "Accessible at 960x600 to 1920x1080"
+      ],
+      "engine_requirements": [],
+      "validation_target": "browser-e2e",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-008",
+      "track": "studio",
+      "phase": "F3",
+      "status": "in_progress",
+      "depends_on": [
+        "HS-005"
+      ],
+      "title": "Engine capability registry per SHA",
+      "title_ru": "Реестр возможностей движка по SHA",
+      "summary": "Know, per pinned Horizon revision, what the engine can load and what Studio can build; never export what silently does nothing.",
+      "summary_ru": "Знать для каждой закреплённой ревизии Horizon, что умеет движок и что собирает Studio; не экспортировать то, что молча не работает.",
+      "deliverable": "Engine profiles with API levels, project target selection, editor diagnostics and an export gate.",
+      "deliverable_ru": "Профили движка с уровнями API, выбор цели проекта, диагностика в редакторе и ворота экспорта.",
+      "acceptance": [
+        "A project chooses its target revision and keeps it through save, migration and export",
+        "Two independently audited profiles with source evidence",
+        "Exports needing a missing capability are blocked with the reason"
+      ],
+      "engine_requirements": [],
+      "validation_target": "official-static",
+      "design_ref": "docs/ENGINE_CAPABILITIES.md",
+      "evidence": [
+        {
+          "level": "unit",
+          "ref": "First slice: registry, project requirements, CLI capabilities (tests/test_capabilities.py)",
+          "url": "docs/ENGINE_CAPABILITIES.md"
+        },
+        {
+          "level": "unit",
+          "ref": "Registry fields from Horizon's API levels: API version, stability, side, backend, permissions, contract",
+          "url": "studio_core/engine_profiles.json"
+        },
+        {
+          "level": "browser-e2e",
+          "ref": "In the editor: engine card, the journey's 'In this build', export blocked with the reason and data kept",
+          "url": "tests/e2e/workbench.e2e.cjs"
+        }
+      ]
+    },
+    {
+      "id": "HS-010",
+      "track": "studio",
+      "phase": "F3",
+      "status": "planned",
+      "depends_on": [
+        "HS-008"
+      ],
+      "title": "Trusted native .hnmod build",
+      "title_ru": "Доверенная сборка нативного .hnmod",
+      "summary": "Build native .hnmod mods only through an isolated, user-approved process; never run untrusted native code in Studio.",
+      "summary_ru": "Собирать нативные .hnmod только в изолированном процессе с одобрения пользователя; никогда не запускать недоверенный код в Studio.",
+      "deliverable": "Template check, isolated build, explicit trust step and hook-contract validation.",
+      "deliverable_ru": "Проверка шаблона, изолированная сборка, явный шаг доверия и проверка контрактов хуков.",
+      "acceptance": [
+        "Build runs outside the Studio process",
+        "The user approves each native build",
+        "Only hooks of the target API are used"
+      ],
+      "engine_requirements": [
+        "native.hook_mod"
+      ],
+      "validation_target": "game-load",
+      "design_ref": "docs/roadmap/master-2026-10-30.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-012",
+      "track": "studio",
+      "phase": "F3",
+      "status": "planned",
+      "depends_on": [
+        "HS-008"
+      ],
+      "title": "Gameplay IR v1 + event graph",
+      "title_ru": "Игровой IR v1 и граф событий",
+      "summary": "A typed graph IR for gameplay logic with one event-graph backend.",
+      "summary_ru": "Типизированный IR графов игровой логики с одним бэкендом графа событий.",
+      "deliverable": "Graph IR v1, validation, source maps and an event graph compiled to a supported backend.",
+      "deliverable_ru": "IR графов v1, валидация, карты исходников и граф событий, компилируемый в поддерживаемый бэкенд.",
+      "acceptance": [
+        "Every node has unit tests",
+        "A graph never builds against an unsupported hook"
+      ],
+      "engine_requirements": [
+        "native.hook_mod"
+      ],
+      "validation_target": "unit",
+      "design_ref": "docs/roadmap/master-2026-10-30.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-020",
+      "track": "studio",
+      "phase": "F3",
+      "status": "planned",
+      "depends_on": [
+        "HS-005",
+        "HS-006",
+        "HS-008"
+      ],
+      "title": "AI Creator: typed tool contract and transactional executor",
+      "title_ru": "AI Creator: типизированные инструменты и транзакционный исполнитель",
+      "summary": "AI and people edit the same canonical project through the same validated, reversible operations, with an audit log.",
+      "summary_ru": "ИИ и люди правят один канонический проект одними и теми же проверяемыми и обратимыми операциями с журналом аудита.",
+      "deliverable": "Tool executor (inspect, list, create, update, delete, validate, capabilities, build, rollback) with deterministic tests.",
+      "deliverable_ru": "Исполнитель инструментов (inspect, list, create, update, delete, validate, capabilities, build, rollback) с детерминированными тестами.",
+      "acceptance": [
+        "Each edit is schema-validated with revision preconditions",
+        "Every transaction can be previewed and rolled back",
+        "Invalid requests change nothing",
+        "Equivalent projects build identical .hmod bytes"
+      ],
+      "engine_requirements": [],
+      "validation_target": "unit",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-021",
+      "track": "studio",
+      "phase": "F3",
+      "status": "planned",
+      "depends_on": [
+        "HS-020"
+      ],
+      "title": "AI providers, credentials and privacy",
+      "title_ru": "Провайдеры ИИ, ключи и приватность",
+      "summary": "Provider-independent model access: Claude, compatible APIs and optional local inference, with consent before project data leaves the machine.",
+      "summary_ru": "Доступ к моделям независимо от провайдера: Claude, совместимые API и локальный инференс, с согласием до отправки данных проекта.",
+      "deliverable": "Provider interface, model selection, OS credential storage, offline and privacy modes.",
+      "deliverable_ru": "Интерфейс провайдеров, выбор модели, хранение ключей в ОС, офлайн-режим и режим приватности.",
+      "acceptance": [
+        "API keys never enter project files or Git",
+        "No project data is sent without explicit authorization",
+        "Works fully offline without a provider"
+      ],
+      "engine_requirements": [],
+      "validation_target": "unit",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-014",
+      "track": "studio",
+      "phase": "F4",
+      "status": "planned",
+      "depends_on": [
+        "HS-012"
+      ],
+      "title": "AI behaviour trees with budgets",
+      "title_ru": "Деревья поведения ИИ с бюджетами",
+      "summary": "Behaviour trees, perception, pathfinding and budgets for smart animals and bosses.",
+      "summary_ru": "Деревья поведения, восприятие, поиск пути и бюджеты для умных животных и боссов.",
+      "deliverable": "BT editor with simulation mode, per-agent budgets and debugging.",
+      "deliverable_ru": "Редактор деревьев поведения с режимом симуляции, бюджетами и отладкой.",
+      "acceptance": [
+        "Deterministic simulation of a behaviour tree",
+        "Budgets enforced per agent"
+      ],
+      "engine_requirements": [
+        "entity.custom"
+      ],
+      "validation_target": "gameplay",
+      "design_ref": "docs/roadmap/master-2026-10-30.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-030",
+      "track": "studio",
+      "phase": "F4",
+      "status": "planned",
+      "depends_on": [
+        "HS-012",
+        "HS-028",
+        "HS-029"
+      ],
+      "title": "Entity, animal and prefab studio",
+      "title_ru": "Студия сущностей, животных и префабов",
+      "summary": "Entity templates and prefabs: models, materials, attributes, health, colliders, animations, loot, persistence and sync design.",
+      "summary_ru": "Шаблоны и префабы сущностей: модели, материалы, атрибуты, здоровье, коллайдеры, анимации, добыча, сохранение и синхронизация.",
+      "deliverable": "Component-based entity editor; marked engine-dependent until custom entity contracts exist.",
+      "deliverable_ru": "Компонентный редактор сущностей; помечен зависящим от движка, пока нет контрактов своих сущностей.",
+      "acceptance": [
+        "Entity data is kept even when export is blocked",
+        "Export requires the entity.custom capability"
+      ],
+      "engine_requirements": [
+        "entity.custom"
+      ],
+      "validation_target": "gameplay",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-031",
+      "track": "studio",
+      "phase": "F4",
+      "status": "planned",
+      "depends_on": [
+        "HS-030",
+        "HS-014",
+        "HS-026"
+      ],
+      "title": "Combat, abilities and boss phases",
+      "title_ru": "Бой, способности и фазы босса",
+      "summary": "Combat, abilities, boss phases, damage reactions, hit and death effects, rewards and multiplayer-safe event ownership.",
+      "summary_ru": "Бой, способности, фазы босса, реакция на урон, эффекты попаданий и смерти, награды и безопасное владение событиями в мультиплеере.",
+      "deliverable": "Encounter editor with phase graphs, effect triggers and a debugging timeline.",
+      "deliverable_ru": "Редактор схваток с графами фаз, триггерами эффектов и отладочным таймлайном.",
+      "acceptance": [
+        "Phase transitions are reproducible in simulation",
+        "Gameplay damage is independent of visual quality"
+      ],
+      "engine_requirements": [
+        "entity.custom",
+        "native.particles"
+      ],
+      "validation_target": "gameplay",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-013",
+      "track": "studio",
+      "phase": "F5",
+      "status": "planned",
+      "depends_on": [
+        "HS-008"
+      ],
+      "title": ".hshader checker + shader graph",
+      "title_ru": "Проверка .hshader и шейдерный граф",
+      "summary": "Check and author Horizon shader packs (.hshader): sky, material and post stages.",
+      "summary_ru": "Проверка и создание шейдерных пакетов Horizon (.hshader): небо, материалы, пост-обработка.",
+      "deliverable": "Shader stage adapter with the official check and a shader graph v1.",
+      "deliverable_ru": "Адаптер стадий шейдеров с официальной проверкой и граф шейдеров v1.",
+      "acceptance": [
+        "Generated packs pass horizon-shader check",
+        "Only stages of the target shader API are offered"
+      ],
+      "engine_requirements": [
+        "shader.pack"
+      ],
+      "validation_target": "game-load",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-015",
+      "track": "studio",
+      "phase": "F5",
+      "status": "planned",
+      "depends_on": [
+        "HS-012"
+      ],
+      "title": "Physics sandbox with debug overlay",
+      "title_ru": "Физическая песочница с отладкой",
+      "summary": "Game physics authoring: collisions, constraints, machinery, fictional vehicles and rockets, game-only explosions and destruction, with network diagnostics.",
+      "summary_ru": "Игровая физика: столкновения, связи, механизмы, вымышленные транспорт и ракеты, игровые взрывы и разрушения, сетевая диагностика.",
+      "deliverable": "Physics sandbox with debug overlay and approximation banner; runtime only after engine contracts exist.",
+      "deliverable_ru": "Физическая песочница с отладочным слоем и пометкой об упрощении; среда выполнения — после контрактов движка.",
+      "acceptance": [
+        "Sandbox traces are reproducible with a seed",
+        "Game state stays independent of visual effects"
+      ],
+      "engine_requirements": [
+        "physics.authoritative"
+      ],
+      "validation_target": "gameplay",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-016",
+      "track": "studio",
+      "phase": "F5",
+      "status": "planned",
+      "depends_on": [
+        "HS-008"
+      ],
+      "title": "Dimension and noise editor",
+      "title_ru": "Редактор измерений и шума",
+      "summary": "Worlds: biomes, structures, noise graphs, terrain previews, dimensions, portals, environment lighting and weather.",
+      "summary_ru": "Миры: биомы, структуры, графы шума, превью рельефа, измерения, порталы, освещение окружения и погода.",
+      "deliverable": "Noise and dimension editor with seeded previews; registration only with engine contracts.",
+      "deliverable_ru": "Редактор шума и измерений с превью по seed; регистрация — только при контрактах движка.",
+      "acceptance": [
+        "Same seed, same terrain hash",
+        "Dimension export blocked until the engine can register it"
+      ],
+      "engine_requirements": [
+        "worldgen.dimension",
+        "content.structure_nbt"
+      ],
+      "validation_target": "game-load",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-025",
+      "track": "studio",
+      "phase": "F5",
+      "status": "planned",
+      "depends_on": [
+        "HS-005",
+        "HS-006"
+      ],
+      "title": "VFX asset model and Studio preview",
+      "title_ru": "Модель VFX-ресурсов и предпросмотр в Studio",
+      "summary": "Versioned, reusable visual-effect assets with a deterministic Studio preview and a timeline, starting with an impact spark.",
+      "summary_ru": "Версионированные переиспользуемые визуальные эффекты с детерминированным предпросмотром и таймлайном, начиная с искр удара.",
+      "deliverable": "studio.vfx/1 model, seeded simulation, animated viewport preview, timeline, validation, undo.",
+      "deliverable_ru": "Модель studio.vfx/1, симуляция с seed, анимированный предпросмотр, таймлайн, валидация, отмена.",
+      "acceptance": [
+        "Same seed, same particle trajectories",
+        "Saved and reopened through the canonical project",
+        "Preview is labelled as a Studio preview, never as in-game rendering"
+      ],
+      "engine_requirements": [],
+      "validation_target": "browser-e2e",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-026",
+      "track": "studio",
+      "phase": "F5",
+      "status": "planned",
+      "depends_on": [
+        "HS-025",
+        "HS-012"
+      ],
+      "title": "Emitter graph, modules, presets and quality profiles",
+      "title_ru": "Граф эмиттеров, модули, пресеты и профили качества",
+      "summary": "Spawn/update modules, shapes, curves, gradients, noise, trails, sub-effects, sequencing, presets, quality levels and CPU/GPU budgets.",
+      "summary_ru": "Модули появления и обновления, формы, кривые, градиенты, шум, шлейфы, под-эффекты, последовательности, пресеты, уровни качества, бюджеты CPU/GPU.",
+      "deliverable": "Node-based emitter editor with layered timeline, presets, budgets and profiling.",
+      "deliverable_ru": "Узловой редактор эмиттеров со слоями таймлайна, пресетами, бюджетами и профилированием.",
+      "acceptance": [
+        "Every module is deterministic with a seed",
+        "Budgets are enforced per quality profile"
+      ],
+      "engine_requirements": [],
+      "validation_target": "browser-e2e",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-023",
+      "track": "studio",
+      "phase": "F6",
+      "status": "planned",
+      "depends_on": [
+        "HS-001",
+        "HS-008"
+      ],
+      "title": "Horizon Preview Bridge",
+      "title_ru": "Мост предпросмотра Horizon",
+      "summary": "Use Horizon's own agent control (horizon-ctl) to launch an isolated test session, capture screenshots and read game state.",
+      "summary_ru": "Использовать собственное управление Horizon (horizon-ctl), чтобы запускать изолированную тестовую сессию, снимать скриншоты и читать состояние игры.",
+      "deliverable": "Adapter that discovers an authorized installation, checks its version, runs an isolated world, captures evidence and cleans up.",
+      "deliverable_ru": "Адаптер: находит легальную установку, проверяет версию, запускает изолированный мир, сохраняет доказательства и убирает за собой.",
+      "acceptance": [
+        "Never touches personal worlds or accounts",
+        "Timeouts and cancellation leave no running game",
+        "A screenshot alone is never recorded as proof that a mod loaded"
+      ],
+      "engine_requirements": [
+        "game.agent_control"
+      ],
+      "validation_target": "game-load",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-027",
+      "track": "studio",
+      "phase": "F6",
+      "status": "planned",
+      "depends_on": [
+        "HS-025",
+        "HS-013",
+        "HS-010",
+        "HS-008"
+      ],
+      "title": "VFX engine backends",
+      "title_ru": "Бэкенды VFX для движка",
+      "summary": "Export only what the target engine can render: vanilla particle types through native_send_particles (hooks API 11+), shader stages, camera and sound sync.",
+      "summary_ru": "Экспортировать только то, что умеет движок: ванильные частицы через native_send_particles (хуки API 11+), стадии шейдеров, синхронизация камеры и звука.",
+      "deliverable": "Capability-aware VFX compiler with explicit diagnostics for everything without an engine contract.",
+      "deliverable_ru": "Компилятор VFX с учётом возможностей движка и явной диагностикой всего, для чего нет контракта.",
+      "acceptance": [
+        "Custom GPU particles are refused until an engine contract exists",
+        "Server-side particles only on authoritative levels"
+      ],
+      "engine_requirements": [
+        "native.particles",
+        "shader.pack",
+        "render.custom_particles"
+      ],
+      "validation_target": "game-load",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-032",
+      "track": "studio",
+      "phase": "F6",
+      "status": "planned",
+      "depends_on": [
+        "HS-010",
+        "HS-008"
+      ],
+      "title": "Engine contracts for entities, worlds and physics",
+      "title_ru": "Контракты движка для сущностей, миров и физики",
+      "summary": "Propose and track upstream contracts: custom entity registration and sync, animation runtime, dimension registration, authoritative physics, custom particle rendering.",
+      "summary_ru": "Предлагать и отслеживать контракты в upstream: регистрация и синхронизация сущностей, анимация, регистрация измерений, авторитетная физика, свои частицы.",
+      "deliverable": "Integration matrix per engine revision with no undocumented patches.",
+      "deliverable_ru": "Матрица интеграции по ревизиям движка без недокументированных патчей.",
+      "acceptance": [
+        "Each contract is cited from upstream source",
+        "Profiles change only with fresh evidence"
+      ],
+      "engine_requirements": [
+        "entity.custom",
+        "entity.animation_runtime",
+        "worldgen.dimension",
+        "physics.authoritative",
+        "render.custom_particles"
+      ],
+      "validation_target": "game-load",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-017",
+      "track": "studio",
+      "phase": "F7",
+      "status": "planned",
+      "depends_on": [
+        "HS-007",
+        "HS-008"
+      ],
+      "title": "Secure plugin host SDK",
+      "title_ru": "Безопасный SDK хоста плагинов",
+      "summary": "Secure plugin SDK: new asset types, editors, backends and AI tools without core edits; sandboxed execution.",
+      "summary_ru": "Безопасный SDK плагинов: новые типы ресурсов, редакторы, бэкенды и инструменты ИИ без правки ядра; изолированное выполнение.",
+      "deliverable": "Versioned plugin API, sandboxed host, permission prompts and an AI tool extension contract.",
+      "deliverable_ru": "Версионированный API плагинов, изолированный хост, запросы разрешений и контракт расширения инструментов ИИ.",
+      "acceptance": [
+        "A third-party plugin adds an asset type and editor",
+        "Plugins run with declared permissions only"
+      ],
+      "engine_requirements": [],
+      "validation_target": "unit",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-018",
+      "track": "studio",
+      "phase": "F7",
+      "status": "planned",
+      "depends_on": [
+        "HS-017"
+      ],
+      "title": "Community publishing",
+      "title_ru": "Публикация для сообщества",
+      "summary": "Publish packages and community content with signatures, checks and moderation.",
+      "summary_ru": "Публикация пакетов и контента сообщества с подписями, проверками и модерацией.",
+      "deliverable": "Package publishing flow with verification before submission.",
+      "deliverable_ru": "Процесс публикации пакетов с проверкой перед отправкой.",
+      "acceptance": [
+        "Published packages carry hashes and signatures",
+        "Submission checks run before upload"
+      ],
+      "engine_requirements": [],
+      "validation_target": "unit",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-034",
+      "track": "studio",
+      "phase": "F7",
+      "status": "planned",
+      "depends_on": [
+        "HS-017",
+        "HS-025"
+      ],
+      "title": "Templates, asset packages and preset libraries",
+      "title_ru": "Шаблоны, пакеты ресурсов и библиотеки пресетов",
+      "summary": "Reusable templates, asset packages, VFX and entity preset libraries and versioned project interchange.",
+      "summary_ru": "Переиспользуемые шаблоны, пакеты ресурсов, библиотеки пресетов VFX и сущностей и версионированный обмен проектами.",
+      "deliverable": "Package format with versioned interchange and import checks.",
+      "deliverable_ru": "Формат пакетов с версионированным обменом и проверками импорта.",
+      "acceptance": [
+        "Packages import without overwriting existing IDs",
+        "Interchange keeps unknown data"
+      ],
+      "engine_requirements": [],
+      "validation_target": "unit",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-022",
+      "track": "studio",
+      "phase": "F8",
+      "status": "planned",
+      "depends_on": [
+        "HS-020",
+        "HS-021",
+        "HS-012",
+        "HS-026",
+        "HS-029",
+        "HS-030"
+      ],
+      "title": "AI authoring across models, animation, VFX, entities, graphs and Rust",
+      "title_ru": "ИИ-создание моделей, анимаций, VFX, сущностей, графов и Rust",
+      "summary": "Natural-language creation and editing of every asset type through the tool contract, with validate-and-repair loops and change preview.",
+      "summary_ru": "Создание и правка любых ресурсов на естественном языке через контракт инструментов, с циклами проверки-исправления и предпросмотром изменений.",
+      "deliverable": "AI Creator panel with project-aware context, change preview, audit trail, undo and approval for privileged operations.",
+      "deliverable_ru": "Панель AI Creator с контекстом проекта, предпросмотром, журналом, отменой и подтверждением привилегированных операций.",
+      "acceptance": [
+        "AI output stays editable in the same UI",
+        "Generated Rust never runs inside Studio and needs approval to build",
+        "Every AI change is reversible"
+      ],
+      "engine_requirements": [
+        "native.hook_mod"
+      ],
+      "validation_target": "browser-e2e",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "HS-024",
+      "track": "studio",
+      "phase": "F8",
+      "status": "planned",
+      "depends_on": [
+        "HS-022",
+        "HS-023"
+      ],
+      "title": "AI-assisted live preview loop",
+      "title_ru": "Живой предпросмотр с помощью ИИ",
+      "summary": "Author, preview in a real session, collect screenshots, state, errors and performance, let the AI evaluate and iterate.",
+      "summary_ru": "Создать, проверить в настоящей сессии, собрать скриншоты, состояние, ошибки и производительность, дать ИИ оценить и улучшить.",
+      "deliverable": "Scenario runner with evidence records that separate simulated from real-game results.",
+      "deliverable_ru": "Запуск сценариев с записями доказательств, отделяющими симуляцию от реальной игры.",
+      "acceptance": [
+        "Simulated and real evidence are never mixed",
+        "Each iteration is a reversible transaction"
+      ],
+      "engine_requirements": [
+        "game.agent_control"
+      ],
+      "validation_target": "gameplay",
+      "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
+      "evidence": []
+    },
+    {
+      "id": "PC-001",
+      "track": "pixelchat",
+      "phase": "F7",
+      "status": "partial",
+      "depends_on": [],
+      "title": "PixelChat native HUD bridge (source proof)",
+      "title_ru": "Нативный HUD PixelChat (доказательство в исходниках)",
+      "summary": "Original pixel emoji drawn through Horizon native hook points (native_hud) as a source mixin bundle.",
+      "summary_ru": "Оригинальные пиксельные эмодзи, рисуемые через нативные хуки Horizon (native_hud), как пакет исходных миксинов.",
+      "deliverable": "Mixin bundle, Rust unit tests and a deterministic developer .hnmod source package.",
+      "deliverable_ru": "Пакет миксинов, модульные тесты Rust и детерминированный исходный .hnmod для разработчиков.",
+      "acceptance": [
+        "horizon-mixins plan/apply succeeds on the pinned Horizon",
+        "The modified game compiles",
+        "An in-game screenshot shows the HUD"
+      ],
+      "engine_requirements": [
+        "native.hook_mod"
+      ],
+      "validation_target": "game-load",
+      "design_ref": "pixelchat/native/README.md",
+      "issue": 11,
+      "evidence": [
+        {
+          "level": "unit",
+          "ref": "Rust geometry and manifest tests; deterministic source package (PR #20)",
+          "url": "tests/test_pixelchat_native.py"
+        }
+      ],
+      "missing": "horizon-mixins plan/apply, a native game build and an in-game screenshot have not been performed"
+    },
+    {
+      "id": "PC-002",
+      "track": "pixelchat",
+      "phase": "F7",
+      "status": "partial",
+      "depends_on": [],
+      "title": "PixelChat media pipeline and relay prototype",
+      "title_ru": "Медиаконвейер и прототип ретранслятора PixelChat",
+      "summary": "Original pixel emoji and GIF stickers, content-addressed media, validation, caching and rate limits, proven in a browser relay.",
+      "summary_ru": "Оригинальные пиксельные эмодзи и GIF-стикеры, медиа по хешу содержимого, проверка, кеш и ограничения частоты в браузерном ретрансляторе.",
+      "deliverable": "pixelchat/1 HTTP relay with two-client browser E2E; not a Horizon mod.",
+      "deliverable_ru": "HTTP-ретранслятор pixelchat/1 с E2E двух браузерных клиентов; это не мод Horizon.",
+      "acceptance": [
+        "Two clients exchange a GIF with frame changes",
+        "Reduced-motion fallback",
+        "Invalid media and senders are refused"
+      ],
+      "engine_requirements": [],
+      "validation_target": "browser-e2e",
+      "design_ref": "docs/PIXELCHAT.md",
+      "issue": 11,
+      "evidence": [
+        {
+          "level": "unit",
+          "ref": "Relay protocol, rate limits and GIF validation (PR #13)",
+          "url": "tests/test_pixelchat.py"
+        },
+        {
+          "level": "browser-e2e",
+          "ref": "Two Chromium clients share an animated GIF (PR #18)",
+          "url": "tests/e2e/pixelchat.e2e.cjs"
+        }
+      ],
+      "missing": "Runs only as a local browser prototype; no Horizon transport, identity or persistence"
+    },
+    {
+      "id": "PC-003",
+      "track": "pixelchat",
+      "phase": "F7",
+      "status": "planned",
+      "depends_on": [
+        "PC-001",
+        "PC-002"
+      ],
+      "title": "PixelChat multiplayer transport in Horizon",
+      "title_ru": "Сетевой транспорт PixelChat в Horizon",
+      "summary": "Authenticated, bounded client/server channel with identity, permissions, caching and rate limits on dedicated and LAN servers.",
+      "summary_ru": "Аутентифицированный ограниченный канал клиент-сервер с идентичностью, правами, кешем и лимитами на выделенных и LAN-серверах.",
+      "deliverable": "Engine-side channel (upstream hook proposal) and a server component.",
+      "deliverable_ru": "Канал на стороне движка (предложение хука в upstream) и серверный компонент.",
+      "acceptance": [
+        "Vanilla signed chat stays intact",
+        "Rate limits enforced server-side"
+      ],
+      "engine_requirements": [
+        "network.custom_channel"
+      ],
+      "validation_target": "gameplay",
+      "design_ref": "docs/PIXELCHAT.md",
+      "issue": 11,
+      "evidence": []
+    },
+    {
+      "id": "PC-004",
+      "track": "pixelchat",
+      "phase": "F7",
+      "status": "planned",
+      "depends_on": [
+        "PC-001",
+        "PC-003"
+      ],
+      "title": "PixelChat in-game rendering and fallback",
+      "title_ru": "Отрисовка PixelChat в игре и запасной вариант",
+      "summary": "Animated media in the client: atlas, frame timing, reduced motion, accessibility and readable fallback for clients without the feature.",
+      "summary_ru": "Анимированные медиа в клиенте: атлас, тайминг кадров, уменьшенное движение, доступность и читаемый вариант для клиентов без функции.",
+      "deliverable": "Client renderer and fallback text protocol.",
+      "deliverable_ru": "Клиентский рендерер и текстовый запасной протокол.",
+      "acceptance": [
+        "Clients without the feature see readable text",
+        "Reduced motion stops animation"
+      ],
+      "engine_requirements": [
+        "native.hook_mod"
+      ],
+      "validation_target": "gameplay",
+      "design_ref": "docs/PIXELCHAT.md",
+      "issue": 11,
+      "evidence": []
+    },
+    {
+      "id": "PC-005",
+      "track": "pixelchat",
+      "phase": "F7",
+      "status": "planned",
+      "depends_on": [
+        "PC-003",
+        "PC-004"
+      ],
+      "title": "PixelChat real-game compatibility tests",
+      "title_ru": "Проверка совместимости PixelChat в реальной игре",
+      "summary": "Two real clients, LAN and dedicated servers, mixed modded and unmodded peers.",
+      "summary_ru": "Два настоящих клиента, LAN и выделенный сервер, смешанные игроки с модом и без.",
+      "deliverable": "Recorded multiplayer test runs with evidence.",
+      "deliverable_ru": "Записанные многопользовательские тестовые прогоны с доказательствами.",
+      "acceptance": [
+        "Media arrives on a second real client",
+        "Unmodded peers keep a working chat"
+      ],
+      "engine_requirements": [
+        "network.custom_channel"
+      ],
+      "validation_target": "gameplay",
+      "design_ref": "docs/PIXELCHAT.md",
+      "issue": 11,
+      "evidence": []
+    }
+  ],
+  "engine_contracts": [
+    {
+      "id": "native.particles",
+      "status": "available",
+      "title": "Server particle emission (GameLevel::native_send_particles, native hooks API 11+)",
+      "title_ru": "Отправка частиц сервером (GameLevel::native_send_particles, хуки API 11+)",
+      "note": "Vanilla ParticleType values on an authoritative level only; Item, Trail and Vibration refused; returns accepted, not delivered",
+      "source": "horizon-rust/horizon@3c1d4b39 crates/horizon-client/src/game/native_hooks.rs"
+    },
+    {
+      "id": "game.agent_control",
+      "status": "available",
+      "title": "Agent control: horizon-ctl launch, wait-ready, screenshot, state, events, logs, quit",
+      "title_ru": "Управление агентом: horizon-ctl launch, wait-ready, screenshot, state, events, logs, quit",
+      "note": "Preview stability, unversioned; control socket from HORIZON_CONTROL; --offscreen renders without a window",
+      "source": "horizon-rust/horizon@3c1d4b39 docs/agent-control.md, docs/horizon-ctl-commands.md"
+    },
+    {
+      "id": "render.custom_particles",
+      "status": "missing",
+      "title": "Custom GPU particles: own textures, shapes, ribbons and trails",
+      "title_ru": "Свои GPU-частицы: текстуры, формы, ленты и шлейфы",
+      "note": "No renderer hook for mod-defined particles at the audited revisions",
+      "source": "docs/roadmap/CREATIVE_PLATFORM.md"
+    },
+    {
+      "id": "entity.animation_runtime",
+      "status": "missing",
+      "title": "Runtime playback of mod-defined models and animations",
+      "title_ru": "Воспроизведение моделей и анимаций мода в игре",
+      "note": "No content or native contract for animated custom models",
+      "source": "docs/roadmap/CREATIVE_PLATFORM.md"
+    },
+    {
+      "id": "worldgen.dimension",
+      "status": "missing",
+      "title": "Registration, generation, storage and networking of custom dimensions",
+      "title_ru": "Регистрация, генерация, хранение и сеть своих измерений",
+      "note": "Not verified at the audited revisions",
+      "source": "docs/roadmap/CREATIVE_PLATFORM.md"
+    },
+    {
+      "id": "physics.authoritative",
+      "status": "missing",
+      "title": "Authoritative entity physics, vehicles and constraints",
+      "title_ru": "Авторитетная физика сущностей, транспорта и связей",
+      "note": "No mod-facing physics contract at the audited revisions",
+      "source": "docs/roadmap/CREATIVE_PLATFORM.md"
+    },
+    {
+      "id": "network.custom_channel",
+      "status": "missing",
+      "title": "Authenticated mod data channel between client and server",
+      "title_ru": "Аутентифицированный канал данных мода между клиентом и сервером",
+      "note": "Needed by PixelChat and server events; not available to mods",
+      "source": "docs/PIXELCHAT.md"
+    }
+  ],
+  "showcases": [
+    {
+      "id": "SC-001",
+      "name": "Crystal Titan",
+      "name_ru": "Кристальный Титан",
+      "summary": "An original multi-phase crystal boss: custom model, rig, animations, AI, attacks, health bar, damage particles, phase transitions and a cinematic death sequence with rewards and multiplayer-safe events.",
+      "summary_ru": "Оригинальный многофазный кристальный босс: своя модель, риг, анимации, ИИ, атаки, полоса здоровья, частицы урона, смены фаз и кинематографичная смерть с наградами и безопасными событиями в мультиплеере.",
+      "sequence": [
+        "Final hit reaction",
+        "Crystalline cracking",
+        "Fragment burst",
+        "Expanding energy shockwave",
+        "Secondary particles and sound",
+        "Camera and lighting response",
+        "Fade-out",
+        "Loot and reward handoff"
+      ],
+      "sequence_ru": [
+        "Реакция на последний удар",
+        "Растрескивание кристалла",
+        "Разлёт осколков",
+        "Расходящаяся энергетическая волна",
+        "Вторичные частицы и звук",
+        "Отклик камеры и света",
+        "Затухание",
+        "Передача добычи и награды"
+      ],
+      "milestones": [
+        "HS-028",
+        "HS-029",
+        "HS-030",
+        "HS-014",
+        "HS-031",
+        "HS-025",
+        "HS-026",
+        "HS-013",
+        "HS-027",
+        "HS-023",
+        "HS-022"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "name": "Editable in Studio",
+          "name_ru": "Редактируется в Studio",
+          "status": "planned"
+        },
+        {
+          "level": 2,
+          "name": "Rendered in the Studio preview",
+          "name_ru": "Отрисовывается в предпросмотре Studio",
+          "status": "planned"
+        },
+        {
+          "level": 3,
+          "name": "A supported engine backend compiles it",
+          "name_ru": "Поддерживаемый бэкенд движка собирает его",
+          "status": "planned"
+        },
+        {
+          "level": 4,
+          "name": "The real Horizon client loads it",
+          "name_ru": "Настоящий клиент Horizon загружает его",
+          "status": "planned"
+        },
+        {
+          "level": 5,
+          "name": "Gameplay, events and multiplayer verified",
+          "name_ru": "Проверены геймплей, события и мультиплеер",
+          "status": "planned"
+        }
+      ]
+    }
   ],
   "verification": [
-    {"level": "unit", "name": "Unit/CI", "name_ru": "Модульные тесты и CI", "status": "verified",
-     "detail": "Python 3.11/3.12 on Ubuntu and Windows, Node history tests",
-     "detail_ru": "Python 3.11/3.12 на Ubuntu и Windows, Node-тесты истории",
-     "evidence": [{"ref": "CI run 41128196057", "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41128196057"}]},
-    {"level": "official-static", "name": "Official check", "name_ru": "Официальная проверка", "status": "verified",
-     "detail": "Pinned cargo-horizon-mod accepts all example packages",
-     "detail_ru": "Закреплённый cargo-horizon-mod принимает все примеры",
-     "evidence": [{"ref": "CI run 41121633085", "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41121633085"},
-                  {"ref": "Evidence ledger", "url": "docs/COMPATIBILITY_EVIDENCE.md"}]},
-    {"level": "browser-e2e", "name": "Browser E2E", "name_ru": "Браузерные E2E", "status": "verified",
-     "detail": "13 editor scenarios in Chromium on Ubuntu CI; Firefox, WebKit and Windows browsers not covered",
-     "detail_ru": "13 сценариев редактора в Chromium на Ubuntu в CI; Firefox, WebKit и браузеры Windows не покрыты",
-     "evidence": [{"ref": "PR #10 CI: Browser E2E (Chromium)", "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/10"},
-                  {"ref": "Scope and limits", "url": "docs/BROWSER_E2E.md"}]},
-    {"level": "game-load", "name": "Game load", "name_ru": "Загрузка в игре", "status": "blocked",
-     "detail": "No authorized game installation available to CI yet", "detail_ru": "Нет доступной для CI легальной установки игры",
-     "evidence": []},
-    {"level": "gameplay", "name": "Gameplay", "name_ru": "Геймплей", "status": "planned",
-     "detail": "No in-game behaviour has been asserted", "detail_ru": "Поведение в игре ещё не проверялось",
-     "evidence": []}
+    {
+      "level": "unit",
+      "name": "Unit/CI",
+      "name_ru": "Модульные тесты и CI",
+      "status": "verified",
+      "detail": "Python 3.11/3.12 on Ubuntu and Windows, Node history tests",
+      "detail_ru": "Python 3.11/3.12 на Ubuntu и Windows, Node-тесты истории",
+      "evidence": [
+        {
+          "ref": "CI run 41128196057",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41128196057"
+        }
+      ]
+    },
+    {
+      "level": "official-static",
+      "name": "Official check",
+      "name_ru": "Официальная проверка",
+      "status": "verified",
+      "detail": "Pinned cargo-horizon-mod accepts all example packages",
+      "detail_ru": "Закреплённый cargo-horizon-mod принимает все примеры",
+      "evidence": [
+        {
+          "ref": "CI run 41121633085",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41121633085"
+        },
+        {
+          "ref": "Evidence ledger",
+          "url": "docs/COMPATIBILITY_EVIDENCE.md"
+        }
+      ]
+    },
+    {
+      "level": "browser-e2e",
+      "name": "Browser E2E",
+      "name_ru": "Браузерные E2E",
+      "status": "verified",
+      "detail": "Editor, workbench and roadmap-explorer scenarios in Chromium on Ubuntu CI on every change; Firefox, WebKit and Windows browsers not covered",
+      "detail_ru": "Сценарии редактора, рабочей области и обозревателя дорожной карты в Chromium на Ubuntu при каждом изменении; Firefox, WebKit и браузеры Windows не покрыты",
+      "evidence": [
+        {
+          "ref": "PR #10 CI: Browser E2E (Chromium)",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/pull/10"
+        },
+        {
+          "ref": "Scope and limits",
+          "url": "docs/BROWSER_E2E.md"
+        }
+      ]
+    },
+    {
+      "level": "game-load",
+      "name": "Game load",
+      "name_ru": "Загрузка в игре",
+      "status": "blocked",
+      "detail": "No authorized game installation available to CI yet",
+      "detail_ru": "Нет доступной для CI легальной установки игры",
+      "evidence": []
+    },
+    {
+      "level": "gameplay",
+      "name": "Gameplay",
+      "name_ru": "Геймплей",
+      "status": "planned",
+      "detail": "No in-game behaviour has been asserted",
+      "detail_ru": "Поведение в игре ещё не проверялось",
+      "evidence": []
+    }
   ]
 }

@@ -8,12 +8,9 @@
 })(typeof window!=='undefined'?window:null,function(){
   'use strict';
   const KINDS=['block','item','recipe','structure'];
-  const GROUPS=[['official-static','capAvailable','i-check','cap-ok'],['engine-only','capEngineOnly','i-lock','cap-engine'],
-    ['unsupported','capUnsupported','i-warning','cap-missing']];
   function esc(value){
     return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
-  const localized=(obj,key,lang)=>lang==='ru'&&obj[key+'_ru']?obj[key+'_ru']:obj[key];
 
   function emptyStateMarkup(kind,t){
     return `<div class="empty-state"><span class="ico empty-art i-${esc(kind)}" aria-hidden="true"></span>`+
@@ -30,7 +27,7 @@
     return needs.map(([capability,users])=>{
       const ok=!missing.has(capability);
       return `<li class="${ok?'cap-ok':'cap-missing'}"><span class="ico ${ok?'i-check':'i-lock'}" aria-hidden="true"></span>`+
-        `<span>${esc(capability)}</span><span class="tiny-badge" title="${esc(users.join(', '))}">${users.length}</span>`+
+        `<code>${esc(capability)}</code><span class="tiny-badge" data-ids title="${esc(users.join(', '))}">${users.length}</span>`+
         `<span class="sr-only">${esc(t(ok?'capAvailable':'capMissing'))}</span></li>`;
     }).join('');
   }
@@ -39,32 +36,6 @@
   function exportBlockReason(result,t){
     const errors=(result.diagnostics||[]).filter(d=>d.level==='error');
     return errors.length?t('exportBlocked',{details:errors.map(d=>d.message).join('; ')}):'';
-  }
-
-  function journeyMarkup(view,lang,t){
-    const status=s=>esc(t('status_'+s));
-    const milestone=m=>`<li><span class="marker ${esc(m.status)}" aria-hidden="true"></span><div><b>${esc(m.id)} · ${esc(localized(m,'title',lang))}</b><small>${status(m.status)}</small></div></li>`;
-    const phases=view.phases.map(p=>`<li class="${p.id===view.current_phase?'current':''}"><span class="marker ${esc(p.status)}" aria-hidden="true"></span>`+
-      `<div><b>${esc(p.id)} · ${esc(localized(p,'name',lang))}</b><small>${status(p.status)} — ${esc(localized(p,'summary',lang))}</small></div></li>`).join('');
-    const ladder=view.verification.map(v=>`<li><span class="marker ${esc(v.status)}" aria-hidden="true"></span><div><b>${esc(localized(v,'name',lang))}</b><small>${status(v.status)} — ${esc(localized(v,'detail',lang))}</small></div></li>`).join('');
-    const build=view.build;
-    const groups=GROUPS.map(([key,label,icon,cls])=>{
-      const items=build.groups[key]||[];
-      if(!items.length)return '';
-      const facts=c=>[c.backend&&'.'+c.backend,c.api,c.stability&&t('stability_'+c.stability.replace('-','_'))].filter(Boolean)
-        .map(fact=>`<span class="tiny-badge">${esc(fact)}</span>`).join(' ');
-      const warning=c=>c.backend==='hnmod'?`<small class="cap-missing"> ${esc(t('nativeTrustWarning'))}</small>`:'';
-      return `<h3>${esc(t(label))}</h3><ul class="capability-list">`+items.map(c=>`<li class="${cls}"><span class="ico ${icon}" aria-hidden="true"></span>`+
-        `<span><b>${esc(c.capability)}</b> ${facts(c)}${c.note?`<small> — ${esc(localized(c,'note',lang))}</small>`:''}${warning(c)}</span></li>`).join('')+'</ul>';
-    }).join('');
-    return `<section aria-labelledby="journeyPlanHeading"><h3 id="journeyPlanHeading">${esc(t('journeyPlan'))}</h3>`+
-      `<p class="journey-note">${esc(t('journeyPlanNote'))}</p>`+
-      `<img class="journey-map" src="/assets/roadmap/roadmap-overview.svg" alt="${esc(t('journeyMapAlt'))}">`+
-      `<ol class="phase-list">${phases}</ol>`+
-      `<h3>${esc(t('journeyNow'))}</h3><ul class="phase-list">${view.active_milestone?milestone(view.active_milestone):''}${view.next_milestones.map(milestone).join('')}</ul>`+
-      `<h3>${esc(t('journeyEvidence'))}</h3><ul class="ladder">${ladder}</ul></section>`+
-      `<section id="journeyBuild" aria-labelledby="journeyBuildHeading"><h3 id="journeyBuildHeading">${esc(t('journeyBuild'))}</h3>`+
-      `<p class="journey-note">${esc(t('journeyBuildNote',{label:build.label,api:build.content_api}))}</p>${groups}</section>`;
   }
 
   function init(ctx){
@@ -97,7 +68,8 @@
       if(!result)return;
       lastCheck=result;
       const profile=result.profile;
-      $('engineProfile').textContent=profile?t('engineProfile',{label:profile.label,api:profile.content_api}):t('capUnknownProfile');
+      const label=profile&&(window.HorizonI18n.language==='ru'&&profile.label_ru||profile.label);
+      $('engineProfile').textContent=profile?t('engineProfile',{label,api:profile.content_api}):t('capUnknownProfile');
       $('engineCapabilities').innerHTML=capabilityMarkup(result,t);
       const missing=(result.diagnostics||[]).length;
       $('engineStatus').textContent=profile?`Horizon ${profile.revision.slice(0,7)} · API ${profile.content_api}${missing?' · '+t('capMissingCount',{count:missing}):''}`:t('capUnknownProfile');
@@ -123,15 +95,17 @@
       }
       return journey;
     }
+    let explorer=null;
     function renderJourney(){
       if($('journeyDialog').hidden||!journey)return;
-      $('journeyBody').innerHTML=journeyMarkup(journey,window.HorizonI18n.language,t);
+      if(explorer)explorer.render();
+      else explorer=window.HorizonRoadmap.mount($('journeyBody'),journey,{t,lang:()=>window.HorizonI18n.language});
     }
     async function openJourney(focusBuild=false){
       returnFocus=document.activeElement;
       $('journeyDialog').hidden=false;
       $('closeJourney').focus();
-      try{await loadJourney();renderJourney();if(focusBuild)$('journeyBuild')?.scrollIntoView({block:'start'});}
+      try{await loadJourney();renderJourney();explorer.selectTab(focusBuild?'build':'roadmap',false);}
       catch(error){$('journeyBody').textContent=error.message;}
     }
     function closeJourney(){
@@ -178,5 +152,5 @@
     return {update,shell,exportGate,refreshEngine,refreshLanguage,openJourney,closeJourney};
   }
 
-  return {KINDS,esc,emptyStateMarkup,capabilityMarkup,exportBlockReason,journeyMarkup,init};
+  return {KINDS,esc,emptyStateMarkup,capabilityMarkup,exportBlockReason,init};
 });

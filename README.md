@@ -49,7 +49,7 @@ Release rules and verification: [docs/RELEASING.md](docs/RELEASING.md). Every re
 
 - **In development:** Version **0.7 — Project Core** (`VERSION` on `master`). The panel above shows the newest release whose executable has been verified through the GitHub API; a version counts as released only after that.
 - **Proven:** the example mods pass the official `cargo-horizon-mod check` built from a pinned Horizon revision, in CI and locally.
-- **Proven in a browser:** 13 editor workflows run in Chromium on every pull request (Ubuntu CI), including autosave, recovery, revision conflicts and the exported package bytes.
+- **Proven in a browser:** editor, workbench and roadmap workflows run in Chromium on every pull request (Ubuntu CI), including autosave, recovery, revision conflicts, the exported package bytes and an accessibility audit ([current inventory](docs/BROWSER_E2E.md#current-inventory)).
 - **Not yet proven:** loading a Studio mod in the running game, and any gameplay behaviour.
 
 ## Roadmap
@@ -63,13 +63,13 @@ Release rules and verification: [docs/RELEASING.md](docs/RELEASING.md). Every re
 |---|---|---|---|
 | F0 Foundation | Official validator, secure local API, release metadata, real-game smoke harness | Partially verified | 3 / 4 |
 | F1 Project Core | Canonical project document, migrations, durable workspace, undo, browser E2E | Done | 3 / 3 |
-| F2 Creative Editor | Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bridge (HS-011) | Partially verified | 0 / 3 |
-| F3 Visual Scripting | Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (HS-010) | **In progress** | 0 / 3 |
-| F4 Gameplay Systems | Entities, components, AI behaviour trees, events, RPG and automation | Planned | 0 / 1 |
-| F5 World & VFX | Shader graph over .hshader, particles, physics sandbox, dimensions | Planned | 0 / 3 |
-| F6 Engine Bridge | Upstream-accepted engine capabilities: entities, server events, worldgen, physics, rendering | Planned | — |
-| F7 Ecosystem | Secure plugin SDK, templates, signed releases, publishing | Planned | 0 / 2 |
-| F8 Creative Platform | Advanced animation, procedural worlds, team assets, eight end-to-end demos | Planned | — |
+| F2 Creative Editor | Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bridge (HS-011) | Partially verified | 0 / 6 |
+| F3 Visual Scripting | Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (HS-010) | **In progress** | 0 / 5 |
+| F4 Gameplay Systems | Entities, components, AI behaviour trees, events, RPG and automation | Planned | 0 / 3 |
+| F5 World & VFX | Shader graph over .hshader, particles, physics sandbox, dimensions | Planned | 0 / 5 |
+| F6 Engine Bridge | Upstream-accepted engine capabilities: entities, server events, worldgen, physics, rendering | Planned | 0 / 3 |
+| F7 Ecosystem | Secure plugin SDK, templates, signed releases, publishing | Planned | 0 / 3 |
+| F8 Creative Platform | Advanced animation, procedural worlds, team assets, eight end-to-end demos | Planned | 0 / 2 |
 
 **Verification levels:** Unit/CI — verified → Official check — verified → Browser E2E — verified → Game load — blocked → Gameplay — planned
 <!-- roadmap:status:end -->
@@ -142,7 +142,7 @@ Each level is separate evidence; passing one never implies the next.
 |---|---|---|
 | Unit / CI | Studio's own tests on Ubuntu and Windows, Python 3.11/3.12, Node 22 | Verified on every PR |
 | Official static check | Real `cargo-horizon-mod check --json` from Horizon `d2186eb` accepts the exact package bytes | Verified for all examples ([ledger](docs/COMPATIBILITY_EVIDENCE.md)) |
-| Browser end-to-end | Editor workflows driven in a real browser | Verified in CI: 13 scenarios, Chromium on Ubuntu ([scope](docs/BROWSER_E2E.md)) |
+| Browser end-to-end | Editor workflows driven in a real browser | Verified in CI on every change, Chromium on Ubuntu ([current inventory](docs/BROWSER_E2E.md#current-inventory)) |
 | Game content load | A real Horizon client loads the package | Not verified — [procedure](docs/GAME_CONTENT_SMOKE.md) |
 | Gameplay | Behaviour asserted in a running game | Not verified |
 

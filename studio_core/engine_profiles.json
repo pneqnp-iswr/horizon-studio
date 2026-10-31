@@ -6,6 +6,7 @@
       "engine": "horizon",
       "revision": "d2186eb9aa022a64a8b26e6989a04e44fba99ee7",
       "label": "Horizon d2186eb (audited pin, 2026-10-30)",
+      "label_ru": "Horizon d2186eb (проверенная закреплённая ревизия, 2026-10-30)",
       "content_api": "0.2",
       "capabilities": {
         "content.block": {
