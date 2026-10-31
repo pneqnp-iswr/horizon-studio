@@ -34,3 +34,20 @@ The source-mixin packaging format is documented in [Horizon native mods](https:/
 ## Next engineering step
 
 Create an engine-side native adapter or upstream hook proposal for: (1) message arrival/render lifecycle and independent rich attachment entities; (2) client/server authenticated bounded binary channel; (3) a tested image atlas or texture upload route with GIF frame timing. Only then bind the existing `pixelchat/1` HTTP proof's semantics to actual Horizon player sessions. Keep vanilla signed chat intact and provide readable fallback for non-modded peers.
+
+## Experimental `.hnmod` source package
+
+After the Rust + Python checks, generate a deterministic source bundle:
+
+```sh
+python pixelchat/native/package.py
+# pixelchat/native/target/pixelchat_hud-0.1.0.hnmod
+```
+
+This matches the `horizon-native.json` schema and ZIP layout of the official
+[Horizon native packaging tool](https://github.com/horizon-rust/horizon-mods/blob/main/native/tools/native.py).
+It contains only original Rust sources and mixin declarations. The GitHub CI workflow
+uploads it with the explicit **unverified** label for developer inspection.
+
+**Do not interpret pack success as working gameplay.** Actual `horizon-mixins plan/apply`,
+native game compilation and a player-provided-resources smoke test remain mandatory.

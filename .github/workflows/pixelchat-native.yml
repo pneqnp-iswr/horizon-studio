@@ -33,5 +33,14 @@ jobs:
         run: cargo +1.95.0 fmt --manifest-path pixelchat/native/Cargo.toml -- --check
       - name: Unit tests
         run: cargo +1.95.0 test --manifest-path pixelchat/native/Cargo.toml --offline
-      - name: Manifest and hook contract tests
+      - name: Manifest, package and hook contract tests
         run: python3 -m unittest tests.test_pixelchat_native -v
+      - name: Build experimental deterministic native bundle
+        run: python3 pixelchat/native/package.py
+      - name: Publish unverified native source bundle as CI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixelchat-hud-native-source-unverified
+          path: pixelchat/native/target/pixelchat_hud-0.1.0.hnmod
+          retention-days: 14
+          if-no-files-found: error

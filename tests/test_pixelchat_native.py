@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import json
+import io
+import zipfile
+import importlib.util
 import sys
 import tomllib
 import unittest
@@ -48,6 +51,26 @@ class NativePixelChatContractTests(unittest.TestCase):
         self.assertEqual(cargo["lib"]["path"], "mixins/pixelchat_hud/runtime.rs")
         self.assertEqual(cargo["package"]["name"], "horizon-pixelchat-hud")
         self.assertIn("mod tests", (MIXINS / "runtime.rs").read_text(encoding="utf-8"))
+
+    def test_native_source_bundle_is_reproducible_and_contains_only_owned_source(self):
+        source = NATIVE / "package.py"
+        spec = importlib.util.spec_from_file_location("pixelchat_native_package", source)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        name, one = module.make_package()
+        self.assertEqual(name, "pixelchat_hud-0.1.0.hnmod")
+        _, two = module.make_package()
+        self.assertEqual(one, two, "source package bytes must be deterministic")
+        with zipfile.ZipFile(io.BytesIO(one)) as archive:
+            names = set(archive.namelist())
+            manifest = json.loads(archive.read("horizon-native.json"))
+            self.assertEqual(manifest["id"], self.manifest["mod"]["id"])
+            self.assertEqual(manifest["horizon"], self.compat["horizon_revision"])
+            self.assertEqual(manifest["hooks"], 1)
+            self.assertIn("mixins/pixelchat_hud/horizon-mixin.toml", names)
+            self.assertIn("mixins/pixelchat_hud/runtime.rs", names)
+            self.assertEqual(len(names), 8)
+            self.assertTrue(all(name == "horizon-native.json" or name.endswith((".rs", ".toml")) for name in names))
 
 
 if __name__ == "__main__":
