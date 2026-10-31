@@ -256,7 +256,8 @@ class AdversarialGameTests(unittest.TestCase):
 
     def test_version_replies_that_are_not_a_launch_api_are_refused(self):
         import subprocess
-        for raw in ("[]", "not json", "", '"0.1.0"', '{"launch_api": "0.1.0", "options": "all"}'):
+        # A blank reply is " ", not "": on Windows an empty environment value removes the variable.
+        for raw in ("[]", "not json", " ", '"0.1.0"', '{"launch_api": "0.1.0", "options": "all"}'):
             with self.subTest(raw=raw), mock.patch.dict(os.environ, {"FAKE_LAUNCH_REPLY": raw}):
                 with self.assertRaises(BridgeError) as refused:
                     PreviewBridge(CTL, GAME, self.folder / "preview").check_version()
