@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16" shape-rendering="crispEdges" role="img" aria-labelledby="title desc">
+<title id="title">Phase icon: gear</title>
+<desc id="desc">Pixel phase icon 'gear' (not started) from scripts/roadmap.py</desc>
+<path fill="#2b333e" d="M6 0h4v2h-4zM7 2h2v1h-2zM5 3h6v1h-6zM4 4h7v1h-7zM3 5h2v1h-2zM6 5h7v1h-7zM0 6h2v1h-2zM3 6h3v1h-3zM10 6h3v1h-3zM14 6h2v1h-2zM0 7h6v2h-6zM10 7h6v2h-6zM0 9h2v1h-2zM3 9h3v1h-3zM10 9h3v1h-3zM14 9h2v1h-2zM3 10h10v1h-10zM5 11h7v1h-7zM5 12h6v1h-6zM7 13h2v1h-2zM6 14h4v2h-4z"/>
+<path fill="#3e4755" d="M12 3h1v1h-1zM11 4h1v1h-1zM5 5h1v1h-1zM8 7h1v1h-1zM7 8h1v1h-1zM4 11h1v1h-1zM3 12h1v1h-1z"/>
+</svg>

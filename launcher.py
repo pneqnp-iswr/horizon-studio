@@ -130,7 +130,7 @@ def smoke_test(report_path: Path | None = None, workspace_dir: Path | None = Non
             get(base, "/" + name)  # every bundled stylesheet, icon and image is served
         checks["assets"] = len(assets)
         journey = json.loads(get(base, "/api/journey"))
-        if journey.get("schema") != "horizon-studio.journey/1" or not journey["build"]["groups"]["official-static"]:
+        if journey.get("schema") != "horizon-studio.journey/2" or not journey["build"]["groups"]["official-static"]:
             raise RuntimeError("The development journey or the capability registry is not bundled")
         checks["journey"] = {"current_phase": journey["current_phase"], "engine": journey["build"]["revision"][:7]}
         i18n = get(base, "/i18n.js")

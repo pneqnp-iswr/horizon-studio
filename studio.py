@@ -43,14 +43,18 @@ WEB_SCRIPTS = {
     'source_workbench_ui.js': b'source_overrides',
     'desktop_bridge.js': b'HorizonDesktop',
     'workbench_ui.js': b'HorizonWorkbench',
+    'roadmap_explorer.js': b'HorizonRoadmap',
 }
 # Every file the packaged application needs at runtime, relative to the repository root.
+ROADMAP_ICONS = tuple(sorted(f'assets/roadmap/icons/{icon.name}'
+                             for icon in (Path(__file__).parent / 'assets' / 'roadmap' / 'icons').glob('*.svg')))
 UI_ICONS = tuple(sorted(f'assets/editor/icons/{icon.name}'
                         for icon in (Path(__file__).parent / 'assets' / 'editor' / 'icons').glob('*.svg')))
 # Everything the frozen app serves or reads at runtime (build scripts and smoke tests use this list).
 BUNDLED_FILES = ('index.html', 'VERSION', *WEB_SCRIPTS, 'assets/branding/horizon-studio-mark.png',
                  'assets/branding/horizon-studio-wordmark.svg', 'assets/editor/workbench.css', *UI_ICONS,
-                 'assets/roadmap/roadmap-overview.svg', 'docs/roadmap/roadmap.json', 'studio_core/engine_profiles.json')
+                 'assets/roadmap/roadmap-overview.svg', *ROADMAP_ICONS, 'docs/roadmap/roadmap.json',
+                 'studio_core/engine_profiles.json')
 MAX_REQUEST_BYTES = 6 * 1024 * 1024
 ID_RE = re.compile(r'^[a-z][a-z0-9_]{0,63}$')
 VERSION_RE = re.compile(r'^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$')

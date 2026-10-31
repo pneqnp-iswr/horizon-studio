@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16" shape-rendering="crispEdges" role="img" aria-labelledby="title desc">
+<title id="title">Phase icon: core</title>
+<desc id="desc">Pixel phase icon 'core' from scripts/roadmap.py</desc>
+<path fill="#0c4a5a" d="M5 3h1v1h-1zM5 4h2v1h-2zM6 5h1v1h-1zM1 11h1v1h-1zM10 11h1v1h-1zM1 12h2v1h-2zM11 12h1v2h-1zM2 13h1v1h-1z"/>
+<path fill="#1f9fbd" d="M6 1h3v1h-3zM5 2h1v1h-1zM9 2h1v1h-1zM2 9h2v1h-2zM12 9h2v1h-2zM1 10h1v1h-1zM5 10h1v1h-1zM10 10h1v1h-1zM14 10h1v1h-1z"/>
+<path fill="#2b333e" d="M9 3h1v1h-1zM7 4h3v1h-3zM7 5h2v1h-2zM5 11h1v1h-1zM14 11h1v1h-1zM3 12h3v1h-3zM12 12h3v1h-3zM3 13h2v1h-2zM12 13h2v1h-2z"/>
+<path fill="#58dcef" d="M6 2h3v2h-3zM2 10h3v2h-3zM11 10h3v2h-3z"/>
+<path fill="#f0bd4a" d="M7 6h2v1h-2zM6 7h1v1h-1zM9 7h1v1h-1zM5 8h1v1h-1zM10 8h1v1h-1zM4 9h1v1h-1zM11 9h1v1h-1zM6 12h5v1h-5z"/>
+</svg>

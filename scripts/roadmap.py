@@ -26,12 +26,17 @@ DATA = ROOT / "docs" / "roadmap" / "roadmap.json"
 RELEASES = ROOT / "docs" / "releases" / "releases.json"
 ASSETS = ROOT / "assets" / "roadmap"
 REPO_URL = "https://github.com/pneqnp-iswr/horizon-studio/"
-SCHEMA = "horizon-studio.roadmap/1"
+SCHEMA = "horizon-studio.roadmap/2"
+PREVIOUS_SCHEMA = "horizon-studio.roadmap/1"
 
 MILESTONE_STATUSES = ("done", "partial", "in_progress", "planned", "blocked")
 VERIFICATION_STATUSES = ("verified", "in_progress", "blocked", "planned")
 # desktop-smoke: the real desktop application started, reported ready and shut down cleanly in CI.
-EVIDENCE_LEVELS = ("unit", "official-static", "browser-e2e", "desktop-smoke", "game-load", "gameplay", "docs")
+# desktop-e2e: functional scenarios drove the real desktop window (not a separate browser).
+EVIDENCE_LEVELS = ("unit", "official-static", "browser-e2e", "desktop-smoke", "desktop-e2e", "game-load", "gameplay", "docs")
+TRACKS = {"studio": "HS", "pixelchat": "PC"}
+CONTRACT_STATUSES = ("available", "missing")
+GOVERNANCE = ("summary", "summary_ru", "deliverable", "deliverable_ru")
 ICONS = ("forge", "core", "editor", "nodes", "creature", "portal", "gear", "plug", "summit")
 STARTED = ("done", "partial", "in_progress", "blocked")
 LABELS = {
@@ -97,8 +102,8 @@ def validate(data) -> list[str]:
         errors.append("Phases must be listed in order")
     ids = {}
     for index, item in enumerate(milestones):
-        if not isinstance(item, dict) or not isinstance(item.get("id"), str) or not re.fullmatch(r"HS-\d{3}", item["id"]):
-            errors.append(f"milestones[{index}] needs an id like HS-001")
+        if not isinstance(item, dict) or not isinstance(item.get("id"), str) or not re.fullmatch(r"(HS|PC)-\d{3}", item["id"]):
+            errors.append(f"milestones[{index}] needs an id like HS-001 or PC-001")
             continue
         if item["id"] in ids:
             errors.append(f"Duplicate milestone {item['id']}")
@@ -139,6 +144,7 @@ def validate(data) -> list[str]:
             errors.append(f"{mid} is blocked without a blocker")
         if status in ("planned", "in_progress") and (item.get("missing") or item.get("blocker")):
             errors.append(f"{mid} is {status} but carries missing/blocker notes")
+    errors += _governance_errors(data, ids)
     active = data.get("active_milestone")
     if active not in ids:
         errors.append(f"active_milestone {active!r} is not a milestone")
@@ -174,7 +180,166 @@ def validate(data) -> list[str]:
         for lower, higher in zip(ladder, ladder[1:]):
             if higher == "verified" and lower != "verified":
                 errors.append("A verification level cannot be verified while a lower level is not")
+    errors += _showcase_errors(data, ids)
     return errors
+
+
+def known_requirements(data: dict) -> dict[str, str]:
+    """Capability or contract id -> 'buildable' (Studio builds it), 'engine' (an audited engine
+    has it) or 'missing' (no audited engine has it). The strongest state across profiles wins."""
+    from studio_core.capabilities import BUILDABLE, load_registry
+    rank = {"missing": 0, "engine": 1, "buildable": 2}
+    known: dict[str, str] = {}
+
+    def note(name, state):
+        if rank[state] >= rank.get(known.get(name, "missing"), 0):
+            known[name] = state
+
+    for profile in load_registry()["profiles"]:
+        for name, entry in profile["capabilities"].items():
+            note(name, "buildable" if entry["status"] == BUILDABLE else
+                 "engine" if entry["status"] == "engine-only" else "missing")
+    for contract in data.get("engine_contracts", []):
+        if isinstance(contract, dict) and isinstance(contract.get("id"), str):
+            note(contract["id"], "engine" if contract.get("status") == "available" else "missing")
+    return known
+
+
+def _cycle(ids: dict) -> list[str]:
+    """One dependency cycle, if any, as a list of milestone ids."""
+    state, stack = {}, []
+
+    def visit(mid):
+        state[mid] = "open"
+        stack.append(mid)
+        for dep in ids[mid].get("depends_on") or []:
+            if dep not in ids:
+                continue
+            if state.get(dep) == "open":
+                return stack[stack.index(dep):] + [dep]
+            if dep not in state:
+                found = visit(dep)
+                if found:
+                    return found
+        state[mid] = "closed"
+        stack.pop()
+        return []
+
+    for mid in ids:
+        if mid not in state:
+            found = visit(mid)
+            if found:
+                return found
+    return []
+
+
+def _governance_errors(data: dict, ids: dict) -> list[str]:
+    errors = []
+    contracts = data.get("engine_contracts")
+    if not isinstance(contracts, list):
+        return ["engine_contracts must be a list"]
+    seen = set()
+    for contract in contracts:
+        cid = contract.get("id") if isinstance(contract, dict) else None
+        if not isinstance(cid, str) or not cid or cid in seen:
+            errors.append(f"engine contract {cid!r} needs a unique id")
+            continue
+        seen.add(cid)
+        if contract.get("status") not in CONTRACT_STATUSES:
+            errors.append(f"engine contract {cid}: status must be one of {', '.join(CONTRACT_STATUSES)}")
+        for field in ("title", "title_ru", "note", "source"):
+            if not isinstance(contract.get(field), str) or not contract[field].strip():
+                errors.append(f"engine contract {cid} needs {field}")
+    known = known_requirements(data)
+    for mid, item in ids.items():
+        track = item.get("track")
+        if TRACKS.get(track) != mid[:2]:
+            errors.append(f"{mid}: track must be {'studio' if mid.startswith('HS') else 'pixelchat'}")
+        for field in GOVERNANCE:
+            if not isinstance(item.get(field), str) or not item[field].strip():
+                errors.append(f"{mid} needs {field}")
+        acceptance = item.get("acceptance")
+        if not isinstance(acceptance, list) or not acceptance or not all(isinstance(a, str) and a.strip() for a in acceptance):
+            errors.append(f"{mid} needs acceptance criteria")
+        target = item.get("validation_target")
+        if target not in EVIDENCE_LEVELS or target == "docs":
+            errors.append(f"{mid}: validation_target must be an evidence level other than docs")
+        ref = item.get("design_ref")
+        if not isinstance(ref, str) or not ref or (not ref.startswith(REPO_URL) and not (ROOT / ref).is_file()):
+            errors.append(f"{mid}: design_ref {ref!r} must be a repository file or link")
+        if "issue" in item and (not isinstance(item["issue"], int) or item["issue"] < 1):
+            errors.append(f"{mid}: issue must be a GitHub issue number")
+        requirements = item.get("engine_requirements")
+        if not isinstance(requirements, list):
+            errors.append(f"{mid}: engine_requirements must be a list")
+            requirements = []
+        for name in requirements:
+            if name not in known:
+                errors.append(f"{mid}: unknown engine requirement {name!r} (not in the registry or engine_contracts)")
+        # Contradictions: a finished milestone must show its target level and everything it needs must exist.
+        if item.get("status") == "done":
+            levels = {e.get("level") for e in item.get("evidence", []) if isinstance(e, dict)}
+            if target and target not in levels:
+                errors.append(f"{mid} is done without {target} evidence")
+            for name in requirements:
+                if known.get(name) == "missing":
+                    errors.append(f"{mid} is done but needs {name}, which no audited engine provides")
+    cycle = _cycle(ids)
+    if cycle:
+        errors.append("Dependency cycle: " + " -> ".join(cycle))
+    return errors
+
+
+def _showcase_errors(data: dict, ids: dict) -> list[str]:
+    errors = []
+    for show in data.get("showcases", []):
+        sid = show.get("id", "")
+        if not re.fullmatch(r"SC-\d{3}", sid):
+            errors.append(f"showcase {sid!r} needs an id like SC-001")
+        for field in ("name", "name_ru", "summary", "summary_ru"):
+            if not isinstance(show.get(field), str) or not show[field].strip():
+                errors.append(f"showcase {sid} needs {field}")
+        for mid in show.get("milestones", []):
+            if mid not in ids:
+                errors.append(f"showcase {sid}: unknown milestone {mid}")
+        levels = show.get("levels", [])
+        if [lvl.get("level") for lvl in levels] != list(range(1, len(levels) + 1)) or not levels:
+            errors.append(f"showcase {sid}: levels must be numbered 1..n")
+        ladder = [lvl.get("status") for lvl in levels]
+        for status in ladder:
+            if status not in VERIFICATION_STATUSES:
+                errors.append(f"showcase {sid}: unsupported level status {status!r}")
+        for lower, higher in zip(ladder, ladder[1:]):
+            if higher == "verified" and lower != "verified":
+                errors.append(f"showcase {sid}: a level cannot be verified before the level below it")
+    return errors
+
+
+def upgrade(data: dict) -> dict:
+    """roadmap/1 -> roadmap/2 structure. Governance fields stay empty, so the result is valid
+    only once they are written (a v1 document never passes as v2 by accident)."""
+    if data.get("schema") == SCHEMA:
+        return data
+    if data.get("schema") != PREVIOUS_SCHEMA:
+        raise RoadmapError(f"Cannot upgrade {data.get('schema')!r}")
+    out = json.loads(json.dumps(data))
+    out["schema"] = SCHEMA
+    out.setdefault("engine_contracts", [])
+    out.setdefault("showcases", [])
+    for item in out["milestones"]:
+        item.setdefault("track", "pixelchat" if item["id"].startswith("PC-") else "studio")
+        for field in GOVERNANCE:
+            item.setdefault(field, "")
+        item.setdefault("acceptance", [])
+        item.setdefault("engine_requirements", [])
+        item.setdefault("validation_target", "")
+        item.setdefault("design_ref", "")
+    return out
+
+
+def dumps(data: dict) -> str:
+    """The canonical file form (tests keep the committed file in it)."""
+    return json.dumps(data, indent=2, ensure_ascii=False) + "\n"
 
 
 def load(path: Path = DATA) -> dict:
@@ -185,8 +350,9 @@ def load(path: Path = DATA) -> dict:
     return data
 
 
-def milestones_of(data: dict, phase_id: str) -> list[dict]:
-    return [m for m in data["milestones"] if m["phase"] == phase_id]
+def milestones_of(data: dict, phase_id: str, track: str = "studio") -> list[dict]:
+    """Milestones of a phase; the experimental PixelChat track is counted separately."""
+    return [m for m in data["milestones"] if m["phase"] == phase_id and m.get("track", "studio") == track]
 
 
 def phase_status(data: dict, phase_id: str) -> str:
@@ -536,6 +702,31 @@ def details_section(data: dict) -> str:
             deps = ", ".join(item["depends_on"]) or "—"
             out.append(f"| {item['id']} {item['title']} | {LABELS['en'][item['status']]} | {deps} | {evidence} | {notes} |")
         out.append("")
+    pixelchat = [m for m in data["milestones"] if m.get("track") == "pixelchat"]
+    if pixelchat:
+        out.append("### PixelChat · experimental track ([epic #11](" + REPO_URL + "issues/11))\n")
+        out.append("A separate prototype track. The browser relay is not a Horizon mod; game integration needs the "
+                   "contracts listed below.\n")
+        out.append("| Milestone | Status | Depends on | Evidence | Notes |\n|---|---|---|---|---|")
+        for item in pixelchat:
+            evidence = "<br>".join(f"{e['level']}: {_link(e)}" for e in item["evidence"]) or "—"
+            notes = item.get("missing") or item.get("blocker") or ""
+            out.append(f"| {item['id']} {item['title']} | {LABELS['en'][item['status']]} | "
+                       f"{', '.join(item['depends_on']) or '—'} | {evidence} | {notes} |")
+        out.append("")
+    if data.get("engine_contracts"):
+        out.append("### Engine contracts not yet in a capability profile\n")
+        out.append("| Contract | State | Notes | Source |\n|---|---|---|---|")
+        for contract in data["engine_contracts"]:
+            out.append(f"| `{contract['id']}` | {contract['status']} | {contract['note']} | {contract['source']} |")
+        out.append("")
+    for show in data.get("showcases", []):
+        out.append(f"### Showcase {show['id']}: {show['name']}\n")
+        out.append(f"{show['summary']}  \n**Milestones:** {', '.join(show['milestones'])}.\n")
+        out.append("| Level | Meaning | Status |\n|---|---|---|")
+        for level in show["levels"]:
+            out.append(f"| {level['level']} | {level['name']} | {LABELS['en'][level['status']]} |")
+        out.append("")
     out.append("### Verification levels\n")
     out.append("| Level | Status | Scope | Evidence |\n|---|---|---|---|")
     for level in data["verification"]:
@@ -643,6 +834,14 @@ def outputs(data: dict) -> dict[Path, str]:
             4, "Horizon Studio current phase",
             f"Current phase {data['current_phase']} with its milestones and their verified status."),
     }
+    # The same pixel phase icons, one file each, for the in-app journey explorer.
+    for kind in ICONS:
+        for dim in (False, True):
+            canvas = Canvas(16, 16)
+            icon(canvas, kind, 0, 0, dim)
+            name = f"{kind}-dim" if dim else kind
+            files[ASSETS / "icons" / f"{name}.svg"] = canvas.to_svg(
+                2, f"Phase icon: {kind}", f"Pixel phase icon '{kind}'{' (not started)' if dim else ''} from scripts/roadmap.py")
     releases = json.loads(RELEASES.read_text(encoding="utf-8"))
     version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     problems = validate_releases(data, releases, version)

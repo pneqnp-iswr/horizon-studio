@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16" shape-rendering="crispEdges" role="img" aria-labelledby="title desc">
+<title id="title">Phase icon: creature</title>
+<desc id="desc">Pixel phase icon 'creature' from scripts/roadmap.py</desc>
+<path fill="#06080c" d="M5 7h1v1h-1zM11 7h1v1h-1z"/>
+<path fill="#1c3826" d="M7 9h2v1h-2z"/>
+<path fill="#2c5a36" d="M5 3h6v1h-6zM3 4h1v1h-1zM12 4h1v1h-1zM2 5h1v2h-1zM13 5h1v2h-1zM1 7h1v4h-1zM14 7h1v4h-1zM2 11h12v1h-12z"/>
+<path fill="#467f43" d="M4 4h8v1h-8zM3 5h10v1h-10zM3 6h1v1h-1zM6 6h4v2h-4zM12 6h1v1h-1zM2 7h2v1h-2zM12 7h2v1h-2zM2 8h12v1h-12zM2 9h5v1h-5zM9 9h5v1h-5zM2 10h12v1h-12z"/>
+<path fill="#d94a4a" d="M12 0h1v1h-1zM14 0h1v1h-1zM11 1h5v1h-5zM12 2h3v1h-3zM13 3h1v1h-1z"/>
+<path fill="#e8edf4" d="M4 6h2v1h-2zM10 6h2v1h-2zM4 7h1v1h-1zM10 7h1v1h-1z"/>
+</svg>

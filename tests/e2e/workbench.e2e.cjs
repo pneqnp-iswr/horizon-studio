@@ -32,27 +32,93 @@ e2e('a new project shows an empty state per kind that leads to real work', async
 
 e2e('the development journey separates the plan from what this build can do', async ({ page }) => {
   await page.click('#openJourney');
-  await page.waitForSelector('#journeyBuild');
+  await page.waitForSelector('.jr-card');
   assert.equal(await page.evaluate(() => document.activeElement.id), 'closeJourney');
-  const phases = await page.$$eval('#journeyBody section:first-child ol.phase-list li', items => items.map(li => li.textContent));
-  assert.ok(phases.length >= 9 && phases.some(text => text.startsWith('F3')), phases.join('\n'));
-  assert.ok(await page.isVisible('#journeyBody img.journey-map'));
+  const view = await page.evaluate(() => fetch('/api/journey').then(response => response.json()));
+  assert.equal(await page.getAttribute('[data-tab="roadmap"]', 'aria-selected'), 'true');
+  // The current phase and the active milestone open first, straight from roadmap.json.
+  assert.equal(await page.getAttribute(`.jr-phase[data-phase="${view.current_phase}"]`, 'aria-pressed'), 'true');
+  assert.ok((await page.textContent('#milestoneHeading')).startsWith(view.active_milestone));
+  await page.click('[data-tab="build"]');
   const build = await page.textContent('#journeyBuild');
   for (const expected of ['content.block', 'content.recipe', 'native.hook_mod', 'entity.custom', 'd2186eb']) {
     assert.ok(build.includes(expected), `${expected} missing from the build section`);
   }
+  const capabilities = await page.$$eval('#journeyBuild li b', items => items.map(b => b.textContent));
+  assert.ok(capabilities.length >= 10 && capabilities.every(name => /^[a-z_]+\.[a-z_]+$/.test(name)),
+    `the build lists engine capabilities only, never roadmap milestones: ${capabilities}`);
   assert.ok(build.includes(await t(page, 'capEngineOnly')) && build.includes(await t(page, 'capUnsupported')));
   await page.keyboard.press('Escape');
   await page.waitForSelector('#journeyDialog', { state: 'hidden' });
   assert.equal(await page.evaluate(() => document.activeElement.id), 'openJourney');
-  // Russian re-renders an open journey from the same data.
+  // Russian re-renders the open journey from the same data.
   await page.click('#lang-ru');
   await page.click('#openJourney');
-  await page.waitForSelector('#journeyBuild');
-  const view = await page.evaluate(() => fetch('/api/journey').then(response => response.json()));
+  await page.waitForSelector('.jr-card');
   const current = view.phases.find(phase => phase.id === view.current_phase);
-  assert.ok((await page.textContent('#journeyBody')).includes(current.name_ru), current.name_ru);
+  assert.ok((await page.textContent('#jrPhases')).includes(current.name_ru), current.name_ru);
+  const active = view.milestones.find(m => m.id === view.active_milestone);
+  assert.ok((await page.textContent('#milestoneDetail')).includes(active.summary_ru));
   assert.equal(await page.textContent('#journeyHeading'), 'Путь разработки');
+});
+
+e2e('every phase and milestone of the roadmap can be explored, with dependencies', async ({ page }) => {
+  const view = await page.evaluate(() => fetch('/api/journey').then(response => response.json()));
+  await page.click('#openJourney');
+  await page.waitForSelector('.jr-card');
+  for (const phase of view.phases) {
+    await page.click(`.jr-phase[data-phase="${phase.id}"]`);
+    const listed = await page.$$eval('#milestoneList .jr-card', cards => cards.map(card => card.dataset.milestone));
+    assert.deepEqual(listed, phase.milestones, `phase ${phase.id}`);
+  }
+  await page.click('.jr-phase[data-phase="all"]');
+  assert.equal(await page.locator('#milestoneList .jr-card').count(), view.milestones.length);
+  // HS-024 depends on HS-022 and HS-023; following a dependency opens it.
+  await page.click('.jr-card[data-milestone="HS-024"]');
+  const deps = await page.$$eval('[data-kind="depends"] .jr-ref', refs => refs.map(r => r.dataset.milestone));
+  assert.deepEqual(deps, view.milestones.find(m => m.id === 'HS-024').depends_on);
+  await page.click('[data-kind="depends"] .jr-ref[data-milestone="HS-023"]');
+  assert.ok((await page.textContent('#milestoneHeading')).startsWith('HS-023'));
+  assert.ok((await page.textContent('[data-kind="dependents"]')).includes('HS-024'));
+  // Blocked work stays blocked, with its blocker.
+  await page.fill('#roadmapSearch', 'real-game content-load');
+  await page.click('.jr-card[data-milestone="HS-002"]');
+  const detail = await page.textContent('#milestoneDetail');
+  assert.ok(detail.includes(await t(page, 'status_blocked')) && detail.includes(await t(page, 'jrBlocker')));
+  // Status and track filters.
+  await page.fill('#roadmapSearch', '');
+  await page.click('.jr-phase[data-phase="all"]');
+  for (const status of ['done', 'partial', 'in_progress', 'planned']) await page.click(`[data-status="${status}"]`);
+  const blocked = await page.$$eval('#milestoneList .jr-card', cards => cards.map(card => card.dataset.milestone));
+  assert.deepEqual(blocked, view.milestones.filter(m => m.status === 'blocked').map(m => m.id));
+  for (const status of ['done', 'partial', 'in_progress', 'planned']) await page.click(`[data-status="${status}"]`);
+  await page.selectOption('#roadmapTrack', 'pixelchat');
+  const pixelchat = await page.$$eval('#milestoneList .jr-card', cards => cards.map(card => card.dataset.milestone));
+  assert.deepEqual(pixelchat, ['PC-001', 'PC-002', 'PC-003', 'PC-004', 'PC-005']);
+  // Evidence and design links are GitHub links that open outside the app.
+  const links = await page.$$eval('#milestoneDetail a', anchors => anchors.map(a => [a.href, a.target]));
+  assert.ok(links.length && links.every(([href, target]) => href.startsWith('https://github.com/pneqnp-iswr/horizon-studio/') && target === '_blank'));
+});
+
+e2e('the roadmap explorer works from the keyboard', async ({ page }) => {
+  await page.click('#openJourney');
+  await page.waitForSelector('.jr-card');
+  await page.focus('[data-tab="roadmap"]');
+  await page.keyboard.press('ArrowRight');
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.tab), 'build');
+  assert.equal(await page.isVisible('#journeyBuild'), true);
+  await page.keyboard.press('ArrowLeft');
+  await page.focus('.jr-phase[data-phase="F0"]');
+  await page.keyboard.press('ArrowDown');
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.phase), 'F1');
+  await page.keyboard.press('Enter');
+  assert.equal(await page.getAttribute('.jr-phase[data-phase="F1"]', 'aria-pressed'), 'true');
+  await page.focus('#milestoneList .jr-card');
+  await page.keyboard.press('ArrowDown');
+  const second = await page.evaluate(() => document.activeElement.dataset.milestone);
+  await page.keyboard.press('Enter');
+  assert.ok((await page.textContent('#milestoneHeading')).startsWith(second));
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'milestoneDetail');
 });
 
 e2e('the engine card lists what the project needs and the target can load', async ({ page }) => {
@@ -140,7 +206,7 @@ e2e('the rail is keyboard operable and the journey dialog keeps focus inside', a
   assert.equal(await page.evaluate(() => document.activeElement.id), 'blockTab');
   assert.deepEqual(await page.$$eval('.rail-group [role=tab]', tabs => tabs.map(t => t.tabIndex)), [0, -1, -1, -1]);
   await page.click('#openJourney');
-  await page.waitForSelector('#journeyBuild');
+  await page.waitForSelector('.jr-card');
   for (let i = 0; i < 6; i++) {
     await page.keyboard.press('Tab');
     assert.ok(await page.evaluate(() => document.querySelector('#journeyDialog').contains(document.activeElement)),
@@ -169,6 +235,6 @@ e2e('automated WCAG 2.1 AA rules pass on the main workbench states (axe-core)', 
   await audit('demo');
   await page.click('#lang-ru');
   await page.click('#openJourney');
-  await page.waitForSelector('#journeyBuild');
+  await page.waitForSelector('.jr-card');
   await audit('journey in Russian');
 });
