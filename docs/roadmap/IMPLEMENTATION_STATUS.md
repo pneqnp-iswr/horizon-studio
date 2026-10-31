@@ -30,7 +30,7 @@ Last updated: 2026-10-31. Master before this update: `2f9f1bc` (PR #22). Roadmap
 | Slice | State | Evidence |
 |---|---|---|
 | A: ADR, working desktop shell, pixel workbench, open/save, navigation, EN/RU, lifecycle, no browser, Windows packaging test | **done as a preview** | [ADR 0002](../adr/0002-desktop-shell.md); `desktop.yml` run 41143213331: NSIS install → smoke → uninstall, portable cold 3 239 ms / warm 928 ms to editor ready, ~350–370 MB process tree; Linux Xvfb smoke; `cargo test` + clippy; 19 browser E2E |
-| B: parity (shell-driven E2E, release pipeline for desktop artifacts) | next | — |
+| B: parity (shell-driven E2E, release pipeline for desktop artifacts) | **in progress**: functional E2E on the real window, durable saves, Windows Rust tests; release pipeline next | `tests/desktop/desktop.e2e.cjs` ([inventory](../DESKTOP.md#desktop-e2e)), `desktop/src/files.rs` |
 | C: docking, tabs, command palette | planned | — |
 | D: engine-aware editing (target selection, graph IR) | started through HS-008 | — |
 | E: 3D editing, Blockbench interchange | planned (HS-009) | — |
@@ -55,6 +55,9 @@ Last updated: 2026-10-31. Master before this update: `2f9f1bc` (PR #22). Roadmap
 - `browser-e2e`: **pass** — 24 scenarios on the current master (editor, workbench and roadmap explorer, PixelChat), Chromium on Ubuntu CI ([inventory](../BROWSER_E2E.md#current-inventory)). Firefox, WebKit and Windows browsers are not covered.
 <!-- roadmap:e2e-count:end -->
 - `desktop-smoke`: **pass** — the real desktop application starts, reports the editor ready and stops its core cleanly: Windows portable and installed (WebView2), Linux (WebKitGTK, Xvfb). This proves the shell, not game compatibility.
+<!-- roadmap:desktop-e2e-count:start -->
+- `desktop-e2e`: 8 functional scenarios that drive the real application window through tauri-driver: WebKitWebDriver on Linux, msedgedriver for WebView2 on Windows ([inventory](../DESKTOP.md#desktop-e2e)). They need a test build with the cargo feature `e2e`, which answers the Save dialog from the environment; packaged builds are checked not to have it.
+<!-- roadmap:desktop-e2e-count:end -->
 - `game-content-load`: **not verified** — needs a legally installed client, prepared resources and a GPU session (owner-run or self-hosted runner; decision pending).
 - `gameplay`: **not verified**.
 

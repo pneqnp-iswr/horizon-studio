@@ -42,6 +42,12 @@ impl Launch {
 /// Finds the core: `<dir>/core/horizon-studio-core[.exe]` beside the installed shell.
 /// Release builds never fall back to an interpreter found on the system.
 pub fn locate(dirs: &[PathBuf]) -> Result<Launch, String> {
+    // Test builds only (cargo feature `e2e`): desktop E2E points the shell at a missing or
+    // broken core to check the failure screen.
+    #[cfg(feature = "e2e")]
+    if let Some(path) = std::env::var_os("HORIZON_STUDIO_E2E_CORE") {
+        return Ok(Launch::Frozen(PathBuf::from(path)));
+    }
     let candidates: Vec<PathBuf> = dirs.iter().map(|dir| dir.join("core").join(CORE_NAME)).collect();
     if let Some(found) = candidates.iter().find(|path| path.is_file()) {
         return Ok(Launch::Frozen(found.clone()));
@@ -203,6 +209,51 @@ mod tests {
         ] {
             assert!(parse_handshake(bad).is_err(), "{bad}");
         }
+    }
+
+    /// A stand-in core: a Python script speaking the handshake protocol.
+    fn fake_core(name: &str, body: &str) -> Launch {
+        let dir = std::env::temp_dir().join(format!("hs-core-{name}-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let script = dir.join("core.py");
+        std::fs::write(&script, body).unwrap();
+        let python = std::env::var("HORIZON_STUDIO_PYTHON")
+            .unwrap_or_else(|_| if cfg!(windows) { "python" } else { "python3" }.to_string());
+        Launch::Script { python, script }
+    }
+
+    const READY: &str = "import json, sys\nprint(json.dumps({'protocol': 'horizon-studio.core/1', 'event': 'ready', \
+        'url': 'http://127.0.0.1:40123/', 'version': '0.7.0', 'pid': 1}), flush=True)\n";
+
+    #[test]
+    fn a_core_that_honours_eof_stops_cleanly() {
+        let launch = fake_core("clean", &format!("{READY}sys.stdin.read()\n"));
+        let core = Core::start(launch, None, Duration::from_secs(30)).expect("handshake");
+        assert_eq!(core.url.port(), Some(40123));
+        let (code, killed, took) = core.stop(Duration::from_secs(10));
+        assert_eq!((code, killed), (Some(0), false));
+        assert!(took < Duration::from_secs(10));
+    }
+
+    #[test]
+    fn a_hung_core_is_killed_after_the_timeout() {
+        let launch = fake_core("hung", &format!("{READY}import time\nwhile True:\n    time.sleep(1)\n"));
+        let core = Core::start(launch, None, Duration::from_secs(30)).expect("handshake");
+        let (_, killed, took) = core.stop(Duration::from_millis(500));
+        assert!(killed, "a core that ignores EOF is killed");
+        assert!(took < Duration::from_secs(10));
+    }
+
+    #[test]
+    fn a_silent_core_times_out_and_a_crashing_core_is_reported() {
+        let silent = fake_core("silent", "import time\ntime.sleep(30)\n");
+        let error = Core::start(silent, None, Duration::from_millis(800)).err().expect("timeout");
+        assert!(error.contains("did not report ready"), "{error}");
+        let crash = fake_core("crash", "raise SystemExit(3)\n");
+        let error = Core::start(crash, None, Duration::from_secs(30)).err().expect("crash");
+        assert!(error.contains("exited before it was ready"), "{error}");
+        let wrong = fake_core("wrong", "print('[studio] GET / 200', flush=True)\n");
+        assert!(Core::start(wrong, None, Duration::from_secs(30)).is_err());
     }
 
     #[test]

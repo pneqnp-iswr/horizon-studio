@@ -68,6 +68,55 @@ class DesktopShellContractTests(unittest.TestCase):
                          (ROOT / "assets" / "branding" / "horizon-studio-wordmark.svg").read_bytes())
 
 
+class TestBuildIsolationTests(unittest.TestCase):
+    """The cargo feature `e2e` answers the Save dialog from the environment: test builds only."""
+
+    def test_the_feature_is_never_on_by_default(self):
+        cargo = (DESKTOP / "Cargo.toml").read_text(encoding="utf-8")
+        features = cargo.split("[features]", 1)[1].split("\n[", 1)[0]
+        self.assertRegex(features, r'(?m)^e2e = \["tauri/devtools"\]$')
+        # DevTools only ever come with the test feature, never with the shipped dependency.
+        tauri = re.search(r'(?m)^tauri = \{.*\}$', cargo).group(0)
+        self.assertNotIn("devtools", tauri)
+        self.assertNotRegex(features, r"(?m)^default\s*=.*e2e")
+        for name in ("tauri.conf.json", "tauri.release.conf.json"):
+            self.assertNotIn("e2e", (DESKTOP / name).read_text(encoding="utf-8"), name)
+        main = (DESKTOP / "src" / "main.rs").read_text(encoding="utf-8")
+        self.assertIn('"test_build": cfg!(feature = "e2e")', main)
+        for env in ("HORIZON_STUDIO_E2E_SAVE_DIR", "HORIZON_STUDIO_E2E_CANCEL_SAVE", "HORIZON_STUDIO_E2E_DEVTOOLS_PORT",
+                    "HORIZON_STUDIO_E2E_WEBVIEW_DATA"):
+            line = next(i for i, text in enumerate(main.splitlines()) if env in text)
+            self.assertIn('#[cfg(feature = "e2e")]', "\n".join(main.splitlines()[max(0, line - 6):line]), env)
+        core = (DESKTOP / "src" / "core.rs").read_text(encoding="utf-8").splitlines()
+        line = next(i for i, text in enumerate(core) if "HORIZON_STUDIO_E2E_CORE" in text)
+        self.assertIn('#[cfg(feature = "e2e")]', core[line - 1])
+
+    def test_no_packaging_or_release_step_builds_with_it(self):
+        for workflow in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+            text = workflow.read_text(encoding="utf-8")
+            steps = re.split(r"\n\s+- (?:name|uses):", text)
+            for step in steps:
+                if "--features e2e" not in step:
+                    continue
+                with self.subTest(workflow=workflow.name):
+                    self.assertEqual(workflow.name, "desktop.yml")
+                    self.assertNotIn("TAURI_CLI", step, "the Tauri CLI builds the packages, never a test build")
+                    self.assertNotIn("--bundles", step)
+                    self.assertNotIn("upload-artifact", step)
+            if workflow.name != "desktop.yml":
+                self.assertNotIn("features e2e", text, workflow.name)
+        desktop = (ROOT / ".github" / "workflows" / "desktop.yml").read_text(encoding="utf-8")
+        windows = desktop.split("\n  windows:", 1)[1]
+        # The Windows test build comes after the packages are assembled and smoke-tested.
+        self.assertLess(windows.index("Assemble the portable folder"), windows.index("--features e2e --manifest"))
+        self.assertLess(windows.index("Install silently"), windows.index("--features e2e --manifest"))
+
+    def test_packaged_smoke_runs_reject_test_builds(self):
+        probe = (ROOT / "scripts" / "desktop_probe.py").read_text(encoding="utf-8")
+        self.assertIn('get("test_build") and not allow_test_build', probe)
+        desktop = (ROOT / ".github" / "workflows" / "desktop.yml").read_text(encoding="utf-8")
+        self.assertNotIn("--allow-test-build", desktop)
+
 class UiIconTests(unittest.TestCase):
     def test_committed_icons_are_current(self):
         self.assertEqual(render_ui_icons.main(["--check"]), 0)

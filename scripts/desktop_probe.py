@@ -83,7 +83,8 @@ def tree_memory(pid: int) -> dict:
     return {"total_rss_mb": round(total / 2**20, 1), "processes": len(processes), "by_name": by_name}
 
 
-def probe(exe: Path, out: Path, label: str, window: str, hold: int, timeout: int, settle: float) -> int:
+def probe(exe: Path, out: Path, label: str, window: str, hold: int, timeout: int, settle: float,
+          allow_test_build: bool = False) -> int:
     out.mkdir(parents=True, exist_ok=True)
     report = out / f"{label}.smoke.json"
     ready = Path(str(report) + ".ready")
@@ -112,6 +113,11 @@ def probe(exe: Path, out: Path, label: str, window: str, hold: int, timeout: int
     metrics["exit_code"] = code
     metrics["report"] = json.loads(report.read_text(encoding="utf-8")) if report.is_file() else None
     ok = code == 0 and bool(metrics["report"] and metrics["report"].get("ok"))
+    if ok and (metrics["report"].get("shell") or {}).get("test_build") and not allow_test_build:
+        # The cargo feature `e2e` answers the Save dialog from the environment: never ship it.
+        metrics["error"] = "this is a test build (cargo feature e2e); packaged builds must not enable it"
+        print(metrics["error"], file=sys.stderr)
+        ok = False
     metrics["ok"] = ok
     (out / f"{label}.metrics.json").write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({k: metrics.get(k) for k in ("label", "ok", "exit_code", "wall_ms", "ready_seen_after_ms")}))
@@ -131,8 +137,10 @@ def main(argv=None) -> int:
     parser.add_argument("--hold", type=int, default=4)
     parser.add_argument("--timeout", type=int, default=120)
     parser.add_argument("--settle", type=float, default=1.5)
+    parser.add_argument("--allow-test-build", action="store_true", help="accept a build with the cargo feature e2e")
     args = parser.parse_args(argv)
-    return probe(args.exe.resolve(), args.out, args.label, args.window_size, args.hold, args.timeout, args.settle)
+    return probe(args.exe.resolve(), args.out, args.label, args.window_size, args.hold, args.timeout, args.settle,
+                 args.allow_test_build)
 
 
 if __name__ == "__main__":

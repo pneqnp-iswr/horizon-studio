@@ -161,3 +161,17 @@ class WorkspaceHttpTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class StudioHomeTests(unittest.TestCase):
+    def test_horizon_studio_home_overrides_where_workspaces_live(self):
+        import os
+        from unittest import mock
+        import studio
+        with tempfile.TemporaryDirectory() as folder, mock.patch.dict(os.environ, {"HORIZON_STUDIO_HOME": folder}):
+            self.assertEqual(studio.studio_home(), Path(folder))
+            server = type("Server", (), {})()
+            self.assertEqual(studio.workspace_for(server).root, Path(folder) / "workspaces")
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("HORIZON_STUDIO_HOME", None)
+            self.assertEqual(studio.studio_home(), Path.home() / ".horizon-studio")

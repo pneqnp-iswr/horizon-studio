@@ -16,6 +16,7 @@ import math
 from pathlib import Path
 import re
 import struct
+import os
 import sys
 import zlib
 import zipfile
@@ -419,10 +420,15 @@ def inspect_project(request: dict):
 _workspace_lock = threading.Lock()
 
 
+def studio_home() -> Path:
+    """Studio's own data folder; HORIZON_STUDIO_HOME overrides it (isolated test runs, portable use)."""
+    return Path(os.environ.get('HORIZON_STUDIO_HOME') or Path.home() / '.horizon-studio')
+
+
 def workspace_for(server):
     with _workspace_lock:
         if not hasattr(server, 'studio_workspaces'):
-            server.studio_workspaces = WorkspaceStore(Path.home() / '.horizon-studio' / 'workspaces')
+            server.studio_workspaces = WorkspaceStore(studio_home() / 'workspaces')
         return server.studio_workspaces
 
 
