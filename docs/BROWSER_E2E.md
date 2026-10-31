@@ -52,7 +52,7 @@ Set `PYTHON` to choose the interpreter that runs `studio.py` (default `python3`,
 | `editor.e2e.cjs` | boots in English with no errors and loads the demo project |
 | `editor.e2e.cjs` | renaming keeps the uid, follows recipe references and saves studio.project/1 |
 | `editor.e2e.cjs` | undo and redo are the core's: buttons, shortcuts, the disk and a reload (HS-020) |
-| `editor.e2e.cjs` | autosave writes a recoverable disk workspace that a fresh browser can restore |
+| `editor.e2e.cjs` | a fresh browser reopens the last project from disk; a change elsewhere is noticed on return and can be restored |
 | `editor.e2e.cjs` | a stale tab gets a revision conflict instead of silently overwriting |
 | `editor.e2e.cjs` | opens a legacy project with a migration notice and rejects a corrupt file |
 | `editor.e2e.cjs` | switches to Russian, translates workspace status and remembers the choice |

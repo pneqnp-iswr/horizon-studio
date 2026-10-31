@@ -175,3 +175,21 @@ class StudioHomeTests(unittest.TestCase):
         with mock.patch.dict(os.environ, {}, clear=False):
             os.environ.pop("HORIZON_STUDIO_HOME", None)
             self.assertEqual(studio.studio_home(), Path.home() / ".horizon-studio")
+
+
+class PreferencesTests(unittest.TestCase):
+    def test_language_and_last_project_survive_and_bad_values_are_refused(self):
+        import os
+        from unittest import mock
+        import studio
+        with tempfile.TemporaryDirectory() as folder, mock.patch.dict(os.environ, {"HORIZON_STUDIO_HOME": folder}):
+            self.assertEqual(studio.preferences(), {"lang": None, "last_project": None})
+            self.assertEqual(studio.preferences({"lang": "ru"}), {"lang": "ru", "last_project": None})
+            studio.preferences({"last_project": "ruby_demo"})
+            self.assertEqual(studio.preferences(), {"lang": "ru", "last_project": "ruby_demo"}, "kept on disk")
+            for bad in ({"lang": "de"}, {"last_project": "../evil"}, {"token": "x"}, {"last_project": 7}):
+                with self.subTest(bad=bad), self.assertRaises(ValueError):
+                    studio.preferences(bad)
+            (Path(folder) / "prefs.json").write_text('{"lang": "<script>", "last_project": "Bad Id"}', encoding="utf-8")
+            self.assertEqual(studio.preferences(), {"lang": None, "last_project": None}, "a tampered file is ignored")
+

@@ -36,7 +36,7 @@ These are tested against real files written by the v0.7.0 core (`tests/test_migr
 | Autosaved workspaces | `~/.horizon-studio/workspaces` | the same folder, plus one `*.journal.json` per project holding the undo history |
 | AI settings (offline mode, consent, model) | — | `~/.horizon-studio/ai-settings.json` (no secrets) |
 | API keys | — | only in the system credential store (Windows Credential Manager), never in a file |
-| Language and the last opened project | the browser's storage for `127.0.0.1:8787` | the app window's storage: **not remembered between launches yet** (see limitations) |
+| Language and the last opened project | the browser's storage for `127.0.0.1:8787` | `~/.horizon-studio/prefs.json`, kept by the core: the app reopens your last project in your language at every launch |
 
 - **Backup.** Copy your saved `.hstudio.json` files. To keep the autosaves too, copy `~/.horizon-studio/workspaces`.
   Each workspace also keeps its previous good version (`*.previous`), which Studio uses automatically if the current
@@ -61,9 +61,8 @@ These are tested against real files written by the v0.7.0 core (`tests/test_migr
 
 ## Known limitations
 
-- **Settings between launches.** The desktop app does not yet remember the language and the last opened project
-  between launches, because its core uses a new local port each time. Your project is safe in the disk workspace:
-  open it, or type its mod ID and choose *Restore disk*.
+- **The language you chose in 0.7 does not carry over** (it lived in the browser). Choose it once in the desktop app;
+  from then on the app remembers it, and the last project, in `prefs.json`.
 - **Unsigned.** SmartScreen warns on first launch ([SIGNING.md](SIGNING.md)).
 - **No in-game verification.** Loading Studio mods in the Horizon game has not been verified (HS-002).
 
@@ -125,6 +124,6 @@ Horizon Studio 0.7 был одним исполняемым файлом Windows
   эффектом, целевым движком и данными плагинов) и сохраняет его байт в байт. Непонятное он не трогает, но эффекты
   редактировать не может.
 - **Ассоциации файлов** не настроены: открывайте проекты через *Открыть проект*.
-- **Ограничение.** Язык и последний открытый проект пока не запоминаются между запусками настольной версии: её ядро
-  каждый раз получает новый локальный порт. Проект при этом сохранён на диске: откройте его или введите ID мода и
-  выберите *Восстановить с диска*.
+- **Язык и последний проект** настольная версия хранит в `~/.horizon-studio/prefs.json` и при каждом запуске
+  открывает последний проект на выбранном языке. Язык, выбранный в 0.7 (он хранился в браузере), нужно выбрать один
+  раз заново.

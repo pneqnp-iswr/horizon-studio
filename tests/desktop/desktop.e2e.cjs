@@ -343,7 +343,7 @@ scenario('switches EN/RU, explores the development journey and refuses an export
   }
 });
 
-scenario('a restarted window recovers the disk workspace', async () => {
+scenario('a restarted window reopens the last project and the chosen language from the core', async () => {
   const box = scratch();
   let win = await open(box.env);
   try {
@@ -356,19 +356,20 @@ scenario('a restarted window recovers the disk workspace', async () => {
     await win.click('#addObject');
     await waitStatus(win, 'savedEntry');
     await until(() => diskHas(path.join(box.home, '.horizon-studio', 'workspaces'), 'Restart Ruby'), 'the disk autosave');
+    await win.click('#lang-ru');
+    await until(() => fs.existsSync(path.join(box.home, '.horizon-studio', 'prefs.json'))
+      && JSON.parse(fs.readFileSync(path.join(box.home, '.horizon-studio', 'prefs.json'), 'utf8')).lang === 'ru', 'the language preference');
   } finally {
     await win.close();
   }
   win = await open(box.env);
   try {
     await editorReady(win);
-    await fresh(win);  // only the disk workspace may remain
-    await win.type('#modId', 'ruby_demo');
-    await win.run(() => { document.querySelector('#modId').dispatchEvent(new Event('change')); return true; });
-    await win.waitFor(() => document.querySelector('#workspaceSaveStatus').dataset.key === 'workspaceRecoverable', { message: 'restore offer' });
-    await win.click('#restoreWorkspace');
-    await win.waitFor(() => document.querySelector('#workspaceSaveStatus').dataset.key === 'workspaceRecovered', { message: 'recovered' });
+    await fresh(win);  // the window's own storage is gone, as after a real restart (a new core port)
+    await win.waitFor(() => document.querySelector('#workspaceSaveStatus').dataset.key === 'workspaceSaved'
+      && (JSON.parse(localStorage.getItem('horizonStudio_v02')) || {}).metadata?.id === 'ruby_demo', { message: 'the last project reopened' });
     assert.equal((await state(win)).items[0].name, 'Restart Ruby');
+    assert.equal(await win.run(() => document.documentElement.lang), 'ru', 'the chosen language came back');
   } finally {
     await win.close();
   }

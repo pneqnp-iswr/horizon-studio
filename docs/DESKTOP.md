@@ -144,7 +144,7 @@ DESKTOP_APP=desktop/target/debug/horizon-studio xvfb-run -a node --test tests/de
 | `desktop.e2e.cjs` | edits JSON in the Source Workbench and exports it in the .hmod and the source ZIP |
 | `desktop.e2e.cjs` | a cancelled save dialog writes nothing |
 | `desktop.e2e.cjs` | switches EN/RU, explores the development journey and refuses an export the engine cannot load |
-| `desktop.e2e.cjs` | a restarted window recovers the disk workspace |
+| `desktop.e2e.cjs` | a restarted window reopens the last project and the chosen language from the core |
 | `desktop.e2e.cjs` | reloading the window brings the editor back every time |
 | `desktop.e2e.cjs` | a core that dies under the editor takes the window back to the failure screen |
 | `desktop.e2e.cjs` | a core that cannot start shows the failure screen instead of a blank window |

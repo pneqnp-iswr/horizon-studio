@@ -109,23 +109,29 @@ e2e('undo and redo are the core\'s: buttons, shortcuts, the disk and a reload (H
   await waitDisk(studio, 'ruby_demo', doc => !objectIds(doc).includes('shard'));
 });
 
-e2e('autosave writes a recoverable disk workspace that a fresh browser can restore', async ({ page, studio, another }) => {
+e2e('a fresh browser reopens the last project from disk; a change elsewhere is noticed on return and can be restored', async ({ page, studio, another }) => {
   await loadDemo(page);
   await addEntry(page, 'item', 'shard', 'Shard');
   const disk = await waitDisk(studio, 'ruby_demo', doc => objectIds(doc).includes('shard'));
   assert.equal(disk.schema, 'studio.project/1');
   await waitWorkspace(page, 'workspaceSaved');
 
-  // A new browser profile has no local copy: the disk snapshot is the only source.
+  // A new browser profile has no local copy: the core remembers the last project and the disk copy comes back.
   const fresh = await another();
-  await setModId(fresh.page, 'ruby_demo');
-  await waitWorkspace(fresh.page, 'workspaceRecoverable');
-  assert.equal(await fresh.page.isVisible('#restoreWorkspace'), true);
-  await fresh.page.click('#restoreWorkspace');
-  await waitWorkspace(fresh.page, 'workspaceRecovered');
+  await waitStatus(fresh.page, await t(fresh.page, 'lastProjectReopened', { id: 'ruby_demo' }));
+  await waitWorkspace(fresh.page, 'workspaceSaved');
   const restored = await editorState(fresh.page);
   assert.deepEqual(restored.items.map(i => i.id), ['ruby', 'shard']);
   assert.equal(restored.items[1].uid, (await editorState(page)).items[1].uid);
+
+  // The first window changes the project while the fresh one is in the background; on return it offers the disk copy.
+  await addEntry(page, 'item', 'opal', 'Opal');
+  await waitDisk(studio, 'ruby_demo', doc => objectIds(doc).includes('opal'));
+  await fresh.page.evaluate(() => { window.dispatchEvent(new Event('focus')); });
+  await waitWorkspace(fresh.page, 'workspaceRecoverable');
+  await fresh.page.click('#restoreWorkspace');
+  await waitWorkspace(fresh.page, 'workspaceRecovered');
+  assert.deepEqual((await editorState(fresh.page)).items.map(i => i.id), ['ruby', 'shard', 'opal']);
 });
 
 e2e('a stale tab gets a revision conflict instead of silently overwriting', async ({ page, studio, another }) => {
@@ -133,11 +139,9 @@ e2e('a stale tab gets a revision conflict instead of silently overwriting', asyn
   await waitDisk(studio, 'ruby_demo', doc => objectIds(doc).includes('ruby'));
   await waitWorkspace(page, 'workspaceSaved');
 
-  const other = await another();
-  await setModId(other.page, 'ruby_demo');
-  await waitWorkspace(other.page, 'workspaceRecoverable');
-  await other.page.click('#restoreWorkspace');
-  await waitWorkspace(other.page, 'workspaceRecovered');
+  const other = await another();  // reopens the last project from disk
+  await waitWorkspace(other.page, 'workspaceSaved');
+  assert.equal((await editorState(other.page)).metadata.id, 'ruby_demo');
   await addEntry(other.page, 'item', 'from_other_tab', 'Other');
   await waitDisk(studio, 'ruby_demo', doc => objectIds(doc).includes('from_other_tab'));
 
