@@ -57,7 +57,7 @@ Last updated: 2026-10-31. Master before this update: `2f9f1bc` (PR #22). Roadmap
 <!-- roadmap:e2e-count:end -->
 - `desktop-smoke`: **pass** — the real desktop application starts, reports the editor ready and stops its core cleanly: Windows portable and installed (WebView2), Linux (WebKitGTK, Xvfb). This proves the shell, not game compatibility.
 <!-- roadmap:desktop-e2e-count:start -->
-- `desktop-e2e`: 9 functional scenarios that drive the real application window through tauri-driver: WebKitWebDriver on Linux, msedgedriver for WebView2 on Windows ([inventory](../DESKTOP.md#desktop-e2e)). They need a test build with the cargo feature `e2e`, which answers the Save dialog from the environment; packaged builds are checked not to have it.
+- `desktop-e2e`: 10 functional scenarios that drive the real application window through tauri-driver: WebKitWebDriver on Linux, msedgedriver for WebView2 on Windows ([inventory](../DESKTOP.md#desktop-e2e)). They need a test build with the cargo feature `e2e`, which answers the Save dialog from the environment; packaged builds are checked not to have it.
 <!-- roadmap:desktop-e2e-count:end -->
 - `game-content-load`: **not verified** — needs a legally installed client, prepared resources and a GPU session (owner-run or self-hosted runner; decision pending).
 - `gameplay`: **not verified**.
