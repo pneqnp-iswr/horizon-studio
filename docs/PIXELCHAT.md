@@ -15,7 +15,7 @@ python -m unittest discover -s tests -p test_pixelchat.py -v
 
 **Limits:** local-only HTTP prototype; no TLS, persistence, server-moderated accounts, recipient mod negotiation, signed Minecraft chat binding, distributed cache, reconnect gap recovery, partial upload streaming, professional GIF decoding certification or frame-level rendering engine. No WebP or remote URLs in this version. The server does not prove that a GIF's LZW data or PNG compression stream fully decodes; visual decoding remains the recipient browser's responsibility. Not for public network exposure or untrusted players. GIF upload size ≤512 KiB; width/height ≤256; frames ≤64; total full-screen frame-pixels ≤4,194,304. Retains at most 16 unique media files (8 MiB) and 200 recent messages; per-token 8 messages/10 s.
 
-**Tests and evidence:** 14 `unittest` cases passed locally and in CI (including independent HTTP connections simulating two players, malicious sender fields, rate limits, origin protection and invalid GIFs); inline JavaScript passes `node --check`. **Full Chromium browser E2E was not verified:** Playwright's local Chromium was blocked from loopback by the execution environment's administrator policy. No real-game tests have been run. CI should run Python tests on the PR.
+**Tests and evidence:** 14 `unittest` cases passed locally and in CI (including independent HTTP connections simulating two players, malicious sender fields, rate limits, origin protection and invalid GIFs); inline JavaScript passes `node --check`. **Chromium browser E2E passed in GitHub Actions:** two independent Chromium clients exchanged a GIF, the recipient displayed it with actual frame changes and reduced-motion fallback worked (PR #18, run 41138352644). A local restricted runner could not access loopback; that is not a failure of the GitHub CI test. No real Horizon game-load tests have been run.
 
 ## Real-game bridge: feasibility gate
 
@@ -47,3 +47,21 @@ Release branch for Studio v0.7.0 accidentally dropped the earlier PixelChat dire
 - No in-game GIF rendering, actual Minecraft identity verification or arbitrary GIF size support is claimed. A future release requires proper native client/server hooks, preferably upstreamed.
 
 **Engineering note:** do not remove this documented experimental module during future Studio version bumps; release notes may explicitly exclude it from the shipped EXE until game integration exists.
+
+## Native Horizon HUD bridge (experimental source, PR #20)
+
+A separate **Rust-native PixelChat HUD proof** is now kept under
+[`pixelchat/native/`](../pixelchat/native/README.md). It uses five named
+Horizon hook points (`native_hud`, `native_command`, `native_mods`,
+`native_settings`, `native_settings_click`) through source mixins.
+Four original 5×5 emoji icons are drawn with `native_fill` on a
+top-right HUD preview; a local `/pixelchat` command toggles it.
+
+**Verification is distinct:** Rust geometry tests, source-manifest tests
+and a deterministic developer `.hnmod` package are CI-checked. A package
+is **not** proof that the mixin compiles into Horizon or appears in game.
+No actual client/server GIF display or authenticated multiplayer bridge exists
+yet. Do not update gameplay verification until an engine-backed test is recorded.
+
+This work is tracked as **PixelChat PC-001** within [epic #11](https://github.com/pneqnp-iswr/horizon-studio/issues/11);
+it does not replace or advance Studio's current HS-008 roadmap milestone.
