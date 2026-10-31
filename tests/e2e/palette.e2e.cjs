@@ -37,6 +37,33 @@ e2e('Ctrl+K opens the palette and runs the chosen command', async ({ page }) => 
   assert.equal(await page.isVisible('#paletteEmpty'), true);
 });
 
+e2e('typing finds the project\'s assets; choosing one opens it for editing (asset search)', async ({ page }) => {
+  await page.keyboard.press('Control+k');
+  await page.keyboard.type('demo');
+  await page.keyboard.press('Enter');
+  await waitStatus(page, await t(page, 'demoLoaded'));
+  // With nothing typed the palette lists only commands.
+  await page.keyboard.press('Control+k');
+  assert.ok((await options(page)).every(id => !id.startsWith('asset-')));
+  await page.keyboard.type('item:ruby');
+  assert.equal((await options(page))[0], 'asset-item-0');
+  assert.match(await page.textContent('#paletteList [data-command="asset-item-0"]'), /Ruby \(item:ruby\)/);
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => document.querySelector('#entryId').value === 'ruby');
+  assert.equal(await page.getAttribute('#itemTab', 'aria-selected'), 'true');
+  assert.equal(await page.isVisible('#cancelObject'), true, 'the item is open for editing');
+  // Effects open in VFX Studio, selected.
+  await page.click('#openVfx');
+  await page.click('#vfxNewSpark');
+  await page.click('#closeVfx');
+  await page.keyboard.press('Control+k');
+  await page.keyboard.type('vfx:impact');
+  assert.ok((await options(page))[0].startsWith('asset-vfx-'));
+  await page.keyboard.press('Enter');
+  await page.waitForSelector('#vfxDialog:not([hidden])');
+  assert.equal(await page.inputValue('#vfxId'), 'impact_spark');
+});
+
 e2e('every top-bar and rail command is reachable from the palette', async ({ page }) => {
   const controls = await page.$$eval('header button[id], nav button[id], .rail-bottom button[id]', buttons =>
     buttons.filter(b => b.id !== 'openPalette' && b.id !== 'quickExport').map(b => ({ id: b.id, disabled: b.disabled })));

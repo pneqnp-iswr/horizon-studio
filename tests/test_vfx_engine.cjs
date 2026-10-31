@@ -14,7 +14,16 @@ test('the preset is the one the core uses and is valid', () => {
   assert.deepEqual(Vfx.validate(Vfx.impactSpark()), []);
 });
 
-test('every particle matches the core simulation for the same seed', () => {
+const EMBER_STORM = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'vfx_ember_storm.json'), 'utf8'));
+
+test('a four-emitter effect (both blends, both shapes, later bursts, four-key curves) matches the core too', () => {
+  assert.deepEqual(Vfx.validate(EMBER_STORM.effect), []);
+  matches(EMBER_STORM);
+});
+
+test('every particle matches the core simulation for the same seed', () => matches(FIXTURE));
+
+function matches(FIXTURE) {
   for (const [time, alive] of Object.entries(FIXTURE.alive)) {
     assert.equal(Vfx.simulate(FIXTURE.effect, Number(time)).length, alive, `alive at ${time}`);
   }
@@ -30,7 +39,7 @@ test('every particle matches the core simulation for the same seed', () => {
       p.color.forEach((v, c) => assert.ok(Math.abs(v - q.color[c]) <= 1, 'colour'));
     });
   }
-});
+}
 
 test('the PRNG is the 32-bit mulberry32 stream', () => {
   const a = Vfx.mulberry32(1337), b = Vfx.mulberry32(1337);

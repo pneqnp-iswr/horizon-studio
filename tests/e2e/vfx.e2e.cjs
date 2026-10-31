@@ -92,6 +92,69 @@ e2e('effect edits are validated, undoable, saved in the project and leave the .h
   assert.equal(sha256(await download(page, '#exportHmod')), OFFICIAL_RUBY_SHA256);
 });
 
+e2e('emitters are added, duplicated, reordered and deleted; bursts and curves edited; all undoable, saved and deterministic (HS-026 slice)', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });  // a still preview: scrubbing decides what is drawn
+  await loadDemo(page);
+  await newSpark(page);
+  const emitters = async () => (await editorState(page)).effects[0].emitters;
+  const ids = async () => (await emitters()).map(e => e.id);
+  const waitIds = expected => page.waitForFunction(want => JSON.stringify(JSON.parse(localStorage.getItem('horizonStudio_v02')).effects[0].emitters.map(e => e.id)) === want, JSON.stringify(expected));
+  assert.deepEqual(await page.$$eval('#vfxEmitterList b', bs => bs.map(b => b.textContent)), ['sparks', 'flash']);
+
+  await page.selectOption('#vfxEmitterTemplate', 'smoke');
+  await page.click('#vfxAddEmitter');
+  await waitIds(['sparks', 'flash', 'smoke']);
+  assert.equal(await page.textContent('#vfxEmitterLegend'), await t(page, 'vfxEmitterNamed', { id: 'smoke' }));
+  await page.click('#vfxDuplicateEmitter');
+  await waitIds(['sparks', 'flash', 'smoke', 'smoke_2']);
+  await page.click('#vfxEmitterUp');
+  await waitIds(['sparks', 'flash', 'smoke_2', 'smoke']);
+  await page.click('#vfxEmitterList [data-emitter="1"]');  // the flash
+  assert.equal(await page.textContent('#vfxEmitterLegend'), await t(page, 'vfxEmitterNamed', { id: 'flash' }));
+  await page.click('#vfxDeleteEmitter');
+  await waitIds(['sparks', 'smoke_2', 'smoke']);
+  assert.equal((await emitters())[2].blend, 'alpha', 'a smoke puff blends by alpha');
+
+  // Bursts and curves of the selected emitter (the smoke puff).
+  await page.click('#vfxEmitterList [data-emitter="2"]');
+  await page.click('#vfxBursts [data-add="burst"]');
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('horizonStudio_v02')).effects[0].emitters[2].bursts.length === 2);
+  assert.match(await page.textContent('#vfxBudget'), /^64 /, 'the budget counts every burst of every emitter: 28 + 12 + 12 + 12');
+  await page.click('.vfx-keys[data-curve="size"] [data-add="size"]');
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('horizonStudio_v02')).effects[0].emitters[2].size.length === 3);
+  await page.$eval('.vfx-keys[data-curve="color"] input[data-key="0"][data-field="1"]', input => { input.value = '#ff2200'; input.dispatchEvent(new Event('change', { bubbles: true })); });
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('horizonStudio_v02')).effects[0].emitters[2].color[0][1] === '#ff2200');
+  // A key out of order is refused and changes nothing.
+  const before = JSON.stringify(await emitters());
+  await page.fill('.vfx-keys[data-curve="alpha"] input[data-key="1"][data-field="0"]', '-0.5');
+  await page.dispatchEvent('.vfx-keys[data-curve="alpha"] input[data-key="1"][data-field="0"]', 'change');
+  assert.equal(await page.getAttribute('.vfx-keys[data-curve="alpha"] input[data-key="1"][data-field="0"]', 'aria-invalid'), 'true');
+  assert.equal(JSON.stringify(await emitters()), before);
+
+  // One undo per change, through the project's history.
+  await page.click('#closeVfx');
+  await page.click('#undoEdit');
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('horizonStudio_v02')).effects[0].emitters[2].color[0][1] !== '#ff2200');
+  await page.click('#redoEdit');
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('horizonStudio_v02')).effects[0].emitters[2].color[0][1] === '#ff2200');
+
+  // The same data draws the same frame, after a save and a reopen too.
+  await page.click('#openVfx');
+  const first = await scrub(page, 0.42);
+  assert.ok(first.particles > 0);
+  await page.click('#closeVfx');
+  const saved = JSON.parse((await download(page, '#saveProject')).toString('utf8'));
+  assert.deepEqual(saved.objects.find(o => o.kind === 'vfx').props.emitters.map(e => e.id), ['sparks', 'smoke_2', 'smoke']);
+  await page.reload();
+  await page.waitForFunction(() => window.HorizonI18n && document.querySelector('#workspaceSaveStatus').dataset.key);
+  await page.setInputFiles('#projectFile', { name: 'vfx.hstudio.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(saved)) });
+  await page.waitForFunction(() => (JSON.parse(localStorage.getItem('horizonStudio_v02')).effects || []).length === 1);
+  await page.click('#openVfx');
+  assert.equal(await page.getAttribute('#vfxPlay', 'aria-pressed'), 'false', 'reduced motion: no autoplay');
+  const again = await scrub(page, 0.42);
+  assert.deepEqual(again, first);
+});
+
 e2e('VFX Studio is translated and passes automated accessibility rules', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.click('#lang-ru');

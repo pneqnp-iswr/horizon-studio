@@ -1,0 +1,47 @@
+{
+  "schema": "horizon-studio.vfx-performance/1",
+  "generated_by": "scripts/vfx_bench.cjs",
+  "machine": {
+    "platform": "linux",
+    "arch": "x64",
+    "cpus": 4,
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "browser": "Chromium 153.0.8010.12"
+  },
+  "canvas": "960x600 2D",
+  "frames": 120,
+  "seeks": 60,
+  "effects": {
+    "impact_spark": {
+      "spawned": 29,
+      "max_alive": 29,
+      "spawn_ms": 0.6,
+      "simulate_ms_avg": 0.104,
+      "frame_ms_avg": 0.21,
+      "seek_ms_p50": 0.1,
+      "seek_ms_p95": 0.4,
+      "heap_after_spawn_bytes": 18120
+    },
+    "ember_storm": {
+      "spawned": 109,
+      "max_alive": 78,
+      "spawn_ms": 0.7,
+      "simulate_ms_avg": 0.215,
+      "frame_ms_avg": 0.343,
+      "seek_ms_p50": 0.4,
+      "seek_ms_p95": 0.8,
+      "heap_after_spawn_bytes": null
+    },
+    "budget_2048": {
+      "spawned": 2048,
+      "max_alive": 2048,
+      "spawn_ms": 5,
+      "simulate_ms_avg": 6.464,
+      "frame_ms_avg": 17.212,
+      "seek_ms_p50": 12,
+      "seek_ms_p95": 28.3,
+      "heap_after_spawn_bytes": 336324
+    }
+  },
+  "note": "Studio preview in Chromium on the machine above; not a measurement of in-game rendering. heap_after_spawn_bytes is null where the difference is below garbage-collector noise."
+}
