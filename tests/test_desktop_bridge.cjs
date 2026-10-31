@@ -31,3 +31,10 @@ test('ready passes the editor info to desktop_ready', async () => {
   assert.deepEqual(await bridge.ready({ lang: 'ru' }, shell), { shell: '0.7.0' });
   assert.deepEqual(shell.calls[0].slice(0, 2), ['desktop_ready', { info: { lang: 'ru' } }]);
 });
+
+test('coreSession asks the shell for the token instead of the HTTP API', async () => {
+  const shell = fakeShell('t'.repeat(43));
+  assert.equal(await bridge.coreSession(shell), 't'.repeat(43));
+  assert.deepEqual(shell.calls[0].slice(0, 2), ['core_session', undefined]);
+  await assert.rejects(bridge.coreSession({}), /desktop shell/);
+});

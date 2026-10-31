@@ -410,6 +410,11 @@
       "design_ref": "docs/adr/0002-desktop-shell.md",
       "evidence": [
         {
+          "level": "desktop-e2e",
+          "ref": "Functional E2E on the real window: Linux (WebKitWebDriver) 8/8 and Windows (WebView2 through msedgedriver) 8/8 in CI run 41165780619, PR #24: handshake, editing with stable uids, undo/redo, native save and reopen, officially checked .hmod, Source Workbench, cancelled save, EN/RU, journey, refused export, restart recovery, failure screen",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41165780619"
+        },
+        {
           "level": "desktop-smoke",
           "ref": "Windows: frozen core, NSIS install, smoke run, uninstall; portable cold/warm runs (CI run 41143213331)",
           "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41143213331"
@@ -430,7 +435,7 @@
           "url": "docs/adr/0002-desktop-shell.md"
         }
       ],
-      "missing": "Release pipeline for the desktop artifacts, an E2E run that drives the shell's own window, a code-signing decision; the verified 0.7 EXE stays the released product until then"
+      "missing": "Publishing desktop artifacts through windows-release.yml with API verification, a recorded code-signing decision and a migration note (ADR 0002); the verified 0.7 EXE stays the released product until then"
     },
     {
       "id": "HS-028",

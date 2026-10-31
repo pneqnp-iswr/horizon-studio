@@ -458,6 +458,10 @@ class Handler(BaseHTTPRequestHandler):
         if not trusted_request(self.headers, self.server.server_address[1]):
             return self.response(403, 'application/json; charset=utf-8', b'{"error":"Untrusted request origin or host"}')
         if self.path == '/api/session':
+            if getattr(self.server, 'studio_desktop', False):
+                # The desktop shell received the token over its private pipe and gives it to the
+                # editor itself; any other local process that finds this port gets nothing.
+                return self.response(403, 'application/json; charset=utf-8', b'{"error":"The desktop shell provides the session"}')
             return self.response(200, 'application/json; charset=utf-8', json_bytes({'token': session_token(self.server)}))
         if self.path == '/api/engine-profiles':
             # HS-008: every audited engine profile, for the editor's target selector and comparison.

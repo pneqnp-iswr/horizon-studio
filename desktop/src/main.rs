@@ -47,6 +47,10 @@ struct Shell {
     timeline: Mutex<Timeline>,
     log: Option<PathBuf>,
     finished: AtomicBool,
+    /// The core's API session token, from the private handshake pipe (see `core_session`).
+    token: Mutex<Option<String>>,
+    /// One native Save dialog at a time.
+    saving: AtomicBool,
 }
 
 impl Shell {
@@ -55,14 +59,16 @@ impl Shell {
     }
 }
 
-/// Pages bundled into the shell (the splash): `tauri://localhost` or, on Windows,
-/// `http(s)://tauri.localhost`.
+/// Where Tauri serves the bundled pages (the splash) on this platform.
+const SHELL_ORIGIN: (&str, &str) = if cfg!(windows) { ("http", "tauri.localhost") } else { ("tauri", "localhost") };
+
+fn shell_page_url() -> Url {
+    Url::parse(&format!("{}://{}/index.html", SHELL_ORIGIN.0, SHELL_ORIGIN.1)).expect("valid shell URL")
+}
+
+/// Pages bundled into the shell: exactly this platform's origin, with no port.
 fn is_shell_page(url: &Url) -> bool {
-    match url.scheme() {
-        "tauri" => url.host_str() == Some("localhost"),
-        "http" | "https" => url.host_str() == Some("tauri.localhost"),
-        _ => false,
-    }
+    url.scheme() == SHELL_ORIGIN.0 && url.host_str() == Some(SHELL_ORIGIN.1) && url.port().is_none()
 }
 
 fn is_core_page(url: &Url, origin: &Option<Url>) -> bool {
@@ -84,6 +90,11 @@ async fn save_file(app: AppHandle, request: Request<'_>) -> Result<Value, String
     };
     check_size(bytes.len())?;
     let name = suggested_name(request.headers().get("x-file-name").and_then(|v| v.to_str().ok()))?;
+    let shell = app.state::<Shell>();
+    if shell.saving.swap(true, Ordering::SeqCst) {
+        return Err("A save dialog is already open".into());
+    }
+    let _open = Release(&shell.saving);
     // Test builds only (cargo feature `e2e`, never shipped): the native dialog cannot be driven by
     // WebDriver, so desktop E2E answers it from the environment instead.
     #[cfg(feature = "e2e")]
@@ -112,6 +123,22 @@ fn finish_save(chosen: Option<PathBuf>, bytes: &[u8]) -> Result<Value, String> {
     write_atomically(&path, bytes).map_err(|e| format!("Could not save {}: {e}", path.display()))?;
     let saved = path.file_name().map(|n| n.to_string_lossy().into_owned());
     Ok(json!({ "saved": true, "name": saved, "bytes": bytes.len() }))
+}
+
+/// Clears the flag it guards when dropped.
+struct Release<'a>(&'a AtomicBool);
+
+impl Drop for Release<'_> {
+    fn drop(&mut self) {
+        self.0.store(false, Ordering::SeqCst);
+    }
+}
+
+/// Editor -> shell: the core's API session token. Only the core's own origin may call this
+/// (the runtime "editor" capability); in desktop mode the core does not hand it out over HTTP.
+#[tauri::command]
+fn core_session(app: AppHandle) -> Result<String, String> {
+    app.state::<Shell>().token.lock().unwrap().clone().ok_or_else(|| "The project core is not running".to_string())
 }
 
 #[cfg(feature = "e2e")]
@@ -180,7 +207,9 @@ fn boot(app: AppHandle) {
     if let Some(dir) = std::env::current_exe().ok().and_then(|exe| exe.parent().map(Path::to_path_buf)) {
         dirs.push(dir);
     }
-    let started = core::locate(&dirs).and_then(|launch| Core::start(launch, shell.log.as_deref(), CORE_START_TIMEOUT));
+    let watcher = app.clone();
+    let started = core::locate(&dirs)
+        .and_then(|launch| Core::start(launch, shell.log.as_deref(), CORE_START_TIMEOUT, move || core_lost(&watcher)));
     let core = match started {
         Ok(core) => core,
         Err(error) => return show_failure(&app, &error),
@@ -192,7 +221,8 @@ fn boot(app: AppHandle) {
         .local(false)
         .window(MAIN)
         .permission("allow-desktop-ready")
-        .permission("allow-save-file");
+        .permission("allow-save-file")
+        .permission("allow-core-session");
     if let Err(error) = app.add_capability(capability) {
         return show_failure(&app, &format!("Could not grant the editor its commands: {error}"));
     }
@@ -204,7 +234,13 @@ fn boot(app: AppHandle) {
         }));
     }
     *shell.origin.lock().unwrap() = Some(url.clone());
+    *shell.token.lock().unwrap() = Some(core.token.clone());
+    let exited = core.has_exited();
     *shell.core.lock().unwrap() = Some(core);
+    if exited {
+        // It died between its handshake and now; its exit callback found nothing to clear.
+        return core_lost(&app);
+    }
     match app.get_webview_window(MAIN) {
         Some(window) => {
             if let Err(error) = window.navigate(url) {
@@ -212,6 +248,31 @@ fn boot(app: AppHandle) {
             }
         }
         None => show_failure(&app, "The main window is gone"),
+    }
+}
+
+/// The core stopped while the window depended on it. Forget its origin and token, so nothing
+/// that later answers on that port is shown with the editor's grants, and show the failure screen.
+fn core_lost(app: &AppHandle) {
+    let shell = app.state::<Shell>();
+    if shell.finished.load(Ordering::SeqCst) {
+        return;
+    }
+    // A deliberate stop (exit, smoke finish) holds this lock or has already taken the core.
+    let dead = match shell.core.try_lock() {
+        Ok(mut core) if core.is_some() => core.take(),
+        _ => return,
+    };
+    drop(dead);
+    *shell.origin.lock().unwrap() = None;
+    *shell.token.lock().unwrap() = None;
+    let message = "The project core stopped unexpectedly. Autosaved work is kept on disk; restart Horizon Studio to continue.";
+    shell.timeline.lock().unwrap().failure = Some(message.to_string());
+    if let Some(window) = app.get_webview_window(MAIN) {
+        let _ = window.navigate(shell_page_url());
+    }
+    if shell.options.smoke() {
+        finish(app, Some(message.to_string()));
     }
 }
 
@@ -268,7 +329,7 @@ fn main() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![desktop_ready, save_file])
+        .invoke_handler(tauri::generate_handler![desktop_ready, save_file, core_session])
         .setup({
             let origin = origin.clone();
             move |app| {
@@ -284,6 +345,8 @@ fn main() {
                     timeline: Mutex::new(Timeline::default()),
                     log,
                     finished: AtomicBool::new(false),
+                    token: Mutex::new(None),
+                    saving: AtomicBool::new(false),
                 });
                 let (width, height) = options.window_size;
                 let guard = origin.clone();
@@ -343,6 +406,7 @@ fn main() {
     app.run(|app, event| {
         if let RunEvent::Exit = event {
             if let Some(shell) = app.try_state::<Shell>() {
+                shell.finished.store(true, Ordering::SeqCst);
                 if let Some(core) = shell.core.lock().unwrap().take() {
                     core.stop(CORE_STOP_TIMEOUT);
                 }
@@ -359,8 +423,12 @@ mod tests {
     fn navigation_is_limited_to_the_splash_and_the_core() {
         let origin = Mutex::new(None);
         let url = |s: &str| Url::parse(s).unwrap();
-        assert!(navigation_allowed(&url("tauri://localhost/index.html"), &origin));
-        assert!(navigation_allowed(&url("http://tauri.localhost/index.html"), &origin));
+        assert!(navigation_allowed(&shell_page_url(), &origin));
+        // The other platform's shell origin, any port and https are not the shell.
+        let other = if cfg!(windows) { "tauri://localhost/index.html" } else { "http://tauri.localhost/index.html" };
+        for denied in [other, "http://tauri.localhost:8080/", "https://tauri.localhost/", "tauri://localhost:9/"] {
+            assert!(!navigation_allowed(&url(denied), &origin), "{denied}");
+        }
         assert!(!navigation_allowed(&url("http://127.0.0.1:40123/"), &origin), "unknown before the handshake");
         *origin.lock().unwrap() = Some(url("http://127.0.0.1:40123/"));
         assert!(navigation_allowed(&url("http://127.0.0.1:40123/"), &origin));

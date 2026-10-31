@@ -40,3 +40,29 @@ Only artifacts built in the same run are published; nothing from pull requests r
 ## Signing and provenance
 
 Executables are **unsigned**; `build-manifest.json` says so. The manifest records version, tag, commit, platform, Python and PyInstaller versions, executable size and SHA-256, build time (UTC), gate results and smoke-test checks. It is evidence of how this build was made, not a code signature.
+
+## Desktop release candidates (preview, not published)
+
+The Tauri desktop build is not released yet; the verified 0.7 EXE stays the released product until every gate in
+[ADR 0002](adr/0002-desktop-shell.md) holds. Every `desktop.yml` run on Windows still builds a full candidate, so the
+pipeline is proven before it is trusted:
+
+1. The core is frozen and smoke-tested. The shell and the NSIS installer are built, the portable folder is zipped, and
+   the build's own smoke runs, an install–smoke–uninstall cycle and functional E2E on the real window all pass.
+2. The portable ZIP is launched exactly as shipped (extracted to a fresh folder).
+3. `Get-AuthenticodeSignature` records each shipped file's signing status. Nothing is described as signed unless
+   Windows says `Valid`.
+4. `scripts/desktop_release.py` writes `desktop-manifest.json` (`horizon-studio.desktop-manifest/1`) and
+   `SHA256SUMS.txt`, then verifies every artifact against both. The manifest holds:
+   - the commit;
+   - each artifact's size and SHA-256;
+   - the portable ZIP's layout (the shell needs its `core/` folder; it is not a single-file executable);
+   - the smoke results;
+   - the signing status;
+   - every ADR 0002 parity gate with `passed` true or false;
+   - `release_ready`, which is true only when all of them pass and the signing state is not mixed.
+5. The candidate and its manifest are kept as a workflow artifact for 14 days.
+
+The script cannot publish: it has no GitHub client, and a test checks that. Publishing desktop artifacts will be added
+to `windows-release.yml` with the same same-commit gates and API verification as the EXE, and only together with a
+recorded signing decision and a migration note. No VERSION bump comes before that.

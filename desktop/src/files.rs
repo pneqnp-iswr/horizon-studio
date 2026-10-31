@@ -16,14 +16,35 @@ use std::time::{SystemTime, UNIX_EPOCH};
 pub const MAX_SAVE_BYTES: usize = 256 * 1024 * 1024;
 static COUNTER: AtomicU64 = AtomicU64::new(0);
 
-/// A file name the page suggests for a native "Save as" dialog: a bare name, no paths.
+/// What the editor saves; nothing else is offered in a Save dialog (no executables or scripts).
+const SAVE_TYPES: [&str; 3] = [".hmod", ".hstudio.json", ".zip"];
+
+/// Invisible format characters (bidirectional overrides, zero-width marks) that can disguise a name.
+fn is_format_char(c: char) -> bool {
+    matches!(c, '\u{00AD}' | '\u{061C}' | '\u{180E}' | '\u{200B}'..='\u{200F}' | '\u{202A}'..='\u{202E}'
+        | '\u{2060}'..='\u{2064}' | '\u{2066}'..='\u{206F}' | '\u{FEFF}' | '\u{FFF9}'..='\u{FFFB}')
+}
+
+/// Names Windows reserves for devices, with or without an extension (`NUL.zip`).
+fn is_reserved_on_windows(name: &str) -> bool {
+    let stem = name.split('.').next().unwrap_or("").trim_end().to_ascii_uppercase();
+    matches!(stem.as_str(), "CON" | "PRN" | "AUX" | "NUL" | "CONIN$" | "CONOUT$")
+        || (stem.len() == 4
+            && (stem.starts_with("COM") || stem.starts_with("LPT"))
+            && stem[3..].chars().all(|c| c.is_ascii_digit() || matches!(c, '¹' | '²' | '³')))
+}
+
+/// A file name the page suggests for a native "Save as" dialog: a bare name, no paths, and
+/// one of the types the editor saves.
 pub fn suggested_name(raw: Option<&str>) -> Result<String, String> {
     let name = percent_encoding::percent_decode_str(raw.unwrap_or("export")).decode_utf8_lossy().trim().to_string();
     let valid = !name.is_empty()
         && name.chars().count() <= 160
         && !name.starts_with('.')
         && !name.ends_with('.')
-        && !name.chars().any(|c| c.is_control() || matches!(c, '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|'));
+        && SAVE_TYPES.iter().any(|ext| name.len() > ext.len() && name.to_ascii_lowercase().ends_with(ext))
+        && !is_reserved_on_windows(&name)
+        && !name.chars().any(|c| c.is_control() || is_format_char(c) || matches!(c, '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|'));
     if valid {
         Ok(name)
     } else {
@@ -59,11 +80,33 @@ fn temporary_for(path: &Path) -> io::Result<PathBuf> {
     Ok(path.with_file_name(unique))
 }
 
+/// `\\?\` form of an absolute Windows path, so paths longer than MAX_PATH (260) work without the
+/// process manifest opting in. Relative and already verbatim paths are returned unchanged.
+#[cfg_attr(not(windows), allow(dead_code))]
+fn verbatim(path: &Path) -> std::ffi::OsString {
+    let unchanged = path.as_os_str().to_os_string();
+    // A verbatim path is taken literally: only rewrite plain, normalized Unicode paths.
+    let Some(text) = path.to_str() else { return unchanged };
+    let bytes = text.as_bytes();
+    if text.starts_with("\\\\?\\")
+        || text.contains('/')
+        || text.split('\\').any(|part| part == "." || part == "..")
+    {
+        unchanged
+    } else if bytes.len() >= 3 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':' && bytes[2] == b'\\' {
+        format!("\\\\?\\{text}").into()
+    } else if let Some(unc) = text.strip_prefix("\\\\") {
+        format!("\\\\?\\UNC\\{unc}").into()
+    } else {
+        unchanged
+    }
+}
+
 #[cfg(windows)]
 fn replace(from: &Path, to: &Path) -> io::Result<()> {
     use std::os::windows::ffi::OsStrExt;
     use windows_sys::Win32::Storage::FileSystem::{MoveFileExW, MOVEFILE_REPLACE_EXISTING, MOVEFILE_WRITE_THROUGH};
-    let wide = |p: &Path| p.as_os_str().encode_wide().chain(Some(0)).collect::<Vec<u16>>();
+    let wide = |p: &Path| verbatim(p).encode_wide().chain(Some(0)).collect::<Vec<u16>>();
     let (from, to) = (wide(from), wide(to));
     // SAFETY: both buffers are NUL-terminated UTF-16 strings that outlive the call.
     let ok = unsafe { MoveFileExW(from.as_ptr(), to.as_ptr(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) };
@@ -98,6 +141,12 @@ pub fn write_atomically_with(path: &Path, bytes: &[u8], before_replace: impl FnO
     let result = (|| {
         let mut file = OpenOptions::new().write(true).create_new(true).open(&temporary)?;
         file.write_all(bytes)?;
+        // Replacing a file keeps its permissions (a private 0600 project stays private). Not on
+        // Windows, where the only bit is read-only and a read-only target cannot be replaced anyway.
+        #[cfg(unix)]
+        if let Ok(previous) = fs::metadata(path) {
+            file.set_permissions(previous.permissions())?;
+        }
         file.sync_all()?;
         drop(file);
         before_replace(&temporary)?;
@@ -131,9 +180,16 @@ mod tests {
         assert_eq!(suggested_name(Some("ruby_demo.hmod")).unwrap(), "ruby_demo.hmod");
         assert_eq!(suggested_name(Some("my%20mod-source.zip")).unwrap(), "my mod-source.zip");
         assert_eq!(suggested_name(Some("%D0%BC%D0%BE%D0%B4.hmod")).unwrap(), "мод.hmod");
-        for bad in ["../evil.hmod", "a%2Fb.hmod", "C:%5Cx.hmod", ".hidden", "", "a\u{7}b", "trailing.", "con<1>.zip"] {
+        assert_eq!(suggested_name(Some("Ruby.HMOD")).unwrap(), "Ruby.HMOD");
+        for bad in ["../evil.hmod", "a%2Fb.hmod", "C:%5Cx.hmod", ".hidden", "", "a\u{7}b.zip", "trailing.", "con<1>.zip"] {
             assert!(suggested_name(Some(bad)).is_err(), "{bad}");
         }
+        // Only what the editor saves: no executables or scripts, however they are disguised.
+        for bad in ["Update.exe", "run.bat", "start.desktop", "notes.txt", ".hmod", "ruby.hmod.exe",
+            "invoice\u{202E}domh.exe", "a\u{200B}b.hmod", "x\u{FEFF}.zip", "NUL.zip", "com1.hmod", "Lpt9.hstudio.json", "CON"] {
+            assert!(suggested_name(Some(bad)).is_err(), "{bad:?}");
+        }
+        assert!(suggested_name(Some("console.hmod")).is_ok(), "only exact device names are reserved");
         assert!(suggested_name(Some(&"x".repeat(161))).is_err());
         assert_eq!(filter_for("x.hstudio.json"), Some(("Horizon Studio project", "json")));
         assert_eq!(filter_for("x.txt"), None);
@@ -184,6 +240,46 @@ mod tests {
         assert!(error.is_err());
         assert_eq!(fs::read(&target).unwrap(), b"previous good copy");
         assert!(leftovers(&dir).is_empty(), "the temporary file is removed");
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn verbatim_paths_for_long_windows_paths() {
+        let v = |s: &str| verbatim(Path::new(s)).to_string_lossy().into_owned();
+        assert_eq!(v(r"C:\Users\a\x.hmod"), r"\\?\C:\Users\a\x.hmod");
+        assert_eq!(v(r"\\server\share\x.hmod"), r"\\?\UNC\server\share\x.hmod");
+        for same in [r"\\?\C:\x.hmod", "relative.hmod", "C:/mixed/x.hmod", r"C:\a\..\x.hmod"] {
+            assert_eq!(v(same), same);
+        }
+    }
+
+    #[test]
+    fn saves_beyond_the_old_260_character_limit() {
+        let dir = scratch("long");
+        let mut folder = dir.clone();
+        while folder.as_os_str().len() < 300 {
+            folder = folder.join("a_rather_long_folder_name_for_paths");
+        }
+        fs::create_dir_all(&folder).unwrap();
+        let target = folder.join("project.hstudio.json");
+        assert!(target.as_os_str().len() > 300);
+        write_atomically(&target, b"first").unwrap();
+        write_atomically(&target, b"second").unwrap();
+        assert_eq!(fs::read(&target).unwrap(), b"second");
+        assert!(leftovers(&folder).is_empty());
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn replacing_keeps_the_target_permissions() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = scratch("mode");
+        let target = dir.join("private.hstudio.json");
+        fs::write(&target, b"secret").unwrap();
+        fs::set_permissions(&target, fs::Permissions::from_mode(0o600)).unwrap();
+        write_atomically(&target, b"still secret").unwrap();
+        assert_eq!(fs::metadata(&target).unwrap().permissions().mode() & 0o777, 0o600);
         fs::remove_dir_all(dir).unwrap();
     }
 

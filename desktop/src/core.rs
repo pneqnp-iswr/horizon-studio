@@ -1,12 +1,17 @@
 //! The Python project core as a child process (`launcher.py --serve`, protocol
 //! `horizon-studio.core/1`). The shell holds the core's stdin; closing it, or the shell
 //! dying, makes the core shut down, so no server outlives the window.
+//!
+//! The handshake also carries the core's API session token. It travels only over this private
+//! pipe; in desktop mode the core does not hand it to HTTP clients, so another local process
+//! that finds the loopback port cannot authorize itself (see `core_session` in main.rs).
 
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, Command, Stdio};
-use std::sync::mpsc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{mpsc, Arc};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -72,12 +77,21 @@ struct Handshake {
     url: String,
     version: String,
     pid: u32,
+    token: String,
 }
 
-/// Checks the core's first stdout line and returns its loopback URL and version.
-pub fn parse_handshake(line: &str) -> Result<(Url, String, u32), String> {
+pub struct Ready {
+    pub url: Url,
+    pub version: String,
+    pub pid: u32,
+    pub token: String,
+}
+
+/// Checks the core's first stdout line and returns its loopback URL, version and session token.
+pub fn parse_handshake(line: &str) -> Result<Ready, String> {
+    // The line carries the session token, so errors never echo it.
     let handshake: Handshake =
-        serde_json::from_str(line.trim()).map_err(|e| format!("Unreadable core handshake ({e}): {}", line.trim()))?;
+        serde_json::from_str(line.trim()).map_err(|e| format!("Unreadable core handshake ({e})"))?;
     if handshake.protocol != PROTOCOL || handshake.event != "ready" {
         return Err(format!("Unexpected core handshake {} / {}", handshake.protocol, handshake.event));
     }
@@ -85,7 +99,11 @@ pub fn parse_handshake(line: &str) -> Result<(Url, String, u32), String> {
     if url.scheme() != "http" || url.host_str() != Some("127.0.0.1") || url.port().is_none() || url.path() != "/" {
         return Err(format!("The core must serve http://127.0.0.1:<port>/, not {url}"));
     }
-    Ok((url, handshake.version, handshake.pid))
+    let token = handshake.token;
+    if !(32..=128).contains(&token.len()) || !token.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_') {
+        return Err("The core sent an invalid session token".into());
+    }
+    Ok(Ready { url, version: handshake.version, pid: handshake.pid, token })
 }
 
 pub struct Core {
@@ -94,12 +112,20 @@ pub struct Core {
     pub url: Url,
     pub version: String,
     pub pid: u32,
+    pub token: String,
     pub launch: Launch,
+    exited: Arc<AtomicBool>,
 }
 
 impl Core {
     /// Starts the core and waits for its handshake. Core stderr goes to `log` when given.
-    pub fn start(launch: Launch, log: Option<&Path>, timeout: Duration) -> Result<Core, String> {
+    /// `on_exit` runs once the core's stdout closes, whether it stopped on request or died.
+    pub fn start(
+        launch: Launch,
+        log: Option<&Path>,
+        timeout: Duration,
+        on_exit: impl FnOnce() + Send + 'static,
+    ) -> Result<Core, String> {
         let mut command = match &launch {
             Launch::Frozen(path) => Command::new(path),
             Launch::Script { python, script } => {
@@ -128,16 +154,22 @@ impl Core {
         let mut child = command.spawn().map_err(|e| format!("Could not start the core ({launch:?}): {e}"))?;
         let stdout = child.stdout.take().expect("piped stdout");
         let (sender, receiver) = mpsc::channel();
+        let exited = Arc::new(AtomicBool::new(false));
+        let flag = exited.clone();
         thread::spawn(move || {
             let mut reader = BufReader::new(stdout);
             let mut line = String::new();
             let _ = sender.send(reader.read_line(&mut line).map(|_| line));
             // Keep draining so the core never blocks on a full pipe.
             for _ in reader.lines() {}
+            flag.store(true, Ordering::SeqCst);
+            on_exit();
         });
         let line = match receiver.recv_timeout(timeout) {
             Ok(Ok(line)) if !line.is_empty() => line,
             Ok(Ok(_)) | Ok(Err(_)) => {
+                // Its stdout closed or is unreadable; it may still be running, so never wait unbounded.
+                let _ = child.kill();
                 let status = child.wait().ok().and_then(|s| s.code());
                 return Err(format!("The core exited before it was ready (exit code {status:?})"));
             }
@@ -148,9 +180,9 @@ impl Core {
             }
         };
         match parse_handshake(&line) {
-            Ok((url, version, pid)) => {
+            Ok(Ready { url, version, pid, token }) => {
                 let stdin = child.stdin.take();
-                Ok(Core { child, stdin, url, version, pid, launch })
+                Ok(Core { child, stdin, url, version, pid, token, launch, exited })
             }
             Err(error) => {
                 let _ = child.kill();
@@ -158,6 +190,11 @@ impl Core {
                 Err(error)
             }
         }
+    }
+
+    /// True once the core's stdout has closed (it stopped or died).
+    pub fn has_exited(&self) -> bool {
+        self.exited.load(Ordering::SeqCst)
     }
 
     /// Asks the core to stop by closing its stdin; kills it if it does not exit in time.
@@ -196,9 +233,15 @@ mod tests {
 
     #[test]
     fn accepts_only_a_loopback_handshake() {
-        let ok = r#"{"protocol":"horizon-studio.core/1","event":"ready","url":"http://127.0.0.1:40123/","version":"0.7.0","pid":7}"#;
-        let (url, version, pid) = parse_handshake(ok).unwrap();
-        assert_eq!((url.port(), version.as_str(), pid), (Some(40123), "0.7.0", 7));
+        let token = "t".repeat(43);
+        let ok = format!(r#"{{"protocol":"horizon-studio.core/1","event":"ready","url":"http://127.0.0.1:40123/","version":"0.7.0","pid":7,"token":"{token}"}}"#);
+        let ready = parse_handshake(&ok).unwrap();
+        assert_eq!((ready.url.port(), ready.version.as_str(), ready.pid, ready.token.as_str()), (Some(40123), "0.7.0", 7, token.as_str()));
+        // Missing, short or odd tokens are refused, and errors never echo the line.
+        for bad in [ok.replace(&format!(r#","token":"{token}""#), ""), ok.replace(&token, "short"), ok.replace(&token, &"tt+/=".repeat(11))] {
+            let error = parse_handshake(&bad).err().expect("refused");
+            assert!(!error.contains("ttttt"), "{error}");
+        }
         for bad in [
             r#"{"protocol":"other/1","event":"ready","url":"http://127.0.0.1:1/","version":"x","pid":1}"#,
             r#"{"protocol":"horizon-studio.core/1","event":"stopped","url":"http://127.0.0.1:1/","version":"x","pid":1}"#,
@@ -223,12 +266,12 @@ mod tests {
     }
 
     const READY: &str = "import json, sys\nprint(json.dumps({'protocol': 'horizon-studio.core/1', 'event': 'ready', \
-        'url': 'http://127.0.0.1:40123/', 'version': '0.7.0', 'pid': 1}), flush=True)\n";
+        'url': 'http://127.0.0.1:40123/', 'version': '0.7.0', 'pid': 1, 'token': 'x' * 43}), flush=True)\n";
 
     #[test]
     fn a_core_that_honours_eof_stops_cleanly() {
         let launch = fake_core("clean", &format!("{READY}sys.stdin.read()\n"));
-        let core = Core::start(launch, None, Duration::from_secs(30)).expect("handshake");
+        let core = Core::start(launch, None, Duration::from_secs(30), || {}).expect("handshake");
         assert_eq!(core.url.port(), Some(40123));
         let (code, killed, took) = core.stop(Duration::from_secs(10));
         assert_eq!((code, killed), (Some(0), false));
@@ -238,7 +281,7 @@ mod tests {
     #[test]
     fn a_hung_core_is_killed_after_the_timeout() {
         let launch = fake_core("hung", &format!("{READY}import time\nwhile True:\n    time.sleep(1)\n"));
-        let core = Core::start(launch, None, Duration::from_secs(30)).expect("handshake");
+        let core = Core::start(launch, None, Duration::from_secs(30), || {}).expect("handshake");
         let (_, killed, took) = core.stop(Duration::from_millis(500));
         assert!(killed, "a core that ignores EOF is killed");
         assert!(took < Duration::from_secs(10));
@@ -247,13 +290,34 @@ mod tests {
     #[test]
     fn a_silent_core_times_out_and_a_crashing_core_is_reported() {
         let silent = fake_core("silent", "import time\ntime.sleep(30)\n");
-        let error = Core::start(silent, None, Duration::from_millis(800)).err().expect("timeout");
+        let error = Core::start(silent, None, Duration::from_millis(800), || {}).err().expect("timeout");
         assert!(error.contains("did not report ready"), "{error}");
         let crash = fake_core("crash", "raise SystemExit(3)\n");
-        let error = Core::start(crash, None, Duration::from_secs(30)).err().expect("crash");
+        let error = Core::start(crash, None, Duration::from_secs(30), || {}).err().expect("crash");
         assert!(error.contains("exited before it was ready"), "{error}");
         let wrong = fake_core("wrong", "print('[studio] GET / 200', flush=True)\n");
-        assert!(Core::start(wrong, None, Duration::from_secs(30)).is_err());
+        assert!(Core::start(wrong, None, Duration::from_secs(30), || {}).is_err());
+    }
+
+    #[test]
+    fn a_core_that_closes_stdout_but_keeps_running_does_not_hang_startup() {
+        let mute = fake_core("mute", "import os, time\nos.close(1)\ntime.sleep(60)\n");
+        let started = Instant::now();
+        let error = Core::start(mute, None, Duration::from_secs(30), || {}).err().expect("refused");
+        assert!(error.contains("exited before it was ready"), "{error}");
+        assert!(started.elapsed() < Duration::from_secs(15), "killed, not waited for");
+    }
+
+    #[test]
+    fn an_unexpected_exit_after_the_handshake_is_reported() {
+        let (sender, receiver) = mpsc::channel();
+        let dying = fake_core("dying", &format!("{READY}import time\ntime.sleep(0.3)\n"));
+        let core = Core::start(dying, None, Duration::from_secs(30), move || {
+            let _ = sender.send(());
+        })
+        .expect("handshake");
+        receiver.recv_timeout(Duration::from_secs(20)).expect("the exit is noticed");
+        assert!(core.has_exited());
     }
 
     #[test]

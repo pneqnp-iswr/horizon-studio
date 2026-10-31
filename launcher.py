@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import socket
 import sys
 import threading
 import urllib.error
@@ -15,6 +16,7 @@ import webbrowser
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 
+from security.request_policy import session_token
 from studio import HOST, PORT, Handler
 
 
@@ -25,11 +27,28 @@ def app_version() -> str:
         return "development"
 
 
-def start_server(*, smoke_test: bool = False) -> ThreadingHTTPServer:
+class ExclusiveHTTPServer(ThreadingHTTPServer):
+    """An ephemeral-port server no other socket may share.
+
+    ``HTTPServer`` sets SO_REUSEADDR, which on Windows lets another local process bind the same
+    port and receive the editor's connections. The desktop core binds port 0 and never needs to
+    reclaim a port, so it turns that off and asks Windows for exclusive use.
+    """
+
+    allow_reuse_address = False
+
+    def server_bind(self):
+        exclusive = getattr(socket, "SO_EXCLUSIVEADDRUSE", None)
+        if exclusive is not None:
+            self.socket.setsockopt(socket.SOL_SOCKET, exclusive, 1)
+        super().server_bind()
+
+
+def start_server(*, smoke_test: bool = False, exclusive: bool = False) -> ThreadingHTTPServer:
     """Prefer a stable origin for browser localStorage across regular launches."""
-    port = 0 if smoke_test else PORT
+    port = 0 if smoke_test or exclusive else PORT
     try:
-        server = ThreadingHTTPServer((HOST, port), Handler)
+        server = (ExclusiveHTTPServer if exclusive else ThreadingHTTPServer)((HOST, port), Handler)
     except OSError as exc:
         raise RuntimeError(
             f"Unable to start Horizon Studio on http://{HOST}:{PORT}. "
@@ -213,7 +232,7 @@ def serve_core(stdin=None, stdout=None) -> int:
     stdout = sys.stdout if stdout is None else stdout
     if stdin is None or stdout is None:
         return 2  # a windowed build has no pipes to talk to the shell
-    server = start_server(smoke_test=True)
+    server = start_server(exclusive=True)
     server.studio_log = sys.stderr
     server.studio_desktop = True
     worker = threading.Thread(target=server.serve_forever, daemon=True)
@@ -223,7 +242,10 @@ def serve_core(stdin=None, stdout=None) -> int:
         stdout.write(json.dumps({"protocol": CORE_PROTOCOL, "event": event, **fields}) + "\n")
         stdout.flush()
 
-    announce("ready", url=f"http://{HOST}:{server.server_port}/", version=app_version(), pid=os.getpid())
+    # The session token goes to the shell over this private pipe only; in desktop mode the
+    # server does not hand it to HTTP clients (another local process could ask for it).
+    announce("ready", url=f"http://{HOST}:{server.server_port}/", version=app_version(), pid=os.getpid(),
+             token=session_token(server))
     try:
         for line in stdin:
             if line.strip() == "shutdown":
