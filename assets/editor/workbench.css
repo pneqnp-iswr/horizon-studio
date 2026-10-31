@@ -305,6 +305,7 @@ body:not([data-tab=structure]) #structureCanvas{display:none}
 
 /* HS-025: VFX Studio */
 .i-vfx{--icon:url(/assets/editor/icons/vfx.svg)}
+.i-ai{--icon:url(/assets/editor/icons/ai.svg)}
 .vfx-studio .source-head{align-items:center}
 .vfx-badge{margin-left:auto;padding:4px 8px;border:2px solid var(--gold2);color:var(--gold3);font:700 11px var(--font-pixel);text-transform:uppercase;white-space:nowrap}
 .vfx-main{display:grid;grid-template-columns:200px minmax(0,1fr) 300px;gap:12px;min-height:0;overflow:auto}
@@ -342,3 +343,29 @@ body:not([data-tab=structure]) #structureCanvas{display:none}
 .palette-box li.active{background:var(--cyan0);color:var(--cyan3)}.palette-box li.active small{color:var(--cyan3)}
 .palette-box kbd{font:11px var(--font-pixel)}
 .palette-empty{margin:0;padding:12px 14px;color:var(--muted)}
+/* AI Creator (HS-020/HS-022): request, review and history side by side; the review is the widest. */
+.ai-creator .source-head{align-items:center}
+.ai-badge{border-color:var(--cyan2);color:var(--cyan3)}
+.ai-main{display:grid;grid-template-columns:260px minmax(0,1fr) 240px;gap:12px;min-height:0;overflow:auto}
+.ai-request,.ai-review,.ai-history{display:flex;flex-direction:column;gap:8px;min-width:0}
+.ai-request label{display:grid;gap:3px;font-size:12px;color:var(--muted)}
+.ai-fields{display:grid;gap:8px;padding:8px;border:1px solid var(--line);background:var(--night)}
+.ai-note{margin:0;font-size:12px;color:var(--muted)}
+.ai-review h3,.ai-history h3{margin:0;font:700 12px var(--font-pixel);text-transform:uppercase;color:var(--gold3)}
+.ai-summary{margin:0;color:var(--text)}
+.ai-plan{display:grid;gap:3px;margin:0;padding:0 0 0 18px;font-size:12px;color:var(--muted)}
+.ai-plan code{color:var(--cyan3)}
+.ai-diff{display:grid;gap:8px}
+.ai-asset{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--night);padding:6px 8px}
+.ai-asset.ai-created{border-left-color:var(--cyan2)}.ai-asset.ai-updated{border-left-color:var(--gold2)}.ai-asset.ai-deleted{border-left-color:var(--danger)}
+.ai-asset header{display:flex;gap:6px;align-items:center;margin-bottom:4px}
+.ai-asset table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.ai-asset th,.ai-asset td{padding:2px 4px;text-align:left;vertical-align:top;overflow-wrap:anywhere;border-top:1px solid var(--line)}
+.ai-asset thead th{color:var(--muted);font-weight:400;border-top:0}
+.ai-asset td:first-of-type{color:var(--muted)}
+.ai-empty,.ai-doc{margin:0;font-size:12px;color:var(--muted)}
+.ai-error{margin:0;padding:6px 8px;border-left:3px solid var(--danger);background:var(--night);color:var(--text);font-size:12px}
+.ai-step{list-style:decimal}.ai-step.redo{opacity:.65}
+@media(max-width:1120px){.ai-main{grid-template-columns:240px minmax(0,1fr)}.ai-history{grid-column:1/-1}}
+@media(max-width:760px){.ai-main{grid-template-columns:1fr}.ai-badge{white-space:normal}}
+.ai-plan li.ai-empty{list-style:none;margin-left:-18px}

@@ -36,6 +36,7 @@
     <div class="rail-bottom">
       <button class="rail-btn i-search" type="button" id="openPalette" aria-label="Command palette" data-i18n-aria-label="openPalette" data-i18n-title="openPalette" title="Command palette" aria-keyshortcuts="Control+K" aria-haspopup="dialog"></button>
       <button class="rail-btn i-vfx" type="button" id="openVfx" aria-label="VFX Studio" data-i18n-aria-label="openVfx" data-i18n-title="openVfx" title="VFX Studio" aria-haspopup="dialog"></button>
+      <button class="rail-btn i-ai" type="button" id="openAi" aria-label="AI Creator" data-i18n-aria-label="openAi" data-i18n-title="openAi" title="AI Creator" aria-haspopup="dialog"></button>
       <button class="rail-btn i-journey" type="button" id="openJourney" aria-label="Development journey" data-i18n-aria-label="journeyTitle" aria-haspopup="dialog"></button>
       <button class="rail-btn i-export" type="button" id="quickExport" aria-label="Export .hmod" data-i18n-aria-label="downloadHmod"></button>
     </div>
@@ -202,6 +203,44 @@
     </form>
   </div>
 </section>
+<section id="aiDialog" class="source-workbench ai-creator" hidden role="dialog" aria-modal="true" aria-labelledby="aiHeading">
+  <div class="source-head"><div><h2 id="aiHeading" data-i18n="aiTitle">AI Creator</h2><p data-i18n="aiIntro">Ask for a change, review exactly what it does, then apply it as one step you can undo.</p></div><span id="aiProviderBadge" class="vfx-badge ai-badge" data-i18n="aiSimulatedBadge">Simulated · fixture provider</span><button id="closeAi" type="button" data-i18n="close">Close</button></div>
+  <div class="ai-main">
+    <form id="aiRequest" class="ai-request">
+      <label><span data-i18n="aiProvider">Provider</span><select id="aiProvider"><option value="fixture" data-i18n="aiProviderFixture">Fixture — simulated, offline</option></select></label>
+      <p class="ai-note" data-i18n="aiProviderNote">No live model is connected in this build. The fixture provider turns the structured requests below into operations; it does not read free text, and nothing leaves this computer.</p>
+      <label><span data-i18n="aiIntent">Request</span><select id="aiIntent"><option value="material_set" data-i18n="aiIntent_material_set">Add a material set</option><option value="update" data-i18n="aiIntent_update">Change a block or item</option><option value="impact_effect" data-i18n="aiIntent_impact_effect">Add an Impact Spark effect</option></select></label>
+      <div id="aiFields_material_set" class="ai-fields">
+        <label><span data-i18n="aiMaterial">Material ID</span><input id="aiMaterial" value="topaz" maxlength="48" spellcheck="false" autocomplete="off"/></label>
+        <label><span data-i18n="aiMaterialName">Name</span><input id="aiMaterialName" value="Topaz" maxlength="60"/></label>
+        <label><span data-i18n="rarity">Rarity</span><select id="aiRarity"><option value="common" data-i18n="rarityCommon">common</option><option value="uncommon" data-i18n="rarityUncommon">uncommon</option><option value="rare" data-i18n="rarityRare" selected>rare</option><option value="epic" data-i18n="rarityEpic">epic</option></select></label>
+      </div>
+      <div id="aiFields_update" class="ai-fields" hidden>
+        <label><span data-i18n="aiAsset">Block or item</span><select id="aiAsset"></select></label>
+        <label><span data-i18n="aiField">Property</span><select id="aiField"><option value="name" data-i18n="modName">Name</option><option value="rarity" data-i18n="rarity">Rarity</option><option value="hardness" data-i18n="hardness">Hardness</option><option value="light" data-i18n="light">Light level</option></select></label>
+        <label><span data-i18n="aiValue">New value</span><input id="aiValue" value="Polished" maxlength="100"/></label>
+      </div>
+      <div id="aiFields_impact_effect" class="ai-fields" hidden>
+        <label><span data-i18n="vfxFieldId">Effect ID</span><input id="aiEffectId" value="impact_spark" maxlength="64" spellcheck="false" autocomplete="off"/></label>
+        <label><span data-i18n="vfxFieldName">Name</span><input id="aiEffectName" value="Impact Spark" maxlength="80"/></label>
+        <label><span data-i18n="vfxFieldSeed">Seed</span><input id="aiSeed" type="number" min="0" max="4294967295" step="1" value="1337"/></label>
+      </div>
+      <details class="about"><summary data-i18n="aiContext">What the provider receives</summary><pre id="aiContextView" class="preview-tree"></pre></details>
+      <div class="toolbar"><button id="aiPropose" class="primary" type="submit" data-i18n="aiPropose">Propose</button><button id="aiCancel" type="button" hidden data-i18n="cancel">Cancel</button></div>
+      <p id="aiProgress" class="ai-note" aria-live="polite"></p>
+    </form>
+    <div class="ai-review" aria-live="polite">
+      <h3 data-i18n="aiProposal">Proposal</h3>
+      <p id="aiSummary" class="ai-summary"></p>
+      <ol id="aiPlan" class="ai-plan" aria-label="Operations" data-i18n-aria-label="aiOperations"></ol>
+      <div id="aiDiff" class="ai-diff"></div>
+      <ul id="aiDiagnostics" class="vfx-diagnostics" aria-label="Validation" data-i18n-aria-label="aiValidation"></ul>
+      <div class="toolbar"><button id="aiApply" class="green" type="button" disabled data-i18n="aiApply">Apply as one step</button><button id="aiReject" class="danger ghost" type="button" disabled data-i18n="aiReject">Reject</button><button id="aiUndo" type="button" hidden data-i18n="aiUndoIt">Undo it</button></div>
+      <p id="aiError" class="ai-error" role="alert" hidden></p>
+    </div>
+    <div class="ai-history"><h3 data-i18n="aiHistory">History</h3><ol id="aiHistory" class="ai-plan"></ol></div>
+  </div>
+</section>
 <div id="paletteDialog" class="palette" hidden role="dialog" aria-modal="true" aria-label="Command palette" data-i18n-aria-label="openPalette">
   <div class="palette-box"><input id="paletteInput" type="text" role="combobox" aria-expanded="false" aria-controls="paletteList" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Type a command…" data-i18n-placeholder="palettePlaceholder" aria-label="Command palette" data-i18n-aria-label="openPalette"/>
   <ul id="paletteList" role="listbox" aria-label="Commands" data-i18n-aria-label="paletteCommands"></ul><p id="paletteEmpty" class="palette-empty" hidden data-i18n="paletteEmpty">No matching command</p></div>
@@ -219,6 +258,7 @@
 <script src="/vfx_engine.js"></script>
 <script src="/vfx_ui.js"></script>
 <script src="/command_palette.js"></script>
+<script src="/ai_creator_ui.js"></script>
 <script src="/editor_app.js"></script>
 <script src="/source_workbench_ui.js"></script>
 </body></html>

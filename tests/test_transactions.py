@@ -259,6 +259,64 @@ class AcceptanceTests(Fixture):
                          "redo replays the recorded result: the same uids, the same package")
 
 
+class VfxTransactionTests(unittest.TestCase):
+    """§8: an AI-created effect goes through the same executor and history as every edit."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        self.service = ProjectService(WorkspaceStore(self.root))
+        self.doc = ruby()
+        self.r0 = self.service.commit(self.doc, base_revision=None)["revision"]
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_create_vfx_asset_preview_accept_undo_redo_edit_reopen_and_render(self):
+        proposal = self.service.propose("ruby_demo", {"intent": "impact_effect", "id": "hit", "name": "Hit", "seed": 7},
+                                        base_revision=self.r0)
+        self.assertEqual([op["tool"] for op in proposal["operations"]], ["create_vfx_asset"])
+        [created] = proposal["diff"]["assets"]
+        self.assertEqual((created["change"], created["kind"], created["id"]), ("created", "vfx", "hit"))
+        self.assertIn("VFX_STUDIO_ONLY", [d["code"] for d in proposal["diagnostics"]], "the result says it is not exported")
+        made = self.service.commit_proposal("ruby_demo", proposal["id"], expected_revision=self.r0)
+        effect = find(made["document"], "vfx", "hit")
+        self.assertEqual((effect["props"]["seed"], effect["props"]["name"]), (7, "Hit"))
+        self.assertEqual(vfx.validate(effect["props"]), [])
+        # Game export stays the package without the effect: the officially checked bytes.
+        self.assertEqual(hashlib.sha256(hmod_zip(to_generator_request(made["document"]))).hexdigest(), OFFICIAL_RUBY)
+        frames = [vfx.simulate(effect["props"], t) for t in (0.0, 0.1, 0.3)]
+        back = self.service.undo("ruby_demo", expected_revision=made["revision"])
+        self.assertNotIn("vfx", [o["kind"] for o in back["document"]["objects"]])
+        again = self.service.redo("ruby_demo", expected_revision=back["revision"])
+        self.assertEqual(find(again["document"], "vfx", "hit")["uid"], effect["uid"], "redo gives the same uid")
+        # A person then edits the effect in the VFX Studio (an ordinary editor commit).
+        def tune(state):
+            state["effects"][0]["emitters"][0]["bursts"][0]["count"] = 40
+        edited = self.service.commit(edit(again["document"], tune), base_revision=again["revision"])
+        self.assertEqual(edited["entry"]["changes"]["updated"][0]["fields"], ["emitters"])
+        # Saved and reopened by a new core: the same effect renders the same particles.
+        reopened = ProjectService(WorkspaceStore(self.root)).open("ruby_demo")
+        self.assertEqual(reopened["revision"], edited["revision"])
+        props = find(reopened["document"], "vfx", "hit")["props"]
+        self.assertEqual(props["emitters"][0]["bursts"][0]["count"], 40)
+        undone = ProjectService(WorkspaceStore(self.root)).undo("ruby_demo", expected_revision=edited["revision"])
+        self.assertEqual([vfx.simulate(find(undone["document"], "vfx", "hit")["props"], t) for t in (0.0, 0.1, 0.3)], frames,
+                         "deterministic: the same seed and data give the same particles after every round trip")
+
+    def test_invalid_effects_and_unknown_presets_are_refused_before_anything_changes(self):
+        from studio_core.ai_tools import Session, ToolError
+        session = Session(self.doc)
+        for op, code in (({"tool": "create_vfx_asset", "id": "x", "preset": "dragon_breath"}, "BAD_REQUEST"),
+                         ({"tool": "create_vfx_asset", "id": "x", "set": {"emitters": []}}, "BAD_REQUEST"),
+                         ({"tool": "create_vfx_asset", "id": "x", "set": {"duration": 0}}, "INVALID_RESULT"),
+                         ({"tool": "create_vfx_asset", "id": "Bad Id"}, "INVALID_RESULT")):
+            with self.subTest(op=op), self.assertRaises(ToolError) as refused:
+                session.propose([op], actor="ai:test", expected_revision=session.revision)
+            self.assertEqual(refused.exception.code, code)
+        self.assertEqual(self.service.open("ruby_demo")["revision"], self.r0)
+
+
 class JournalTests(Fixture):
     def test_a_new_edit_drops_the_redo_steps_and_history_is_bounded(self):
         rev = self.first["revision"]

@@ -185,10 +185,13 @@ try{const cached=JSON.parse(localStorage.getItem('horizonStudio_v02')||'null');i
 // HS-025: effects are part of the editor state, so save, autosave, undo and reopen cover them.
 const vfxStudio=window.HorizonVfxStudio.mount({effects:()=>state.effects,commit:list=>{state.effects=list;persist();document.dispatchEvent(new Event('studio:state-changed'));},
   newUid,t,status,target:()=>state.target});
+// HS-020/HS-022: AI proposals reviewed and applied through the same transactions as every edit.
+const aiCreator=window.HorizonAiCreator.mount({t,sync:workspaceSync,snapshot:editorState,status,undo:undoProject,
+  assets:()=>[...state.blocks.map(e=>({kind:'block',id:e.id,name:e.name})),...state.items.map(e=>({kind:'item',id:e.id,name:e.name}))]});
 // HS-033: every workbench command in one keyboard palette (Ctrl+K). Each runs the real control.
 const PALETTE=[['loadProject','project'],['saveProject','project'],['demo','project'],['toggleExplorer','view'],
   ['undoEdit','edit','Ctrl+Z'],['redoEdit','edit','Ctrl+Shift+Z'],['blockTab','view'],['itemTab','view'],['recipeTab','view'],
-  ['structureTab','view'],['openWorkbench','tools'],['openVfx','tools'],['openJourney','tools'],['openCapabilities','tools'],
+  ['structureTab','view'],['openWorkbench','tools'],['openVfx','tools'],['openAi','tools'],['openJourney','tools'],['openCapabilities','tools'],
   ['doctor','tools'],['preview','export'],['exportHmod','export'],['exportSource','export'],['lang-en','language'],['lang-ru','language']];
 const palette=window.HorizonPalette.mount({t,commands:()=>PALETTE.map(([id,group,shortcut])=>{const el=$(id);
   const label=(el?.getAttribute('aria-label')||el?.getAttribute('title')||el?.textContent||id).trim();

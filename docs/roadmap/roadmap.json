@@ -3,7 +3,7 @@
   "updated": "2026-10-31",
   "source": "docs/roadmap/master-2026-10-30.md",
   "current_phase": "F3",
-  "active_milestone": "HS-020",
+  "active_milestone": "HS-021",
   "next_milestones": [
     "HS-009",
     "HS-010"
@@ -634,7 +634,7 @@
       "id": "HS-020",
       "track": "studio",
       "phase": "F3",
-      "status": "in_progress",
+      "status": "done",
       "depends_on": [
         "HS-005",
         "HS-006",
@@ -665,8 +665,18 @@
         },
         {
           "level": "unit",
+          "ref": "create_vfx_asset through the shared transactions: preview, accept, undo, redo, a manual edit, restart, deterministic particles, the officially checked package unchanged; invalid effects and unknown presets refused (tests/test_transactions.py)",
+          "url": "tests/test_transactions.py"
+        },
+        {
+          "level": "unit",
           "ref": "The editor's command client: chained revisions, undo/redo, late answers, conflicts, focus checks, project switches, AI approve/stale/reject (tests/test_editor_workspace.cjs)",
           "url": "tests/test_editor_workspace.cjs"
+        },
+        {
+          "level": "browser-e2e",
+          "ref": "AI Creator panel in Chromium against the real core with the fixture provider (labelled simulated): a person's edit and an AI proposal on the same item, per-field diff, apply as one step, undo, redo, reload with history; stale, rejected and cancelled proposals change nothing; a material set and an Impact Spark effect (create_vfx_asset) through the same transactions with unchanged .hmod bytes for the effect; Russian and axe (tests/e2e/ai.e2e.cjs)",
+          "url": "tests/e2e/ai.e2e.cjs"
         },
         {
           "level": "browser-e2e",
@@ -699,7 +709,7 @@
       "id": "HS-021",
       "track": "studio",
       "phase": "F3",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "HS-020"
       ],
@@ -1145,7 +1155,13 @@
       ],
       "validation_target": "browser-e2e",
       "design_ref": "docs/roadmap/CREATIVE_PLATFORM.md",
-      "evidence": []
+      "evidence": [
+        {
+          "level": "browser-e2e",
+          "ref": "First piece: the AI Creator review panel; AI output (assets, an effect) stays editable in the same UI and every AI change is one reversible step (tests/e2e/ai.e2e.cjs). Live models, animation, entities, graphs and Rust are not started",
+          "url": "tests/e2e/ai.e2e.cjs"
+        }
+      ]
     },
     {
       "id": "HS-024",
