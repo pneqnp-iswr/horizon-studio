@@ -1,13 +1,13 @@
 # Horizon Studio — Implementation Status
 
-Last updated: 2026-10-31. Master before this update: `22535de` (PR #20). Roadmap data: [`roadmap.json`](roadmap.json) → [visual roadmap](../ROADMAP_VISUAL.md).
+Last updated: 2026-10-31. Master before this update: `2f9f1bc` (PR #22). Roadmap data: [`roadmap.json`](roadmap.json) → [visual roadmap](../ROADMAP_VISUAL.md).
 
 ## Roadmap position
 
 - **F0 — Foundation:** code complete; gate still lacks a real-game load record (HS-002 blocked on an authorized Horizon installation).
 - **F1 — Project Core:** done — HS-005, HS-006, HS-007.
 - **F2 — Creative Editor:** **HS-019 native desktop shell and workbench UI, partial** (slice A of the desktop transformation, PR #19). Missing: desktop release pipeline, an E2E run driving the shell's own window, a signing decision.
-- **F3 — Visual Scripting (current):** **HS-008 engine capability registry — done** (CI run 41152431321, PR #22): registry with Horizon's API levels, two audited profiles (`d2186eb`, `3c1d4b39`), project target selection with comparison, editor and CLI export gates; the official checker runs once per profile in CI. **Active milestone: HS-020** (AI Creator tool contract).
+- **F3 — Visual Scripting (current):** **HS-008 engine capability registry — done** (CI run 41152431321, PR #22): registry with Horizon's API levels, two audited profiles (`d2186eb`, `3c1d4b39`), project target selection with comparison, editor and CLI export gates; the official checker runs once per profile in CI. **Active milestone: HS-020** (AI Creator tool contract), in progress: the contract `horizon-studio.ai-tools/1` and its transactional executor exist with deterministic tests and a CLI (`ai-apply`); still missing is the editor routing its own edits through the same executor.
 - **Latest release: v0.7.0** (PR #15 → tag on `c816211`, run 41136925994): `HorizonStudio-0.7.0-Windows-x64.exe`, 12 170 186 bytes, SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9`, unsigned; verified through the API. It stays the released product until the desktop build meets the gates in [ADR 0002](../adr/0002-desktop-shell.md).
 
 ## Roadmap v2 (engineering cycle 2)
