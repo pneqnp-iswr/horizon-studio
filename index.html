@@ -68,6 +68,12 @@
       <div class="side-card stack">
         <input id="projectFile" type="file" accept=".json,application/json" hidden>
         <button id="demo" type="button" data-i18n="loadDemo">Load Ruby demo</button>
+        <label for="ideTemplate"><span data-i18n="ideStarterTitle">Starter projects</span></label>
+        <select id="ideTemplate" aria-label="Starter projects" data-i18n-aria-label="ideStarterTitle" disabled>
+          <option data-i18n="ideStarterLoading">Loading built-in templates…</option>
+        </select>
+        <p id="ideStarterDescription" class="ide-starter-description" aria-live="polite"></p>
+        <button id="ideUseStarter" type="button" class="primary" data-i18n="ideStarterUse" disabled>Use this starter</button>
         <details class="about"><summary data-i18n="aboutSaving">How saving works</summary><p><small id="workspaceSaveNote" data-i18n="saveNote">Projects are saved as .hstudio.json.</small></p></details>
       </div>
     </section>
@@ -283,6 +289,7 @@
 <script src="/vfx_ui.js"></script>
 <script src="/command_palette.js"></script>
 <script src="/ai_creator_ui.js"></script>
+<script src="/ide_starters_ui.js"></script>
 <script src="/editor_app.js"></script>
 <script src="/source_workbench_ui.js"></script>
 </body></html>
