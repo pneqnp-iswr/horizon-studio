@@ -38,6 +38,30 @@
     return errors.length?t('exportBlocked',{details:errors.map(d=>d.message).join('; ')}):'';
   }
 
+  /** Capabilities whose status differs between two engine profiles (HS-008). */
+  function profileDiff(base,other){
+    const names=[...new Set([...Object.keys(base.capabilities),...Object.keys(other.capabilities)])].sort();
+    return names.map(capability=>({capability,from:base.capabilities[capability]?.status||'absent',
+      to:other.capabilities[capability]?.status||'absent',note:other.capabilities[capability]?.note,note_ru:other.capabilities[capability]?.note_ru}))
+      .filter(d=>d.from!==d.to);
+  }
+
+  function targetOptionsMarkup(data,target,lang,t){
+    const label=p=>lang==='ru'&&p.label_ru||p.label;
+    const fallback=data.profiles.find(p=>p.revision===data.default);
+    const options=[`<option value=""${target?'':' selected'}>${esc(t('engineDefaultOption',{label:label(fallback)}))}</option>`,
+      ...data.profiles.map(p=>`<option value="${esc(p.revision)}"${target?.revision===p.revision?' selected':''}>${esc(label(p))}</option>`)];
+    if(target&&!data.profiles.some(p=>p.revision===target.revision))
+      options.push(`<option value="${esc(target.revision)}" selected>${esc(t('engineUnknownOption',{revision:target.revision.slice(0,7)}))}</option>`);
+    return options.join('');
+  }
+
+  function diffMarkup(diff,lang,t){
+    return diff.map(d=>`<li class="${d.to==='official-static'?'cap-ok':d.to==='engine-only'?'cap-engine':'cap-missing'}">`+
+      `<code>${esc(d.capability)}</code> ${esc(t('capStatus_'+d.from))} → ${esc(t('capStatus_'+d.to))}`+
+      `${d.note?`<small> — ${esc(lang==='ru'&&d.note_ru||d.note)}</small>`:''}</li>`).join('');
+  }
+
   function init(ctx){
     const $=id=>document.getElementById(id);
     const {t,post,snapshot}=ctx;
@@ -126,6 +150,25 @@
       else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
     });
 
+    let profiles=null;
+    async function renderTarget(){
+      try{
+        if(!profiles){const response=await fetch('/api/engine-profiles',{cache:'no-store'});if(!response.ok)return;profiles=await response.json();}
+      }catch(_){return;}
+      const lang=window.HorizonI18n.language,target=ctx.getTarget?.()||null;
+      $('engineTargetSelect').innerHTML=targetOptionsMarkup(profiles,target,lang,t);
+      const base=profiles.profiles.find(p=>p.revision===profiles.default);
+      const chosen=target&&profiles.profiles.find(p=>p.revision===target.revision);
+      const diff=chosen&&chosen!==base?profileDiff(base,chosen):[];
+      $('engineDiff').hidden=!diff.length;
+      $('engineDiffTitle').textContent=t('engineDiffTitle',{count:diff.length});
+      $('engineDiffList').innerHTML=diffMarkup(diff,lang,t);
+    }
+    $('engineTargetSelect').addEventListener('change',event=>{
+      const revision=event.target.value;
+      ctx.setTarget?.(revision?{engine:'horizon',revision}:null);
+    });
+
     function update({meta,counts,tab}){
       $('topProjectName').textContent=meta.name||meta.id||'—';
       $('topProjectId').textContent=meta.id||'';
@@ -139,6 +182,7 @@
       }
       document.body.dataset.tab=tab;
       refreshEngine();
+      renderTarget();
     }
     function shell(info){
       $('shellStatus').textContent=info?t('desktopMode',{version:info.shell}):t('browserMode');
@@ -146,11 +190,12 @@
     }
     function refreshLanguage(){
       if(lastCheck)showEngine(lastCheck);
+      renderTarget();
       shell($('shellStatus').dataset.version?{shell:$('shellStatus').dataset.version}:null);
       renderJourney();
     }
     return {update,shell,exportGate,refreshEngine,refreshLanguage,openJourney,closeJourney};
   }
 
-  return {KINDS,esc,emptyStateMarkup,capabilityMarkup,exportBlockReason,init};
+  return {KINDS,esc,emptyStateMarkup,capabilityMarkup,exportBlockReason,profileDiff,targetOptionsMarkup,diffMarkup,init};
 });

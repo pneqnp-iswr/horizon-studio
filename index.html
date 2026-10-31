@@ -82,8 +82,10 @@
     <section class="side-section" aria-live="polite">
       <h3 class="pane-title" data-i18n="engineTarget">Engine target</h3>
       <div class="side-card stack" id="engineCard">
+        <label><span data-i18n="engineTargetLabel">Build for</span><select id="engineTargetSelect"></select></label>
         <small id="engineProfile">—</small>
         <ul class="capability-list" id="engineCapabilities"></ul>
+        <details id="engineDiff" class="about" hidden><summary id="engineDiffTitle"></summary><ul class="capability-list" id="engineDiffList"></ul></details>
         <button type="button" id="openCapabilities" class="i-engine" data-i18n="whatThisBuildSupports">What this build supports</button>
       </div>
     </section>
@@ -204,7 +206,10 @@ const workspaceSync=window.HorizonStudioWorkspace.createWorkspaceSync({
   post:studioPost,snapshot:editorState,projectId:()=>meta().id,isValidId:id=>VALID.test(id),
   apply:state=>applyProject(state,{skipWorkspaceCheck:true}),notify:workspaceNotice,
 });
-const workbench=window.HorizonWorkbench.init({t,post:studioPost,snapshot:editorState,chooseTab});
+const workbench=window.HorizonWorkbench.init({t,post:studioPost,snapshot:editorState,chooseTab,
+  getTarget:()=>state.target||null,
+  setTarget:target=>{if(target)state.target=target;else delete state.target;persist();workbench.update({meta:meta(),tab:state.tab,counts:counts()});}});
+function counts(){return {block:state.blocks.length,item:state.items.length,recipe:state.recipes.length,structure:state.structures.length};}
 function historyButtons(){ $('undoEdit').disabled=!editJournal.canUndo; $('redoEdit').disabled=!editJournal.canRedo; }
 function workspaceNotice(key,values={},mode=workspaceSync.mode){
   const label=$('workspaceSaveStatus');
@@ -256,7 +261,7 @@ function updateWorkspaceMeta(){
   $('workspaceMode').textContent=(m.name||m.id).toUpperCase();
   $('workspaceTitle').textContent=kind.toUpperCase();
   $('workspaceSubtitle').textContent=t('counter',{blocks:state.blocks.length,items:state.items.length,recipes:state.recipes.length});
-  workbench.update({meta:m,tab:state.tab,counts:{block:state.blocks.length,item:state.items.length,recipe:state.recipes.length,structure:state.structures.length}});
+  workbench.update({meta:m,tab:state.tab,counts:counts()});
 }
 function emptyState(){$('entries').innerHTML=HorizonWorkbench.emptyStateMarkup(state.tab,t);if($('emptyDemo'))$('emptyDemo').onclick=example;}
 
@@ -280,7 +285,7 @@ async function api(path){const response=await studioPost(path,JSON.stringify(pay
 async function exportFile(path,extension){const b=$(extension==='hmod'?'exportHmod':'exportSource');b.disabled=true;try{const blocked=await workbench.exportGate();if(blocked){status(blocked,true);return;}status(t('exporting'));const result=await api(path);if(!await download(await result.blob(),meta().id+(extension==='hmod'?'.hmod':'-source.zip'))){status(t('saveCancelled'));return;}status(extension==='hmod'?t('hmodExported'):t('zipExported'));}catch(e){status(e.message,true);}finally{b.disabled=false;}}
 async function inspect(){try{const result=await (await api('/api/preview')).json();$('inspectPanel').hidden=false;$('manifestPreview').textContent=result.manifest;$('filePreview').textContent=result.files.join('\n');status(t('inspectSuccess',{count:result.file_count,bytes:result.bytes_raw}));}catch(e){status(e.message,true);}}
 async function saveProject(){try{const response=await studioPost('/api/project/save',JSON.stringify(editorState()));if(!response.ok){const data=await response.json();throw new Error(data.error||t('apiError'));}if(!await download(await response.blob(),(meta().id||'project')+'.hstudio.json')){status(t('saveCancelled'));return;}status(t('projectSaved'));}catch(e){status(e.message,true);}}
-function applyProject(data,{preserveHistory=false,skipWorkspaceCheck=false}={}){const problem=HorizonStudioModel.projectProblem(data);if(problem)throw new Error(t(problem));const m=data.metadata;for(const [target,key] of [['modId','id'],['modName','name'],['version','version'],['author','author'],['description','description']])$(target).value=m[key]??'';state.blocks=data.blocks;state.items=data.items;state.recipes=data.recipes;state.structures=data.structures||[];state.source_overrides=data.source_overrides||{};state.carry=data.carry||{};HorizonStudioModel.assignMissingUids(state,newUid);chooseTab(preserveHistory?state.tab:'block');persist({record:false,disk:false});if(!preserveHistory)editJournal.reset(editorState());historyButtons();render();if(!skipWorkspaceCheck)beginWorkspaceSession();document.dispatchEvent(new Event('studio:state-changed'));}
+function applyProject(data,{preserveHistory=false,skipWorkspaceCheck=false}={}){const problem=HorizonStudioModel.projectProblem(data);if(problem)throw new Error(t(problem));const m=data.metadata;for(const [target,key] of [['modId','id'],['modName','name'],['version','version'],['author','author'],['description','description']])$(target).value=m[key]??'';state.blocks=data.blocks;state.items=data.items;state.recipes=data.recipes;state.structures=data.structures||[];state.source_overrides=data.source_overrides||{};state.carry=data.carry||{};if(data.target)state.target=data.target;else delete state.target;HorizonStudioModel.assignMissingUids(state,newUid);chooseTab(preserveHistory?state.tab:'block');persist({record:false,disk:false});if(!preserveHistory)editJournal.reset(editorState());historyButtons();render();if(!skipWorkspaceCheck)beginWorkspaceSession();document.dispatchEvent(new Event('studio:state-changed'));}
 function example(){const d={metadata:{id:'ruby_demo',name:'Ruby Demo',version:'0.1.0',author:'Creator',description:'Example with two recipes, a block and a gem'},blocks:[{id:'ruby_block',name:'Block of Ruby',template:'minecraft:iron_block',hardness:4,light:3}],items:[{id:'ruby',name:'Ruby',template:'minecraft:diamond',rarity:'rare',max_stack_size:64}],recipes:[{id:'ruby_block',type:'shaped',result:'@ruby_block',count:1,grid:Array(9).fill('@ruby')},{id:'ruby_from_block',type:'shapeless',result:'@ruby',count:9,grid:['@ruby_block',...Array(8).fill('')]}]};applyProject(d);status(t('demoLoaded'));}
 function refreshLanguage(){
   if(state.tab==='structure'){$('structureEditorTitle').textContent=t(state.editing>=0?'editStructure':'newStructure');$('addStructure').textContent=t(state.editing>=0?'saveChanges':'addStructure');}

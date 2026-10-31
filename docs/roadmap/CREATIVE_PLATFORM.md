@@ -44,7 +44,8 @@ PC-005 can make it one.
 
 ## Engine contracts
 
-Recorded in `roadmap.json` → `engine_contracts` until a capability profile covers them.
+`native.particles` is in the capability registry (unsupported at `d2186eb`, engine-only at `3c1d4b3`); the others are
+recorded in `roadmap.json` → `engine_contracts` until a capability profile covers them (a test keeps the two lists disjoint).
 
 | Contract | State | Source |
 |---|---|---|

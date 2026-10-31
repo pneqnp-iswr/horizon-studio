@@ -21,8 +21,10 @@
 
   /** What the editor saves, autosaves and keeps in history (carry holds opaque plugin data). */
   function editorSnapshot(meta,state){
-    return {metadata:meta,blocks:state.blocks,items:state.items,recipes:state.recipes,structures:state.structures,
+    const snapshot={metadata:meta,blocks:state.blocks,items:state.items,recipes:state.recipes,structures:state.structures,
       source_overrides:state.source_overrides||{},carry:state.carry||{}};
+    if(state.target)snapshot.target=state.target;  // HS-008: the engine revision the project is built for
+    return snapshot;
   }
 
   /** The i18n key describing why ``data`` cannot be opened, or null. */

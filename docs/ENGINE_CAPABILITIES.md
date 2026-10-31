@@ -40,6 +40,35 @@ lists what the project needs (`content.block`, `content.recipe`, `content.block_
 
 Without it the registry's default (the audited pin) is used. Every profile entry cites the upstream source it was read from; profiles are added only with fresh evidence for that revision.
 
+## Profiles
+
+| Profile | Revision | Native hooks | What differs |
+|---|---|---|---|
+| Default (audited pin) | `d2186eb9aa022a64a8b26e6989a04e44fba99ee7` | API 7 | no particle hook (`native.particles` unsupported) |
+| Second profile (upstream `main`, 2026-10-31) | `3c1d4b39c6823dca9751118a0b13e6084d019d64` | API 22 | `native.particles` engine-only: `GameLevel::native_send_particles` (API 11+) emits vanilla particle types from an authoritative level; `Item`, `Trail` and `Vibration` are refused and the result means accepted, not delivered |
+
+Both profiles mark every content capability `official-static`: the official checker built at each revision accepts every
+example and migration fixture (`official-content-check.yml` runs one matrix leg per profile; see
+[COMPATIBILITY_EVIDENCE.md](COMPATIBILITY_EVIDENCE.md)). Custom entities stay unsupported in both. A test keeps the
+workflow matrix and the registry's revisions identical, so a profile cannot be added without its official check.
+
+## Choosing a target
+
+A project names its engine in the canonical document:
+
+```json
+"target": {"engine": "horizon", "revision": "3c1d4b39c6823dca9751118a0b13e6084d019d64"}
+```
+
+`validate_document` accepts only `{"engine": "horizon", "revision": <40 lowercase hex characters>}`. The field is kept
+through editor round trips, saving, opening, migration and the CLI; without it the registry default applies. The editor's
+**Build for** selector in the Engine target card writes it as an undoable edit and lists the capabilities whose status
+differs from the default profile. A project whose revision has no profile keeps its target ("Unknown revision … kept
+as saved"); every export is then refused with `ENGINE_PROFILE_UNKNOWN`, because nothing can be promised for it.
+
+`python horizon_cli.py build` and `source` apply the same gate and write nothing when the target cannot load the project.
+The target never changes the package bytes: the Ruby demo builds `ee3e1c87…` for either profile.
+
 ## In the editor
 
 - The **Engine target** card in the project explorer and the status bar show the profile (`Horizon d2186eb · API 0.2`)
@@ -50,6 +79,6 @@ Without it the registry's default (the audited pin) is used. Every profile entry
   with its backend, API and stability, and a warning on native code. It is the same data, so the app cannot promise
   more than the registry.
 
-**Status of HS-008:** registry with Horizon's API levels, requirement analysis, CLI, editor diagnostics and the export
-gate exist. Still to do: let a project choose its target revision in the editor, and add a second profile when the
-pin moves (the upstream `main` drift probe `3a5ac7ff` is not a profile yet).
+**Status of HS-008:** registry with Horizon's API levels, requirement analysis, two audited profiles, project target
+selection with comparison, the editor diagnostics and export gate, and the CLI gate exist. Further profiles are added
+only with a fresh source audit and an official-check matrix leg.
