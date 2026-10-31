@@ -2,6 +2,7 @@
 /* Desktop workbench chrome in a real browser: empty states, the development journey,
  * the engine-target card and its export gate, and a fully translated Russian UI. */
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const { e2e, t, waitStatus, editorState, download } = require('./harness.cjs');
 
 async function showExplorer(page) {
@@ -226,7 +227,8 @@ e2e('automated WCAG 2.1 AA rules pass on the main workbench states (axe-core)', 
   // Entry cards fade in; with reduced motion they render final colours at once, so contrast is measured as seen.
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const audit = async label => {
-    await page.addScriptTag({ path: axe });
+    // The page's CSP refuses inline scripts, which is what addScriptTag inserts; DevTools evaluation is not a page script.
+    await page.evaluate(fs.readFileSync(axe, 'utf8'));
     const result = await page.evaluate(() => window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] }));
     assert.deepEqual(result.violations.map(v => `${label}: ${v.id} (${v.nodes.map(n => n.target.join(' ')).join(', ')})`), []);
   };

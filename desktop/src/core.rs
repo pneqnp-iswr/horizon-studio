@@ -1,6 +1,8 @@
 //! The Python project core as a child process (`launcher.py --serve`, protocol
-//! `horizon-studio.core/1`). The shell holds the core's stdin; closing it, or the shell
-//! dying, makes the core shut down, so no server outlives the window.
+//! `horizon-studio.core/1`). The shell holds the core's stdin; closing it makes a responsive
+//! core shut down, a core that does not stop in time is killed, and the shell owns the core's
+//! whole process tree (`tree.rs`: a kill-on-close Job Object on Windows, a process group
+//! elsewhere), so neither the core nor anything it started outlives the window.
 //!
 //! The handshake also carries the core's API session token. It travels only over this private
 //! pipe; in desktop mode the core does not hand it to HTTP clients, so another local process
@@ -17,6 +19,8 @@ use std::time::{Duration, Instant};
 
 use serde::Deserialize;
 use tauri::Url;
+
+use crate::tree::{self, Tree};
 
 pub const PROTOCOL: &str = "horizon-studio.core/1";
 
@@ -106,6 +110,23 @@ pub fn parse_handshake(line: &str) -> Result<Ready, String> {
     Ok(Ready { url, version: handshake.version, pid: handshake.pid, token })
 }
 
+/// The core's log can name projects and folders: only the person may read it (0600 on Unix; on
+/// Windows the per-user application data folder already has a user-only ACL).
+fn private_log(path: &Path) -> std::io::Result<File> {
+    let mut options = std::fs::OpenOptions::new();
+    options.write(true).create(true).truncate(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
+        options.mode(0o600);
+        let file = options.open(path)?;
+        file.set_permissions(std::fs::Permissions::from_mode(0o600))?;  // an older log kept its mode
+        Ok(file)
+    }
+    #[cfg(not(unix))]
+    options.open(path)
+}
+
 pub struct Core {
     child: Child,
     stdin: Option<ChildStdin>,
@@ -115,6 +136,7 @@ pub struct Core {
     pub token: String,
     pub launch: Launch,
     exited: Arc<AtomicBool>,
+    tree: Tree,
 }
 
 impl Core {
@@ -134,7 +156,7 @@ impl Core {
                 command
             }
         };
-        let stderr = match log.map(File::create) {
+        let stderr = match log.map(private_log) {
             Some(Ok(file)) => Stdio::from(file),
             _ => Stdio::null(),
         };
@@ -151,7 +173,10 @@ impl Core {
             const CREATE_NO_WINDOW: u32 = 0x0800_0000;
             command.creation_flags(CREATE_NO_WINDOW);
         }
+        tree::prepare(&mut command);
         let mut child = command.spawn().map_err(|e| format!("Could not start the core ({launch:?}): {e}"))?;
+        // Before reading the handshake: the core starts no process before it, so its tree is whole.
+        let mut tree = Tree::adopt(&child);
         let stdout = child.stdout.take().expect("piped stdout");
         let (sender, receiver) = mpsc::channel();
         let exited = Arc::new(AtomicBool::new(false));
@@ -170,11 +195,13 @@ impl Core {
             Ok(Ok(_)) | Ok(Err(_)) => {
                 // Its stdout closed or is unreadable; it may still be running, so never wait unbounded.
                 let _ = child.kill();
+                tree.kill();
                 let status = child.wait().ok().and_then(|s| s.code());
                 return Err(format!("The core exited before it was ready (exit code {status:?})"));
             }
             Err(_) => {
                 let _ = child.kill();
+                tree.kill();
                 let _ = child.wait();
                 return Err(format!("The core did not report ready within {} s", timeout.as_secs()));
             }
@@ -182,14 +209,20 @@ impl Core {
         match parse_handshake(&line) {
             Ok(Ready { url, version, pid, token }) => {
                 let stdin = child.stdin.take();
-                Ok(Core { child, stdin, url, version, pid, token, launch, exited })
+                Ok(Core { child, stdin, url, version, pid, token, launch, exited, tree })
             }
             Err(error) => {
                 let _ = child.kill();
+                tree.kill();
                 let _ = child.wait();
                 Err(error)
             }
         }
+    }
+
+    /// Whether the shell owns the core's process tree (see `tree.rs`).
+    pub fn contained(&self) -> bool {
+        self.tree.contained()
     }
 
     /// True once the core's stdout has closed (it stopped or died).
@@ -204,11 +237,15 @@ impl Core {
         drop(self.stdin.take());
         while started.elapsed() < timeout {
             if let Ok(Some(status)) = self.child.try_wait() {
+                // Anything the core started and left running goes with it. While such a process
+                // remains, its group id cannot be reused, so the signal reaches only this tree.
+                self.tree.kill();
                 return (status.code(), false, started.elapsed());
             }
             thread::sleep(Duration::from_millis(25));
         }
         let _ = self.child.kill();
+        self.tree.kill();
         let code = self.child.wait().ok().and_then(|s| s.code());
         (code, true, started.elapsed())
     }
@@ -224,6 +261,7 @@ impl Drop for Core {
                 let _ = self.child.wait();
             }
         }
+        self.tree.kill();
     }
 }
 
@@ -278,6 +316,20 @@ mod tests {
         assert!(took < Duration::from_secs(10));
     }
 
+    #[cfg(unix)]
+    #[test]
+    fn the_core_log_is_private() {
+        use std::os::unix::fs::PermissionsExt;
+        let log = std::env::temp_dir().join(format!("hs-core-log-{}.log", std::process::id()));
+        std::fs::write(&log, b"old").unwrap();
+        std::fs::set_permissions(&log, std::fs::Permissions::from_mode(0o644)).unwrap();
+        let core = Core::start(fake_core("log", &format!("{READY}sys.stdin.read()\n")), Some(&log), Duration::from_secs(30), || {})
+            .expect("handshake");
+        core.stop(Duration::from_secs(10));
+        assert_eq!(std::fs::metadata(&log).unwrap().permissions().mode() & 0o777, 0o600);
+        let _ = std::fs::remove_file(log);
+    }
+
     #[test]
     fn a_hung_core_is_killed_after_the_timeout() {
         let launch = fake_core("hung", &format!("{READY}import time\nwhile True:\n    time.sleep(1)\n"));
@@ -285,6 +337,30 @@ mod tests {
         let (_, killed, took) = core.stop(Duration::from_millis(500));
         assert!(killed, "a core that ignores EOF is killed");
         assert!(took < Duration::from_secs(10));
+    }
+
+    #[test]
+    fn stopping_the_core_also_stops_what_it_started() {
+        let dir = std::env::temp_dir().join(format!("hs-core-tree-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let pid_file = dir.join("grandchild.pid");
+        let body = format!(
+            "{READY}import subprocess, time\ng = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(120)'])\n\
+             open({:?}, 'w').write(str(g.pid))\nsys.stdin.read()\n",
+            pid_file.to_string_lossy()
+        );
+        let core = Core::start(fake_core("tree", &body), None, Duration::from_secs(30), || {}).expect("handshake");
+        assert!(core.contained(), "the shell owns the core's tree ({})", tree::kind());
+        let started = Instant::now();
+        while !pid_file.is_file() || std::fs::read_to_string(&pid_file).unwrap().is_empty() {
+            assert!(started.elapsed() < Duration::from_secs(20), "the grandchild started");
+            thread::sleep(Duration::from_millis(50));
+        }
+        let grandchild: u32 = std::fs::read_to_string(&pid_file).unwrap().trim().parse().unwrap();
+        let (code, killed, _) = core.stop(Duration::from_secs(10));
+        assert_eq!((code, killed), (Some(0), false), "the core itself stopped at EOF");
+        assert!(crate::tree::tests_support::wait_gone(grandchild), "the game it started did not outlive it");
+        let _ = std::fs::remove_dir_all(dir);
     }
 
     #[test]

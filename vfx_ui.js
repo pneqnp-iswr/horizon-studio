@@ -37,7 +37,7 @@
 
     function list(){
       const items=effects();
-      $('vfxEffects').innerHTML=items.length?items.map(e=>`<li><button type="button" data-vfx="${e.uid}" aria-pressed="${e.uid===ui.selected}"${e.uid===ui.selected?' class="selected"':''}>`+
+      $('vfxEffects').innerHTML=items.length?items.map(e=>`<li><button type="button" data-vfx="${esc(e.uid)}" aria-pressed="${e.uid===ui.selected}"${e.uid===ui.selected?' class="selected"':''}>`+
         `<b>${esc(e.name)}</b><small>${esc(e.id)}</small></button></li>`).join(''):`<li class="empty-hint">${esc(ctx.t('vfxEmpty'))}</li>`;
       for(const b of $('vfxEffects').querySelectorAll('[data-vfx]'))b.onclick=()=>{select(b.dataset.vfx);};
       $('vfxDelete').disabled=!current();
@@ -74,7 +74,7 @@
       const notes=Vfx.engineNotes(model(e),caps.capabilities);
       const rows=[...(problems||[]).map(p=>({level:'error',code:p.code,text:ctx.t('vfxProblem',{path:p.path,message:p.message})})),
         ...notes.map(n=>({...n,text:ctx.t('vfxNote_'+n.code,{api:n.api??'?'})}))];
-      $('vfxDiagnostics').innerHTML=rows.map(r=>`<li class="vfx-${r.level}" data-code="${esc(r.code)}">${esc(r.text)}</li>`).join('');
+      $('vfxDiagnostics').innerHTML=rows.map(r=>`<li class="vfx-${esc(r.level)}" data-code="${esc(r.code)}">${esc(r.text)}</li>`).join('');
     }
 
     function frame(){
@@ -175,6 +175,7 @@
     }
     function close(){pause();$('vfxDialog').hidden=true;$('openVfx').focus();}
 
+    $('vfxInspector').addEventListener('submit',event=>event.preventDefault());  // fields commit on change, never submit
     for(const [id,path,kind] of FIELDS)$(id).addEventListener('change',()=>commitField($(id),path,kind));
     $('vfxId').addEventListener('change',rename);
     $('vfxNewSpark').onclick=create;

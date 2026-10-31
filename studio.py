@@ -49,6 +49,7 @@ WEB_SCRIPTS = {
     'vfx_engine.js': b'HorizonVfx',
     'vfx_ui.js': b'HorizonVfxStudio',
     'command_palette.js': b'HorizonPalette',
+    'editor_app.js': b'createWorkspaceSync({',
 }
 # Every file the packaged application needs at runtime, relative to the repository root.
 ROADMAP_ICONS = tuple(sorted(f'assets/roadmap/icons/{icon.name}'
@@ -505,6 +506,15 @@ def transaction_request(server, path: str, payload) -> dict:
     return service.reject(_text(payload, 'project_id'), _text(payload, 'proposal_id'))
 
 
+def content_security_policy(desktop: bool) -> str:
+    """Scripts only from this origin: no inline script or handler runs (S3/CSP). Inline style
+    attributes are still allowed; they cannot run code. Inside the desktop shell the page also
+    reaches the shell's IPC endpoint, and only through connect-src."""
+    connect = "'self' ipc: http://ipc.localhost" if desktop else "'self'"
+    return ("default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; "
+            f"connect-src {connect}; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         stream = getattr(self.server, 'studio_log', sys.stdout)  # the desktop core keeps stdout for its protocol
@@ -519,9 +529,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('X-Frame-Options', 'DENY')
         self.send_header('Referrer-Policy', 'no-referrer')
-        # Inside the desktop shell the page also reaches the shell's IPC endpoint.
-        ipc = ' ipc: http://ipc.localhost' if getattr(self.server, 'studio_desktop', False) else ''
-        self.send_header('Content-Security-Policy', "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'" + ipc)
+        self.send_header('Content-Security-Policy', content_security_policy(getattr(self.server, 'studio_desktop', False)))
         if filename:
             self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
         self.end_headers()
