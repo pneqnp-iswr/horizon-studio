@@ -51,6 +51,18 @@ only through HS-010's isolated, user-approved process; an AI tool can never appr
 - **Determinism.** Equivalent canonical projects build identical packages: the fixture provider's Ruby set builds the
   exact bytes the official checker accepted (`ee3e1c87…`).
 
+## One history with the editor (HS-020)
+
+Proposals reach the editor through the core's transaction protocol ([TRANSACTIONS.md](TRANSACTIONS.md)), not as a
+replacement of the editor's state:
+- `/api/ai/propose` plans the provider's operations on a copy of the stored project and validates them strictly, and
+  returns a per-field diff;
+- `/api/ai/commit` commits them only at the revision they were made for (`STALE_PROPOSAL` otherwise);
+- `/api/ai/reject` drops them.
+
+An approved proposal is one step in the same journal as the person's edits, so one undo takes it back, after a restart
+too. The journal records the resolved operations, so redo gives the same uids and the same `.hmod`.
+
 ## Providers and privacy (HS-021, planned)
 
 - One interface, `propose(request, context) -> operations`. `FixtureProvider` is the deterministic reference used in
@@ -72,8 +84,9 @@ fixture provider. The input project is never modified; a refused transaction wri
 
 ## Roadmap
 
-- HS-020 (in progress): this contract and executor — done when the editor routes its own edits through the same
-  transactions (a core endpoint the workbench calls).
+- HS-020 (in progress): this contract and executor, and one transaction protocol for the editor and AI proposals
+  (`studio_core/transactions.py`). The editor routes its own edits, undo and redo through it. It is complete once the
+  AI Creator panel drives the AI path in the browser end to end.
 - HS-021: providers, credentials, consent and offline mode.
 - HS-022: the AI Creator panel (proposal review, audit trail, approvals) and authoring across models, animation, VFX, entities, graphs and Rust, with validate-and-repair loops.
 - HS-024: the live preview loop through the Preview Bridge (HS-023).

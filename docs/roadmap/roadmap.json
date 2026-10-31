@@ -642,20 +642,37 @@
       ],
       "title": "AI Creator: typed tool contract and transactional executor",
       "title_ru": "AI Creator: типизированные инструменты и транзакционный исполнитель",
-      "summary": "AI and people edit the same canonical project through the same validated, reversible operations, with an audit log.",
-      "summary_ru": "ИИ и люди правят один канонический проект одними и теми же проверяемыми и обратимыми операциями с журналом аудита.",
-      "deliverable": "Tool executor (inspect, list, create, update, delete, validate, capabilities, build, rollback) with deterministic tests.",
-      "deliverable_ru": "Исполнитель инструментов (inspect, list, create, update, delete, validate, capabilities, build, rollback) с детерминированными тестами.",
+      "summary": "AI and people edit the same canonical project through the same validated, reversible operations: the core owns the revision, the history and the audit trail.",
+      "summary_ru": "ИИ и люди правят один канонический проект одними и теми же проверяемыми и обратимыми операциями: ревизией, историей и журналом аудита владеет ядро.",
+      "deliverable": "Tool executor (inspect, list, create, update, delete, validate, capabilities, build, rollback) and one transaction protocol for the editor and AI proposals: commit, undo/redo on a journal on disk, propose/approve/reject, revision conflicts.",
+      "deliverable_ru": "Исполнитель инструментов (inspect, list, create, update, delete, validate, capabilities, build, rollback) и единый протокол транзакций для редактора и предложений ИИ: commit, undo/redo по журналу на диске, propose/approve/reject, конфликты ревизий.",
       "acceptance": [
         "Each edit is schema-validated with revision preconditions",
         "Every transaction can be previewed and rolled back",
         "Invalid requests change nothing",
-        "Equivalent projects build identical .hmod bytes"
+        "Equivalent projects build identical .hmod bytes",
+        "The editor's edits and approved AI proposals share one history that survives a restart",
+        "A stale proposal or a second tab cannot silently overwrite newer work"
       ],
       "engine_requirements": [],
-      "validation_target": "unit",
-      "design_ref": "docs/architecture/AI_CREATOR.md",
+      "validation_target": "browser-e2e",
+      "design_ref": "docs/architecture/TRANSACTIONS.md",
       "evidence": [
+        {
+          "level": "unit",
+          "ref": "HS-020 acceptance on a real workspace folder: a person's edit, an AI proposal on the same item, its per-field diff, approval, undo, redo, autosave, restart with history, a stale proposal refused, a second tab refused, a failed multi-operation transaction that changes nothing, effects and plugin data byte for byte, consistent .hmod; crash and backup recovery of the journal; 300 random exact diffs; the HTTP command protocol (tests/test_transactions.py)",
+          "url": "tests/test_transactions.py"
+        },
+        {
+          "level": "unit",
+          "ref": "The editor's command client: chained revisions, undo/redo, late answers, conflicts, focus checks, project switches, AI approve/stale/reject (tests/test_editor_workspace.cjs)",
+          "url": "tests/test_editor_workspace.cjs"
+        },
+        {
+          "level": "browser-e2e",
+          "ref": "Chromium against the real core: undo and redo from buttons and shortcuts reach the disk and survive a reload; a stale tab gets a conflict; Keep editor is an explicit commit (tests/e2e/editor.e2e.cjs)",
+          "url": "tests/e2e/editor.e2e.cjs"
+        },
         {
           "level": "unit",
           "ref": "Tool contract horizon-studio.ai-tools/1 and transactional executor: schema, reference and generator validation, revision preconditions, preview, cancel, rollback, audit log, privileged export, engine capability gate; the fixture provider's Ruby set builds the officially checked bytes ee3e1c87 (tests/test_ai_creator.py)",
@@ -665,6 +682,11 @@
           "level": "unit",
           "ref": "CLI: horizon_cli.py ai-apply writes a new project and a JSONL audit, never the input; a refused transaction writes nothing",
           "url": "horizon_cli.py"
+        },
+        {
+          "level": "docs",
+          "ref": "ADR 0003 and the transaction protocol: ownership, commands, checks, undo/redo, conflicts, crashes, limits",
+          "url": "docs/architecture/TRANSACTIONS.md"
         },
         {
           "level": "docs",

@@ -169,8 +169,10 @@ scenario('creates a block, an item and a recipe, renames with stable uids, undoe
     assert.equal(renamed.items[0].uid, uid);
     assert.equal(renamed.items[0].id, 'fire_opal');
     assert.ok(renamed.recipes[0].grid.every(cell => cell === '@fire_opal'));
+    await win.waitFor(() => !document.querySelector('#undoEdit').disabled, { message: 'the core recorded the step (undoEdit)' });
     await win.click('#undoEdit');
     await win.waitFor(() => JSON.parse(localStorage.getItem('horizonStudio_v02')).items[0].id === 'opal', { message: 'undo' });
+    await win.waitFor(() => !document.querySelector('#redoEdit').disabled, { message: 'the core recorded the step (redoEdit)' });
     await win.click('#redoEdit');
     await win.waitFor(() => JSON.parse(localStorage.getItem('horizonStudio_v02')).items[0].id === 'fire_opal', { message: 'redo' });
   } finally {
@@ -231,6 +233,7 @@ scenario('edits JSON in the Source Workbench and exports it in the .hmod and the
     const source = readZip(fs.readFileSync(path.join(box.saves, 'ruby_demo-source.zip')));
     assert.ok(source['ruby_demo/horizon-mod.toml'].toString('utf8').includes('id = "ruby_demo"'));
     assert.deepEqual(JSON.parse(source[`ruby_demo/${target}`].toString('utf8')), override);
+    await win.waitFor(() => !document.querySelector('#undoEdit').disabled, { message: 'the core recorded the step (undoEdit)' });
     await win.click('#undoEdit');
     await win.waitFor(() => Object.keys(JSON.parse(localStorage.getItem('horizonStudio_v02')).source_overrides).length === 0, { message: 'undo' });
   } finally {

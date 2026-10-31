@@ -32,6 +32,11 @@ READ_ONLY = ("inspect_project", "list_assets", "inspect_capabilities", "validate
 EDITS = ("create_asset", "update_asset", "delete_asset")
 PRIVILEGED = ("export_package",)
 TOOLS = READ_ONLY + EDITS + ("rollback_transaction",) + PRIVILEGED
+# Operations the editor's own transactions also use (studio_core.transactions); not offered to models.
+STUDIO_EDITS = ("replace_asset", "set_project", "set_target", "set_source_overrides", "set_document_field",
+                "reorder_assets", "reorder_fields")
+# Document fields with their own operations; any other top-level field goes through set_document_field.
+FIXED_FIELDS = ("format", "schema", "project", "objects", "target", "source_overrides")
 
 
 class ToolError(ValueError):
@@ -85,6 +90,7 @@ class Session:
         self.proposals: dict[str, Proposal] = {}
         self.history: list[Transaction] = []
         self.audit: list[dict] = []
+        self._literal = False
 
     # -- bookkeeping ------------------------------------------------------------
     @property
@@ -151,14 +157,18 @@ class Session:
                 "hmod_base64": base64.b64encode(data).decode("ascii")}
 
     # -- edits ----------------------------------------------------------------------
-    def propose(self, operations: list, *, actor: str, expected_revision: str) -> Proposal:
-        """Plan ``operations`` on a copy and validate the result; nothing changes until commit."""
+    def propose(self, operations: list, *, actor: str, expected_revision: str, allowed: tuple = EDITS,
+                strict: bool = True, literal: bool = False) -> Proposal:
+        """Plan ``operations`` on a copy and validate the result; nothing changes until commit.
+
+        ``strict`` refuses any error diagnostic (models must hand over buildable projects); the editor's
+        own transactions pass ``strict=False``: the schema is still enforced, other findings are returned."""
         self._expect(expected_revision, actor, "propose", operations)
         try:
-            document, changes = self._plan(operations)
+            document, changes = self._plan(operations, allowed, literal=literal)
             diagnostics = _validate(document)
             errors = [d for d in diagnostics if d["level"] == "error"]
-            if errors:
+            if errors and strict:
                 raise ToolError("INVALID_RESULT", "; ".join(d["message"] for d in errors), errors)
         except ToolError as exc:
             self._log(actor, "propose", operations, "rejected", code=exc.code)
@@ -217,26 +227,47 @@ class Session:
         return undo
 
     # -- planning ---------------------------------------------------------------------
-    def _plan(self, operations) -> tuple[dict, dict]:
-        if not isinstance(operations, list) or not operations or len(operations) > 256:
-            raise ToolError("BAD_REQUEST", "Expected a list of 1-256 operations")
+    def plan(self, operations: list, *, allowed: tuple = EDITS, literal: bool = False) -> tuple[dict, dict]:
+        """The document ``operations`` would produce and what they change; nothing is kept."""
+        return self._plan(operations, allowed, literal=literal)
+
+    def _plan(self, operations, allowed=EDITS, *, literal=False) -> tuple[dict, dict]:
+        """``literal`` operations carry canonical values (the editor's diffs, undo and redo): no
+        ``{"asset": …}`` lookups, and a deletion is not refused for references, because the
+        caller checks the result against the exact document it expects."""
+        if not isinstance(operations, list) or not operations or len(operations) > 4096:
+            raise ToolError("BAD_REQUEST", "Expected a list of 1-4096 operations")
         doc = copy.deepcopy(self.doc)
-        changes = {"created": [], "updated": [], "deleted": []}
-        for index, op in enumerate(operations):
-            if not isinstance(op, dict) or op.get("tool") not in EDITS:
-                raise ToolError("UNKNOWN_TOOL", f"operations[{index}]: expected one of {', '.join(EDITS)}")
-            getattr(self, "_op_" + op["tool"])(doc, op, changes, index)
+        changes = {"created": [], "updated": [], "deleted": [], "project": []}
+        self._literal = literal
+        try:
+            for index, op in enumerate(operations):
+                if not isinstance(op, dict) or op.get("tool") not in allowed:
+                    raise ToolError("UNKNOWN_TOOL", f"operations[{index}]: expected one of {', '.join(allowed)}")
+                getattr(self, "_op_" + op["tool"])(doc, op, changes, index)
+        finally:
+            self._literal = False
         try:
             validate_document(doc)
         except ProjectFormatError as exc:
             raise ToolError("INVALID_RESULT", str(exc)) from exc
         return doc, changes
 
-    def _find(self, doc, uid, index):
+    def _find(self, doc, uid, index, op=None):
+        """The asset an operation names: by ``uid``, or (models only) by ``"asset": "kind:id"``."""
+        if uid is None and op is not None and not self._literal and isinstance(op.get("asset"), str):
+            kind, _, object_id = op["asset"].partition(":")
+            found = next((o for o in doc["objects"] if o["kind"] == kind and o["id"] == object_id), None)
+            if found is None:
+                raise ToolError("UNKNOWN_ASSET", f"operations[{index}]: no {kind} {object_id!r}")
+            return found
         found = next((o for o in doc["objects"] if o["uid"] == uid), None)
         if found is None:
             raise ToolError("UNKNOWN_ASSET", f"operations[{index}]: no asset with uid {uid!r}")
         return found
+
+    def _value(self, doc, value, index):
+        return copy.deepcopy(value) if self._literal else self._resolve(doc, value, index)
 
     @staticmethod
     def _resolve(doc, value, index):
@@ -260,25 +291,99 @@ class Session:
         uid = op.get("uid") or self._uid()
         if not is_uid(uid) or any(o["uid"] == uid for o in doc["objects"]):
             raise ToolError("BAD_REQUEST", f"operations[{index}]: uid must be a new lowercase UUID")
-        doc["objects"].append({"uid": uid, "kind": kind, "id": object_id, "props": self._resolve(doc, props, index)})
+        doc["objects"].append({"uid": uid, "kind": kind, "id": object_id, "props": self._value(doc, props, index)})
         changes["created"].append({"uid": uid, "kind": kind, "id": object_id})
 
     def _op_update_asset(self, doc, op, changes, index):
-        obj = self._find(doc, op.get("uid"), index)
-        patch, unset = op.get("set", {}), op.get("unset", [])
-        if not isinstance(patch, dict) or not isinstance(unset, list):
-            raise ToolError("BAD_REQUEST", f"operations[{index}]: set must be an object and unset a list")
-        fields = sorted(set(patch) | set(unset) | ({"id"} if "id" in op else set()))
-        obj["props"].update(self._resolve(doc, patch, index))
-        for key in unset:
-            obj["props"].pop(key, None)
+        obj = self._find(doc, op.get("uid"), index, op)
+        if "props" in op:  # every property at once (keeps the given key order)
+            if not isinstance(op["props"], dict) or "set" in op or "unset" in op:
+                raise ToolError("BAD_REQUEST", f"operations[{index}]: props must be an object, without set or unset")
+            replaced = self._value(doc, op["props"], index)
+            fields = sorted(k for k in set(replaced) | set(obj["props"]) if replaced.get(k) != obj["props"].get(k))
+            obj["props"] = replaced
+        else:
+            patch, unset = op.get("set", {}), op.get("unset", [])
+            if not isinstance(patch, dict) or not isinstance(unset, list):
+                raise ToolError("BAD_REQUEST", f"operations[{index}]: set must be an object and unset a list")
+            fields = sorted(set(patch) | set(unset))
+            obj["props"].update(self._value(doc, patch, index))
+            for key in unset:
+                obj["props"].pop(key, None)
+        fields = sorted(set(fields) | ({"id"} if "id" in op else set()))
         if "id" in op:  # a rename keeps the uid, so uid references follow it
             obj["id"] = op["id"]
         changes["updated"].append({"uid": obj["uid"], "kind": obj["kind"], "id": obj["id"], "fields": fields})
 
+    # -- the editor's own operations (STUDIO_EDITS; literal values, exact results) ------------
+    def _op_replace_asset(self, doc, op, changes, index):
+        """Replaces a whole object in place: a changed kind, extra object fields or a new key order."""
+        uid, value = op.get("uid"), op.get("object")
+        if not isinstance(value, dict) or value.get("uid") != uid:
+            raise ToolError("BAD_REQUEST", f"operations[{index}]: object must be the asset with uid {uid!r}")
+        obj = self._find(doc, uid, index)
+        doc["objects"][doc["objects"].index(obj)] = copy.deepcopy(value)
+        changes["updated"].append({"uid": uid, "kind": value.get("kind"), "id": value.get("id"), "fields": ["*"]})
+
+    def _op_set_project(self, doc, op, changes, index):
+        value = op.get("project")
+        if not isinstance(value, dict):
+            raise ToolError("BAD_REQUEST", f"operations[{index}]: project must be an object")
+        keys = sorted(k for k in set(value) | set(doc["project"]) if value.get(k) != doc["project"].get(k))
+        doc["project"] = copy.deepcopy(value)
+        changes["project"].append({"field": "project", "keys": keys})
+
+    def _op_set_target(self, doc, op, changes, index):
+        if "target" not in op:
+            raise ToolError("BAD_REQUEST", f"operations[{index}]: target is required (null removes it)")
+        if op["target"] is None:
+            doc.pop("target", None)
+        else:
+            doc["target"] = copy.deepcopy(op["target"])
+        changes["project"].append({"field": "target"})
+
+    def _op_set_source_overrides(self, doc, op, changes, index):
+        value = op.get("overrides")
+        if value is not None and not isinstance(value, dict):
+            raise ToolError("BAD_REQUEST", f"operations[{index}]: overrides must be an object (null removes them)")
+        before = doc.get("source_overrides", {})
+        if value is None:
+            doc.pop("source_overrides", None)
+            value = {}
+        else:
+            doc["source_overrides"] = copy.deepcopy(value)
+        changes["project"].append({"field": "source_overrides",
+                                   "keys": sorted(k for k in set(value) | set(before) if value.get(k) != before.get(k))})
+
+    def _op_set_document_field(self, doc, op, changes, index):
+        name = op.get("field")
+        if not isinstance(name, str) or name in FIXED_FIELDS:
+            raise ToolError("BAD_REQUEST", f"operations[{index}]: {name!r} cannot be set with set_document_field")
+        if op.get("present", True):
+            doc[name] = copy.deepcopy(op.get("value"))
+        else:
+            doc.pop(name, None)
+        changes["project"].append({"field": name})
+
+    def _op_reorder_assets(self, doc, op, changes, index):
+        order = op.get("uids")
+        by_uid = {o["uid"]: o for o in doc["objects"]}
+        if not isinstance(order, list) or len(order) != len(by_uid) or set(order) != set(by_uid):
+            raise ToolError("BAD_REQUEST", f"operations[{index}]: uids must list every asset exactly once")
+        doc["objects"] = [by_uid[uid] for uid in order]
+        changes["project"].append({"field": "order"})
+
+    def _op_reorder_fields(self, doc, op, changes, index):
+        order = op.get("fields")
+        if not isinstance(order, list) or len(order) != len(doc) or set(order) != set(doc):
+            raise ToolError("BAD_REQUEST", f"operations[{index}]: fields must list every document field exactly once")
+        reordered = {name: doc[name] for name in order}
+        doc.clear()
+        doc.update(reordered)
+
     def _op_delete_asset(self, doc, op, changes, index):
-        obj = self._find(doc, op.get("uid"), index)
-        users = AssetGraph(doc).dependents(obj["uid"])
+        obj = self._find(doc, op.get("uid"), index, op)
+        users = [] if self._literal else AssetGraph(doc).dependents(obj["uid"])
         if users:
             raise ToolError("IN_USE", f"operations[{index}]: {obj['kind']} {obj['id']} is used by {len(users)} asset(s); "
                                       "delete or change them first")
@@ -307,9 +412,18 @@ class FixtureProvider:
 
     name = "fixture"
 
+    INTENTS = ("material_set", "update")
+
     def propose(self, request: dict, context: dict) -> list[dict]:
-        if request.get("intent") != "material_set":
-            raise ToolError("UNSUPPORTED_REQUEST", "The fixture provider only knows the 'material_set' intent")
+        intent = request.get("intent")
+        if intent == "update":  # change properties of one existing asset, named "kind:id"
+            if not isinstance(request.get("asset"), str) or not isinstance(request.get("set"), dict):
+                raise ToolError("BAD_REQUEST", "update needs an asset ('kind:id') and the properties to set")
+            return [{"tool": "update_asset", "asset": request["asset"], "set": request["set"]}]
+        if intent != "material_set":
+            raise ToolError("UNSUPPORTED_REQUEST", f"The fixture provider only knows {', '.join(self.INTENTS)}")
+        if not isinstance(request.get("material"), str):
+            raise ToolError("BAD_REQUEST", "material_set needs a material id")
         material, label = request["material"], request.get("name", request["material"].replace("_", " ").title())
         block = f"{material}_block"
         return [

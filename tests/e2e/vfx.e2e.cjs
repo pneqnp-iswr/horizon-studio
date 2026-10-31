@@ -68,10 +68,11 @@ e2e('effect edits are validated, undoable, saved in the project and leave the .h
   await page.dispatchEvent('#vfxSparkCount', 'change');
   assert.equal(await count(), 40);
   await page.click('#closeVfx');
-  await page.click('#undoEdit');
-  assert.equal(await count(), 28);
+  const waitCount = n => page.waitForFunction(n => JSON.parse(localStorage.getItem('horizonStudio_v02')).effects[0].emitters[0].bursts[0].count === n, n);
+  await page.click('#undoEdit');  // Playwright waits until the core has recorded the edit (enabled)
+  await waitCount(28);
   await page.click('#redoEdit');
-  assert.equal(await count(), 40);
+  await waitCount(40);
 
   const saved = JSON.parse((await download(page, '#saveProject')).toString('utf8'));
   const effect = saved.objects.find(o => o.kind === 'vfx');
