@@ -5,7 +5,8 @@
 pub const ID: &str = "pixelchat_hud";
 pub const NAME: &str = "PixelChat HUD";
 pub const VERSION: &str = "0.1.0";
-pub const DESCRIPTION: &str = "Original pixel-art emoji HUD proof. /pixelchat toggles; multiplayer GIF is not supported.";
+pub const DESCRIPTION: &str =
+    "Original pixel-art emoji HUD proof. /pixelchat toggles; multiplayer GIF is not supported.";
 pub const BACKGROUND: u32 = 0xB0_10_19_2B;
 pub const WHITE: u32 = 0xFF_EC_F4_FF;
 pub const COLORS: [u32; 4] = [0xFF_FF_75_9C, 0xFF_FF_E1_80, 0xFF_80_E7_C0, 0xFF_8D_BB_FF];
@@ -44,14 +45,20 @@ pub fn runs(icon: usize) -> Vec<PixelRun> {
             while x < 5 && row & (1 << (4 - x)) != 0 {
                 x += 1;
             }
-            out.push(PixelRun { x: first, y: y as u8, width: x - first });
+            out.push(PixelRun {
+                x: first,
+                y: y as u8,
+                width: x - first,
+            });
         }
     }
     out
 }
 
 pub fn count_pixels(icon: usize) -> usize {
-    GLYPHS.get(icon).map_or(0, |rows| rows.iter().map(|r| r.count_ones() as usize).sum())
+    GLYPHS
+        .get(icon)
+        .map_or(0, |rows| rows.iter().map(|r| r.count_ones() as usize).sum())
 }
 
 pub fn read_shown(value: Option<String>) -> bool {
@@ -59,7 +66,11 @@ pub fn read_shown(value: Option<String>) -> bool {
 }
 
 pub fn shown_label(visible: bool) -> &'static str {
-    if visible { "Emoji preview: ON" } else { "Emoji preview: OFF" }
+    if visible {
+        "Emoji preview: ON"
+    } else {
+        "Emoji preview: OFF"
+    }
 }
 
 thread_local! {
@@ -103,7 +114,10 @@ mod tests {
                 assert!((run.x as usize) < 5 && (run.y as usize) < 5);
                 assert!(run.width > 0 && run.x + run.width <= 5);
                 for x in run.x..run.x + run.width {
-                    assert!(!pixels[run.y as usize][x as usize], "overlapping rectangles");
+                    assert!(
+                        !pixels[run.y as usize][x as usize],
+                        "overlapping rectangles"
+                    );
                     pixels[run.y as usize][x as usize] = true;
                 }
             }
