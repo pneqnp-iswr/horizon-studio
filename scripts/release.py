@@ -45,9 +45,41 @@ def is_legacy(version: str) -> bool:
     return tuple(int(part) for part in version.split(".")) < (0, 7, 0)
 
 
-def asset_names(version: str, legacy: bool = False) -> tuple[str, ...]:
-    """Assets every release carries; releases before 0.7.0 had no build manifest."""
-    return (exe_name(version), "SHA256SUMS.txt") + (() if legacy else ("build-manifest.json",))
+def asset_names(version: str, legacy: bool = False, desktop: bool = False) -> tuple[str, ...]:
+    """Assets every release carries; releases before 0.7.0 had no build manifest. A release with the
+    desktop app also carries its installer, its portable ZIP and its manifest (docs/RELEASING.md)."""
+    names = (exe_name(version), "SHA256SUMS.txt") + (() if legacy else ("build-manifest.json",))
+    return names + (desktop_names(version) if desktop else ())
+
+
+DESKTOP_MANIFEST = "desktop-manifest.json"
+
+
+def desktop_names(version: str) -> tuple[str, ...]:
+    return (f"HorizonStudio-{version}-Windows-x64-setup.exe", f"HorizonStudio-{version}-Windows-x64-portable.zip",
+            DESKTOP_MANIFEST)
+
+
+def desktop_problems(manifest: dict, version: str, commit: str | None, sha: dict[str, str]) -> list[str]:
+    """What is wrong with a desktop manifest for this release; ``sha`` maps asset names to SHA-256."""
+    problems = []
+    if manifest.get("schema") != "horizon-studio.desktop-manifest/1":
+        problems.append("desktop-manifest.json has an unexpected schema")
+    if manifest.get("channel") != "release" or manifest.get("release_ready") is not True:
+        problems.append("the desktop build is not release-ready (every parity gate, docs/adr/0002-desktop-shell.md)")
+    if manifest.get("base_version") != version:
+        problems.append(f"the desktop build is version {manifest.get('base_version')}, not {version}")
+    if commit and manifest.get("git_commit") != commit:
+        problems.append("the desktop build comes from another commit")
+    for artifact in manifest.get("artifacts", []):
+        if sha.get(artifact.get("name")) != artifact.get("sha256"):
+            problems.append(f"{artifact.get('name')} does not match desktop-manifest.json")
+    signing = manifest.get("signing") or {}
+    if signing.get("overall") == "signed" and any(v != "Valid" for v in (signing.get("files") or {}).values()):
+        problems.append("the desktop manifest claims a signature Authenticode did not confirm")
+    if signing.get("overall") != "signed" and manifest.get("prerelease") is not True:
+        problems.append("an unsigned desktop build must be a prerelease")
+    return problems
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -219,11 +251,13 @@ class GitHub:
 
 # -- publication -------------------------------------------------------------------
 
-def _consistent(gh, release: dict, version: str, legacy: bool) -> list[str]:
+def _consistent(gh, release: dict, version: str, legacy: bool, desktop: bool | None = None) -> list[str]:
     """Problems with an existing release's assets, judged only from the release itself."""
     problems = []
     assets = {a["name"]: a for a in release.get("assets", [])}
-    for name in asset_names(version, legacy):
+    if desktop is None:
+        desktop = DESKTOP_MANIFEST in assets
+    for name in asset_names(version, legacy, desktop):
         if name not in assets:
             problems.append(f"missing asset {name}")
         elif assets[name].get("state") != "uploaded":
@@ -241,6 +275,15 @@ def _consistent(gh, release: dict, version: str, legacy: bool) -> list[str]:
             problems.append("build-manifest.json does not describe the published executable")
         if f"{gh.asset_sha256(assets['build-manifest.json'])}  build-manifest.json" not in sums:
             problems.append("SHA256SUMS.txt does not match build-manifest.json")
+    if desktop:
+        sha = {name: gh.asset_sha256(assets[name]) for name in desktop_names(version)}
+        for name, digest in sha.items():
+            if f"{digest}  {name}" not in sums:
+                problems.append(f"SHA256SUMS.txt does not match {name}")
+        manifest = json.loads(gh.asset_bytes(assets[DESKTOP_MANIFEST]))
+        problems += desktop_problems(manifest, version, None, sha)
+        if manifest.get("prerelease") is True and not release.get("prerelease"):
+            problems.append("an unsigned desktop build was published as a full release")
     return problems
 
 
@@ -260,38 +303,57 @@ def verify(gh, version: str, commit: str | None = None, legacy: bool | None = No
         problems.append(f"tag {tag} does not exist")
     elif commit and tag_sha != commit:
         problems.append(f"tag {tag} points to {tag_sha}, expected {commit}")
-    exe = next((a for a in release["assets"] if a["name"] == exe_name(version)), None)
-    if exe and not gh.reachable(exe["browser_download_url"]):
-        problems.append("executable download URL is not reachable")
+    names = {a["name"]: a for a in release["assets"]}
+    exe = names.get(exe_name(version))
+    downloads = [exe] + [names[n] for n in desktop_names(version) if n in names]
+    for asset in downloads:
+        if asset and not gh.reachable(asset["browser_download_url"]):
+            problems.append(f"{asset['name']} download URL is not reachable")
     if problems:
         raise ReleaseError(f"Release {tag} failed verification: " + "; ".join(problems))
-    return {"tag": tag, "commit": tag_sha, "url": release["html_url"], "prerelease": release["prerelease"],
-            "executable": {"name": exe["name"], "size": exe["size"], "sha256": gh.asset_sha256(exe),
-                           "download": exe["browser_download_url"]}}
+    result = {"tag": tag, "commit": tag_sha, "url": release["html_url"], "prerelease": release["prerelease"],
+              "executable": {"name": exe["name"], "size": exe["size"], "sha256": gh.asset_sha256(exe),
+                             "download": exe["browser_download_url"]}}
+    if DESKTOP_MANIFEST in names:
+        manifest = json.loads(gh.asset_bytes(names[DESKTOP_MANIFEST]))
+        result["desktop"] = {"signing": (manifest.get("signing") or {}).get("overall"), "assets": [
+            {"name": n, "size": names[n]["size"], "sha256": gh.asset_sha256(names[n]),
+             "download": names[n]["browser_download_url"]} for n in desktop_names(version)]}
+    return result
 
 
-def publish(gh, version: str, commit: str, dist: Path, notes: str, prerelease: bool = True) -> dict:
+def publish(gh, version: str, commit: str, dist: Path, notes: str, prerelease: bool = True,
+            desktop: bool = False) -> dict:
     tag = f"v{version}"
     if not SHA1.fullmatch(commit):
         raise ReleaseError("Commit must be a full 40-character SHA")
     problems = check_notes(notes, version)
     if problems:
         raise ReleaseError("Release notes are not for this version: " + "; ".join(problems))
-    local = {name: Path(dist) / name for name in asset_names(version)}
+    local = {name: Path(dist) / name for name in asset_names(version, desktop=desktop)}
     for path in local.values():
         if not path.is_file():
             raise ReleaseError(f"Build output {path.name} is missing")
+    if desktop:
+        manifest = json.loads(local[DESKTOP_MANIFEST].read_text(encoding="utf-8"))
+        problems = desktop_problems(manifest, version, commit, {n: sha256_file(local[n]) for n in desktop_names(version)})
+        sums = local["SHA256SUMS.txt"].read_text(encoding="ascii")
+        problems += [f"SHA256SUMS.txt does not list {name}" for name, path in local.items()
+                     if name != "SHA256SUMS.txt" and f"{sha256_file(path)}  {name}" not in sums]
+        if problems:
+            raise ReleaseError("The desktop build cannot be published: " + "; ".join(problems))
+        prerelease = prerelease or manifest.get("prerelease") is True
     tag_sha = gh.tag_commit(tag)
     if tag_sha and tag_sha != commit:
         raise ReleaseError(f"Tag {tag} already points to {tag_sha}, not {commit}; tags are never moved")
     release = gh.find_release(tag)
-    if release and not release.get("draft") and not _consistent(gh, release, version, legacy=False):
+    if release and not release.get("draft") and not _consistent(gh, release, version, legacy=False, desktop=desktop):
         result = verify(gh, version, commit)
         result["status"] = "already verified"  # an earlier run published it; never replace assets
         return result
     if release and not release.get("draft"):
         raise ReleaseError(f"Published release {tag} is incomplete or inconsistent "
-                           f"({'; '.join(_consistent(gh, release, version, legacy=False))}); "
+                           f"({'; '.join(_consistent(gh, release, version, legacy=False, desktop=desktop))}); "
                            "published releases are not repaired automatically - see docs/RELEASING.md")
     if release is None:
         release = gh.create_draft(tag, commit, f"Horizon Studio {tag} — Windows", notes, prerelease)
@@ -356,6 +418,7 @@ def main(argv=None) -> int:
         p.add_argument("--repo", required=True); p.add_argument("--version", required=True)
         if name == "publish":
             p.add_argument("--commit", required=True); p.add_argument("--dist", type=Path, required=True)
+            p.add_argument("--desktop", action="store_true", help="also publish the desktop installer, ZIP and manifest")
         if name in ("publish", "repair-notes"):
             p.add_argument("--notes", type=Path, required=True)
         if name == "verify":
@@ -382,7 +445,8 @@ def main(argv=None) -> int:
         else:
             gh = _github(args)
             if args.command == "publish":
-                result = publish(gh, args.version, args.commit, args.dist, args.notes.read_text(encoding="utf-8"))
+                result = publish(gh, args.version, args.commit, args.dist, args.notes.read_text(encoding="utf-8"),
+                                 desktop=args.desktop)
             elif args.command == "verify":
                 result = verify(gh, args.version, args.commit, True if args.legacy else None)
             else:

@@ -33,6 +33,8 @@ function counts(){return {block:state.blocks.length,item:state.items.length,reci
 // detached (invalid ID, no core, an open conflict), the editor keeps a local history.
 function historyButtons(){const core=workspaceSync.tracking;$('undoEdit').disabled=!(core?workspaceSync.canUndo:editJournal.canUndo);$('redoEdit').disabled=!(core?workspaceSync.canRedo:editJournal.canRedo);}
 function workspaceNotice(key,values={},mode=workspaceSync.mode){
+  if(mode==='ready'&&workspaceSync.id&&(key==='workspaceSaved'||key==='workspaceRecovered'))
+    document.dispatchEvent(new CustomEvent('studio:workspace-ready',{detail:{id:workspaceSync.id}}));
   const label=$('workspaceSaveStatus');
   label.textContent=t(key,values);label.dataset.key=key;
   $('restoreWorkspace').hidden=mode!=='conflict';
@@ -181,7 +183,42 @@ for(const id of META)$(id).addEventListener('change',()=>{persist();if(workspace
 // Another tab (or an AI change approved elsewhere) may have moved the project on: look on return.
 window.addEventListener('focus',()=>workspaceSync.check());document.addEventListener('visibilitychange',()=>{if(!document.hidden)workspaceSync.check();});
 for(const id of ['modId','modName'])$(id).addEventListener('input',updateWorkspaceMeta); if($('entrySearch'))$('entrySearch').addEventListener('input',render);
-try{const cached=JSON.parse(localStorage.getItem('horizonStudio_v02')||'null');if(cached)applyProject(cached); else {chooseTab('recipe');editJournal.reset(editorState());beginWorkspaceSession();}}catch(_){chooseTab('recipe');editJournal.reset(editorState());beginWorkspaceSession();}
+// Preferences kept by the core (~/.horizon-studio/prefs.json): the desktop window's page storage starts empty at
+// every launch (its core gets a new local port), so the language and the last project come back from there.
+const prefs={remembered:{lang:null,last_project:null}};
+async function readPrefs(){
+  try{const r=await studioPost('/api/prefs',JSON.stringify({}));if(r.ok)prefs.remembered=await r.json();}catch(_){}
+  return prefs.remembered;
+}
+function rememberPrefs(update){
+  const changed=Object.entries(update).some(([k,v])=>prefs.remembered[k]!==v);
+  if(!changed)return;
+  Object.assign(prefs.remembered,update);
+  studioPost('/api/prefs',JSON.stringify({set:update})).catch(()=>{});
+}
+async function reopenLastProject(remembered){
+  if(!remembered.last_project||!VALID.test(remembered.last_project))return false;
+  try{
+    const r=await studioPost('/api/tx/open',JSON.stringify({project_id:remembered.last_project}));
+    if(!r.ok)return false;
+    applyProject((await r.json()).state);
+    status(t('lastProjectReopened',{id:remembered.last_project}));
+    return true;
+  }catch(_){return false;}
+}
+function startEmpty(){chooseTab('recipe');editJournal.reset(editorState());beginWorkspaceSession();}
+(async()=>{
+  let cached=null;
+  try{cached=JSON.parse(localStorage.getItem('horizonStudio_v02')||'null');}catch(_){cached=null;}
+  let storedLanguage=null;
+  try{storedLanguage=localStorage.getItem('horizonStudio.language');}catch(_){}
+  const remembered=await readPrefs();
+  if(!storedLanguage&&remembered.lang&&remembered.lang!==window.HorizonI18n.language)window.HorizonI18n.select(remembered.lang);
+  try{if(cached){applyProject(cached);return;}}catch(_){}
+  if(!(await reopenLastProject(remembered)))startEmpty();
+})();
+for(const lang of ['en','ru'])$('lang-'+lang).addEventListener('click',()=>rememberPrefs({lang}));
+document.addEventListener('studio:workspace-ready',event=>rememberPrefs({last_project:event.detail.id}));
 // HS-025: effects are part of the editor state, so save, autosave, undo and reopen cover them.
 const vfxStudio=window.HorizonVfxStudio.mount({effects:()=>state.effects,commit:list=>{state.effects=list;persist();document.dispatchEvent(new Event('studio:state-changed'));},
   newUid,t,status,target:()=>state.target});

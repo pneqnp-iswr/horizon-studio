@@ -459,6 +459,35 @@ def transactions_for(server):
         return server.studio_transactions
 
 
+PREF_LANGUAGES = ('en', 'ru')
+
+
+def preferences(update: dict | None = None) -> dict:
+    """The person's editor preferences in ~/.horizon-studio/prefs.json: the language and the last opened
+    project. The desktop window's page storage does not survive a restart (its core gets a new local port
+    each time), so these live with the core. Never secrets."""
+    from studio_core.storage import atomic_write_bytes
+    from studio_core.workspace import PROJECT_ID
+    path = studio_home() / 'prefs.json'
+    try:
+        stored = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        stored = {}
+    prefs = {'lang': stored.get('lang') if stored.get('lang') in PREF_LANGUAGES else None,
+             'last_project': stored.get('last_project') if isinstance(stored.get('last_project'), str)
+             and PROJECT_ID.fullmatch(stored['last_project']) else None}
+    if update:
+        if set(update) - set(prefs):
+            fail('Only lang and last_project can be set')
+        if 'lang' in update and update['lang'] not in PREF_LANGUAGES:
+            fail('lang must be en or ru')
+        if 'last_project' in update and not (isinstance(update['last_project'], str) and PROJECT_ID.fullmatch(update['last_project'])):
+            fail('last_project must be a valid mod ID')
+        prefs.update(update)
+        atomic_write_bytes(path, (json.dumps(prefs, indent=1) + '\n').encode('utf-8'))
+    return prefs
+
+
 TX_PATHS = ('/api/tx/open', '/api/tx/commit', '/api/tx/undo', '/api/tx/redo', '/api/tx/history',
             '/api/ai/propose', '/api/ai/commit', '/api/ai/reject', '/api/ai/cancel', '/api/ai/providers',
             '/api/ai/settings', '/api/ai/credentials', '/api/ai/payload')
@@ -648,7 +677,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path not in ('/api/export', '/api/hmod', '/api/preview', '/api/source', '/api/structure-preview', '/api/doctor', '/api/resourcepack',
                              '/api/project/open', '/api/project/save', '/api/workspace/write', '/api/workspace/recover',
-                             '/api/capabilities/check') + TX_PATHS:
+                             '/api/capabilities/check', '/api/prefs') + TX_PATHS:
             return self.response(404, 'application/json', b'{"error":"Not found"}')
         if not trusted_request(self.headers, self.server.server_address[1]):
             return self.response(403, 'application/json; charset=utf-8', b'{"error":"Untrusted request origin or host"}')
@@ -680,6 +709,10 @@ class Handler(BaseHTTPRequestHandler):
                     'state': to_editor_state(result['document']),
                     'revision': result['revision'],
                     'recovered_from_backup': result['recovered_from_backup']}))
+            if self.path == '/api/prefs':
+                if not isinstance(payload, dict) or not isinstance(payload.get('set', {}), dict):
+                    fail('Expected {"set": {...}} or {}')
+                return self.response(200, 'application/json; charset=utf-8', json_bytes(preferences(payload.get('set'))))
             if self.path in TX_PATHS:
                 return self.response(200, 'application/json; charset=utf-8',
                                      json_bytes(transaction_request(self.server, self.path, payload)))

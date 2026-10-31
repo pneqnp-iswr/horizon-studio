@@ -8,6 +8,8 @@ import zipfile
 from pathlib import Path
 
 from scripts import desktop_release as dr
+
+ROOT = Path(__file__).resolve().parents[1]
 from scripts.release import ReleaseError
 
 COMMIT = "a" * 40
@@ -39,9 +41,18 @@ class Candidate:
         self.signing = folder / "signing.json"
         self.signing.write_text(json.dumps(UNSIGNED), encoding="utf-8")
 
-    def manifest(self, gates=GATES, parity=None):
+    def manifest(self, gates=GATES, parity=None, channel="preview", decision=None):
+        signing = dr.signing_status(json.loads(self.signing.read_text()), list(UNSIGNED))
         return dr.build_manifest("0.7.0", COMMIT, self.installer, self.zip, gates, dr.smoke_results(self.smoke),
-                                 dr.signing_status(json.loads(self.signing.read_text()), list(UNSIGNED)), parity or {})
+                                 signing, parity or {}, channel=channel, decision=decision)
+
+    def decision(self, policy="unsigned-prerelease", **fields):
+        record = {"schema": dr.DECISION_SCHEMA, "policy": policy, "approved_by": "the repository owner",
+                  "approved_at": "2026-10-31", "evidence": "approval recorded in the session"}
+        record.update(fields)
+        path = self.dist.parent / "signing-decision.json"
+        path.write_text(json.dumps(record), encoding="utf-8")
+        return path
 
     def write(self, manifest):
         path = self.dist / "desktop-manifest.json"
@@ -76,12 +87,54 @@ class DesktopReleaseTests(unittest.TestCase):
 
     def test_every_parity_gate_is_needed_before_release_ready(self):
         everything = {gate: True for gate in dr.PARITY_GATES}
-        self.assertTrue(self.c.manifest(parity=everything)["release_ready"])
+        decision = dr.signing_decision(self.c.decision(), {"overall": "unsigned"})
+        ready = self.c.manifest(parity=everything, channel="release", decision=decision)
+        self.assertTrue(ready["release_ready"])
+        self.assertTrue(ready["prerelease"], "unsigned builds are prereleases")
+        self.assertEqual(ready["build"], "release-aaaaaaa")
         for gate in dr.PARITY_GATES:
             with self.subTest(gate):
-                self.assertFalse(self.c.manifest(parity={**everything, gate: False})["release_ready"])
+                self.assertFalse(self.c.manifest(parity={**everything, gate: False}, channel="release",
+                                                 decision=decision)["release_ready"])
         with self.assertRaises(ReleaseError):
             self.c.manifest(parity={"looks-fine": True})
+
+    def test_gates_that_need_evidence_cannot_be_asserted(self):
+        with self.assertRaisesRegex(ReleaseError, "release workflow"):
+            self.c.manifest(parity={"release-pipeline": True})  # a preview build is not the release pipeline
+        with self.assertRaisesRegex(ReleaseError, "approved decision"):
+            self.c.manifest(parity={"signing-decision": True}, channel="release")
+        # A decision this build does not honour (it is unsigned) does not pass the gate.
+        signed_policy = dr.signing_decision(self.c.decision("signed"), {"overall": "unsigned"})
+        self.assertFalse(signed_policy["honoured"])
+        with self.assertRaises(ReleaseError):
+            self.c.manifest(parity={"signing-decision": True}, channel="release", decision=signed_policy)
+        for broken in ({"policy": "trust-me"}, {"approved_by": ""}, {"schema": "other/1"}, {"evidence": None}):
+            with self.subTest(broken=broken), self.assertRaises(ReleaseError):
+                dr.signing_decision(self.c.decision(**broken), {"overall": "unsigned"})
+        self.assertIsNone(dr.signing_decision(self.c.dist / "absent.json", {"overall": "unsigned"}))
+
+    def test_the_cli_judges_the_decision_and_the_migration_note_from_their_files(self):
+        import contextlib
+        import io
+        base = ["manifest", "--version", "0.7.0", "--commit", COMMIT, "--installer", str(self.c.installer),
+                "--portable-zip", str(self.c.zip), "--smoke", str(self.c.smoke), "--signing", str(self.c.signing),
+                "--out", str(self.c.dist / "desktop-manifest.json"), *sum((["--gate", f"{k}={v}"] for k, v in GATES.items()), [])]
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(dr.main([*base, "--parity", "signing-decision"]), 1, "never passed by hand")
+            self.assertEqual(dr.main([*base, "--channel", "release", "--parity", "desktop-e2e", "--parity", "release-pipeline",
+                                      "--signing-decision", str(self.c.decision()),
+                                      "--migration-note", str(ROOT / "docs" / "MIGRATING_FROM_0.7.md")]), 0)
+        manifest = json.loads((self.c.dist / "desktop-manifest.json").read_text(encoding="utf-8"))
+        self.assertTrue(manifest["release_ready"])
+        self.assertEqual(manifest["signing_decision"]["policy"], "unsigned-prerelease")
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(dr.main([*base, "--channel", "release", "--parity", "desktop-e2e", "--parity", "release-pipeline",
+                                      "--signing-decision", str(self.c.dist / "no-decision-yet.json"),
+                                      "--migration-note", str(ROOT / "docs" / "MIGRATING_FROM_0.7.md")]), 0)
+        manifest = json.loads((self.c.dist / "desktop-manifest.json").read_text(encoding="utf-8"))
+        self.assertFalse(manifest["release_ready"], "without the owner's decision the build is not releasable")
+        self.assertFalse(manifest["parity"]["signing-decision"]["passed"])
 
     def test_failed_or_missing_build_gates_produce_no_manifest(self):
         for gates in ({**GATES, "desktop-e2e": "failure"}, {k: v for k, v in GATES.items() if k != "zip-launch"}, {}):
@@ -106,7 +159,9 @@ class DesktopReleaseTests(unittest.TestCase):
             dr.signing_status({}, list(UNSIGNED))
         # A mixed signature state can never be release ready.
         self.c.signing.write_text(json.dumps(mixed), encoding="utf-8")
-        self.assertFalse(self.c.manifest(parity={gate: True for gate in dr.PARITY_GATES})["release_ready"])
+        decision = dr.signing_decision(self.c.decision(), {"overall": "unsigned"})
+        self.assertFalse(self.c.manifest(parity={gate: True for gate in dr.PARITY_GATES}, channel="release",
+                                         decision=decision)["release_ready"])
 
     def test_the_portable_zip_must_carry_the_shell_and_its_core(self):
         for layout in (("HorizonStudio.exe",), ("core/horizon-studio-core.exe",)):

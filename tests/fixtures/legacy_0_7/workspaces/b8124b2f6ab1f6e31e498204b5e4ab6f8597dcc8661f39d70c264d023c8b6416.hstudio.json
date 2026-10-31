@@ -1,0 +1,111 @@
+{
+  "format": "horizon-studio",
+  "schema": "studio.project/1",
+  "project": {
+    "id": "ruby_demo",
+    "name": "Ruby Demo",
+    "version": "0.1.0",
+    "author": "Creator",
+    "description": "Example with two recipes, a block and a gem (edited in 0.7)"
+  },
+  "objects": [
+    {
+      "uid": "46e2add5-6199-59c8-a0e2-e099ee79df6b",
+      "kind": "block",
+      "id": "ruby_block",
+      "props": {
+        "name": "Block of Ruby",
+        "template": "minecraft:iron_block",
+        "hardness": 4,
+        "light": 3
+      }
+    },
+    {
+      "uid": "8b03ca85-7f82-5cce-8341-9e419bd69a90",
+      "kind": "item",
+      "id": "ruby",
+      "props": {
+        "name": "Ruby",
+        "template": "minecraft:diamond",
+        "rarity": "rare",
+        "max_stack_size": 64
+      }
+    },
+    {
+      "uid": "743a94d3-6aab-5005-b9e3-43d67678a736",
+      "kind": "recipe",
+      "id": "ruby_block",
+      "props": {
+        "type": "shaped",
+        "result": {
+          "ref": "46e2add5-6199-59c8-a0e2-e099ee79df6b"
+        },
+        "count": 1,
+        "grid": [
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          }
+        ]
+      }
+    },
+    {
+      "uid": "45c2b836-6fea-5822-af74-8497103b5092",
+      "kind": "recipe",
+      "id": "ruby_from_block",
+      "props": {
+        "type": "shapeless",
+        "result": {
+          "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+        },
+        "count": 9,
+        "grid": [
+          {
+            "ref": "46e2add5-6199-59c8-a0e2-e099ee79df6b"
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    }
+  ],
+  "source_overrides": {},
+  "extensions": {},
+  "provenance": {
+    "migrations": [
+      {
+        "from": 2,
+        "to": "studio.project/1"
+      }
+    ]
+  }
+}

@@ -772,6 +772,17 @@ def validate_releases(data: dict, releases: dict, version: str) -> list[str]:
             problems.append(f"{where}: executable needs size and SHA-256")
         if entry.get("channel") not in ("prerelease", "stable"):
             problems.append(f"{where}: channel must be prerelease or stable")
+        desktop = entry.get("desktop")
+        if desktop is not None:
+            expected = {"installer": f"HorizonStudio-{v}-Windows-x64-setup.exe",
+                        "portable": f"HorizonStudio-{v}-Windows-x64-portable.zip"}
+            for key, name in expected.items():
+                item = desktop.get(key) or {}
+                if item.get("name") != name or not isinstance(item.get("size"), int) \
+                        or not re.fullmatch(r"[0-9a-f]{64}", item.get("sha256", "")):
+                    problems.append(f"{where}: desktop {key} needs the name {name}, a size and a SHA-256")
+            if desktop.get("signing") not in ("unsigned", "signed"):
+                problems.append(f"{where}: desktop signing must be unsigned or signed, as Authenticode reported")
         if tuple(map(int, v.split("."))) > tuple(map(int, version.split("."))):
             problems.append(f"{where}: newer than VERSION {version}")
         if not isinstance(entry.get("last_pr"), int) or not entry.get("capabilities"):
@@ -793,6 +804,26 @@ def latest_release(releases: dict) -> dict:
     return max(releases["releases"], key=lambda e: tuple(map(int, e["version"].split("."))))
 
 
+def _desktop_lines(rel: dict, base: str, lang: str) -> list[str]:
+    """The desktop app's downloads, when the release has them (from 0.8.0)."""
+    desktop = rel.get("desktop")
+    if not desktop:
+        return []
+    out = []
+    for key, en, ru in (("installer", "Desktop app installer", "Установщик настольного приложения"),
+                        ("portable", "Portable desktop app (a folder in a ZIP; extract it all)",
+                         "Переносимая версия (папка в ZIP; распакуйте целиком)")):
+        item = desktop[key]
+        mb = item["size"] / 1048576
+        size = f"{mb:.1f} MB" if lang == "en" else f"{mb:.1f} МБ".replace(".", ",")
+        url = f"{base}/releases/download/{rel['tag']}/{item['name']}"
+        out.append(f"⬇ **[{item['name']}]({url})** · {en if lang == 'en' else ru} · {size} · SHA-256 `{item['sha256']}`  ")
+    note = {"unsigned": ("unsigned: Windows SmartScreen will warn", "без подписи: Windows SmartScreen предупредит"),
+            "signed": ("signed (Authenticode verified)", "подписано (Authenticode проверен)")}[desktop["signing"]]
+    out.append((f"Desktop build {note[0]}; classic launcher:  " if lang == "en" else f"Настольная сборка {note[1]}; классический запуск:  "))
+    return out
+
+
 def release_section(data: dict, releases: dict, lang: str) -> str:
     rel = latest_release(releases)
     base = REPO_URL.rstrip("/")
@@ -804,16 +835,18 @@ def release_section(data: dict, releases: dict, lang: str) -> str:
     newer = [m for m in data["milestones"] if m["status"] == "done" and _pr_numbers(m)
              and max(_pr_numbers(m)) > rel["last_pr"]]
     if lang == "en":
-        lines = [f"**[Horizon Studio {rel['tag']} — {rel['name']}]({page})** · {channel[0]} · published {rel['published']}  ",
-                 f"⬇ **[{exe['name']}]({download})** · {size} · [SHA256SUMS.txt]({sums})  ",
+        lines = [f"**[Horizon Studio {rel['tag']} — {rel['name']}]({page})** · {channel[0]} · published {rel['published']}  "]
+        lines += _desktop_lines(rel, base, lang)
+        lines += [f"⬇ **[{exe['name']}]({download})** · {size} · [SHA256SUMS.txt]({sums})  ",
                  f"SHA-256 `{exe['sha256']}` · built from [`{rel['commit'][:7]}`]({base}/commit/{rel['commit']}) · unsigned",
                  "", f"**In this build** ({rel['verified_by']}):", ""]
         lines += [f"- {c['en']}" for c in rel["capabilities"]]
         if newer:
             lines += ["", f"**On `master` but not in this executable:** " + "; ".join(f"{m['id']} {m['title']}" for m in newer) + "."]
     else:
-        lines = [f"**[Horizon Studio {rel['tag']} — {rel['name']}]({page})** · {channel[1]} · опубликован {rel['published']}  ",
-                 f"⬇ **[{exe['name']}]({download})** · {size} · [SHA256SUMS.txt]({sums})  ",
+        lines = [f"**[Horizon Studio {rel['tag']} — {rel['name']}]({page})** · {channel[1]} · опубликован {rel['published']}  "]
+        lines += _desktop_lines(rel, base, lang)
+        lines += [f"⬇ **[{exe['name']}]({download})** · {size} · [SHA256SUMS.txt]({sums})  ",
                  f"SHA-256 `{exe['sha256']}` · собран из [`{rel['commit'][:7]}`]({base}/commit/{rel['commit']}) · без подписи",
                  "", f"**В этой сборке** ({rel['verified_by_ru']}):", ""]
         lines += [f"- {c['ru']}" for c in rel["capabilities"]]

@@ -1,8 +1,9 @@
 name: Desktop shell
 
 # Builds and exercises the Tauri desktop shell (desktop/) with the frozen project core.
-# Preview artifacts only: publishing releases stays in windows-release.yml until the
-# desktop build reaches parity (docs/adr/0002-desktop-shell.md).
+# Pushes and pull requests build preview artifacts. windows-release.yml calls this workflow with
+# `release: true` for the final installer and portable ZIP, and only that workflow publishes them
+# (docs/RELEASING.md).
 on:
   push:
     branches: [master]
@@ -39,16 +40,25 @@ on:
       - scripts/msedgedriver_for_webview2.ps1
       - .github/workflows/desktop.yml
   workflow_dispatch:
+  # windows-release.yml builds the desktop app with this workflow (one pipeline, the same gates).
+  workflow_call:
+    inputs:
+      release:
+        description: Build release artifacts (final names, release channel) instead of a preview
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: desktop-${{ github.ref }}
+  # The release workflow's call gets its own group, so a push to master never cancels a release build.
+  group: desktop-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   CARGO_TERM_COLOR: always
+  CHANNEL: ${{ inputs.release && 'release' || 'preview' }}
   TAURI_CLI: '@tauri-apps/cli@2.12.4'
   TAURI_DRIVER_VERSION: '2.1.0'
 
@@ -153,13 +163,15 @@ jobs:
           import json, os, shutil
           from pathlib import Path
           version = Path("VERSION").read_text(encoding="utf-8").strip()
-          name = f"HorizonStudio-Desktop-{version}-preview-{os.environ['GITHUB_SHA'][:7]}-Windows-x64"
+          release_build = os.environ["CHANNEL"] == "release"
+          name = (f"HorizonStudio-{version}-Windows-x64" if release_build
+                  else f"HorizonStudio-Desktop-{version}-preview-{os.environ['GITHUB_SHA'][:7]}-Windows-x64")
           release = Path("desktop/target/release")
           portable = Path("dist") / name
           portable.mkdir(parents=True)
           shutil.copy2(release / "HorizonStudio.exe", portable / "HorizonStudio.exe")
           shutil.copytree(release / "core", portable / "core")
-          archive = shutil.make_archive(str(portable), "zip", portable.parent, name)
+          archive = shutil.make_archive(str(portable) + ("-portable" if release_build else ""), "zip", portable.parent, name)
           installers = sorted(Path("desktop/target/release/bundle/nsis").glob("*.exe"))
           assert len(installers) == 1, installers
           installer = Path("dist") / f"{name}-setup.exe"
@@ -227,16 +239,20 @@ jobs:
           }
           $report | ConvertTo-Json | Set-Content -Path desktop-evidence/signing.json -Encoding utf8
           Get-Content desktop-evidence/signing.json
-      - name: Desktop release candidate (manifest, checksums, verification; never published)
+      - name: Desktop release candidate (manifest, checksums, verification; publishing is windows-release.yml's)
         # Reaching this step means every earlier gate of this run passed. release_ready stays false
-        # until every parity gate of docs/adr/0002-desktop-shell.md holds.
+        # until every parity gate of docs/adr/0002-desktop-shell.md holds; the signing decision and the
+        # migration note are judged from their files, release-pipeline only inside the release workflow.
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
           $version = (Get-Content VERSION -Raw).Trim()
           $zip = (Get-ChildItem dist/*.zip | Select-Object -First 1).FullName
+          $pipeline = @()
+          if ($env:CHANNEL -eq 'release') { $pipeline = @('--parity', 'release-pipeline') }
           python scripts/desktop_release.py manifest --version $version --commit $env:GITHUB_SHA `
             --installer $env:INSTALLER --portable-zip $zip --smoke desktop-evidence --signing desktop-evidence/signing.json `
-            --out dist/desktop-manifest.json --parity desktop-e2e `
+            --out dist/desktop-manifest.json --channel $env:CHANNEL --parity desktop-e2e @pipeline `
+            --signing-decision docs/releases/signing-decision.json --migration-note docs/MIGRATING_FROM_0.7.md `
             --gate rust-tests=success --gate core-smoke=success --gate portable-smoke=success `
             --gate zip-launch=success --gate install-uninstall=success --gate desktop-e2e=success
           python scripts/desktop_release.py checksums --dist dist (Split-Path $env:INSTALLER -Leaf) (Split-Path $zip -Leaf) desktop-manifest.json
@@ -290,7 +306,7 @@ jobs:
           retention-days: 14
       - uses: actions/upload-artifact@v4
         with:
-          name: desktop-windows-preview-build
+          name: desktop-windows-${{ env.CHANNEL }}-build
           path: |
             dist/*.zip
             dist/*-setup.exe

@@ -433,6 +433,16 @@
           "level": "docs",
           "ref": "ADR 0002: decision matrix and measurements",
           "url": "docs/adr/0002-desktop-shell.md"
+        },
+        {
+          "level": "unit",
+          "ref": "Release pipeline: windows-release.yml builds the desktop app through desktop.yml (release channel) and publishes installer, portable ZIP and desktop-manifest.json with the EXE under one SHA256SUMS.txt; publication refuses non-ready, foreign-commit or unsigned-but-not-prerelease builds and API verification covers every desktop asset; parity gates judged from evidence (signing decision file, migration note); real v0.7.0 files open, build identical packages and join the history (tests/test_release.py, tests/test_desktop_release.py, tests/test_migration_0_7.py)",
+          "url": "tests/test_release.py"
+        },
+        {
+          "level": "docs",
+          "ref": "Migration from the 0.7 EXE (EN/RU) and the code-signing policy; the owner's signing decision is still to be recorded",
+          "url": "docs/MIGRATING_FROM_0.7.md"
         }
       ],
       "missing": "Publishing desktop artifacts through windows-release.yml with API verification, a recorded code-signing decision and a migration note (ADR 0002); the verified 0.7 EXE stays the released product until then"

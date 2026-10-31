@@ -86,6 +86,9 @@ Phase states are derived from milestone states in [`docs/roadmap/roadmap.json`](
 | `.hmod` packaging, byte-identical on every OS | Works | Official `cargo-horizon-mod check` (pinned engine) |
 | Canonical `studio.project/1` with stable IDs; migration of older projects | Works | Golden migration tests, byte-identical builds |
 | Disk workspace with crash recovery, revision conflicts, Undo/Redo | Works in Studio | Python, Node and browser E2E tests |
+| One history for your edits and the AI's (HS-020): undo/redo survive restarts, no silent overwrite from another tab | Works in Studio | 13-step integration test on a real folder; browser and desktop E2E ([TRANSACTIONS.md](docs/architecture/TRANSACTIONS.md)) |
+| AI Creator: request, per-field diff, apply as one undoable step, reject, cancel | Works with the **simulated** fixture provider; Claude provider included but **not tested against the live API** | Browser E2E; provider tests with a stand-in client ([AI_CREATOR.md](docs/architecture/AI_CREATOR.md)) |
+| VFX Studio: multi-emitter effects, keyframed curves, budgets, timeline | Works in Studio (preview only, **not exported**) | Python and editor agree to 1e-12; browser E2E ([VFX.md](docs/architecture/VFX.md)) |
 | Source Workbench: validated JSON overrides, cuboid 3D preview | Works in Studio | Unit tests; browser E2E (override reaches the `.hmod`) |
 | Mod Doctor static diagnostics, CLI (`build`, `verify`, `migrate`, `graph`…) | Works | Unit tests |
 | Native desktop window: Tauri 2 shell, Windows installer and portable build, native Save As | **Preview** (CI builds, not released) | Windows CI: install, smoke run, uninstall ([DESKTOP.md](docs/DESKTOP.md)) |
@@ -105,6 +108,10 @@ driven like a user), and the same editor in Chromium. More sizes in [docs/screen
 <p align="center">
   <img src="docs/screenshots/desktop/desktop-1440x900-journey-ru.png" alt="Development journey in Russian: the pixel-art roadmap and phase list on the left, and on the right what this build supports, grouped into available, engine-only with a native-code warning, and unsupported" width="49%" />
   <img src="docs/screenshots/source-workbench-en.png" alt="Source and 3D workbench editing generated JSON next to a WebGL reference-cube preview" width="49%" />
+</p>
+<p align="center">
+  <img src="docs/screenshots/ai-creator-1440x900.png" alt="AI Creator: a request to change the ruby item's rarity, the proposal with the operation and a before/after table (rarity rare to epic), validation, Apply as one step and Reject, and a badge saying the provider is simulated" width="49%" />
+  <img src="docs/screenshots/vfx-studio-1440x900.png" alt="VFX Studio: an Impact Spark with an added smoke emitter in the pixel preview, the timeline with a burst mark, engine notes saying it is a Studio preview, and the emitter list with budgets" width="49%" />
 </p>
 
 ## Quick start

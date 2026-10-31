@@ -1,0 +1,8 @@
+{
+  "schema": "horizon-studio.signing-decision/1",
+  "policy": "unsigned-prerelease",
+  "approved_by": "repository owner (pneqnp-iswr)",
+  "approved_at": "2026-10-31",
+  "evidence": "Asked in Claude Code session https://claude.ai/code/session_017aCRwQpaUuuhkWacFMAPD7 whether to publish the desktop app unsigned, as a GitHub prerelease with a SmartScreen warning, as v0.8.0 once every gate passes; the owner answered 'Publish v0.8.0 prerelease'. No signing identity exists; none was created or bought.",
+  "applies_to": "Desktop builds (installer, portable ZIP) and the classic launcher until a signing identity is configured (docs/SIGNING.md)"
+}

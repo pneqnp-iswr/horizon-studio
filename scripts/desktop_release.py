@@ -3,13 +3,21 @@
 
     desktop_release.py manifest --version X --commit SHA --installer PATH --portable-zip PATH
                                 --gate NAME=RESULT ... --smoke DIR --signing PATH --out PATH
+                                [--channel release --signing-decision PATH --migration-note PATH]
     desktop_release.py checksums --dist DIR FILE ...
     desktop_release.py verify --dist DIR --manifest PATH
 
 The desktop build is a preview until the gates in docs/adr/0002-desktop-shell.md pass. This script
 never publishes anything: it records what one CI run built and proved, and `release_ready` stays
-false while any parity gate is missing. The released product remains the verified 0.7 EXE
-(scripts/release.py, windows-release.yml).
+false while any parity gate is missing. Publishing is scripts/release.py's job, in
+windows-release.yml, which calls desktop.yml as its desktop build (channel `release`).
+
+Parity gates are judged from evidence, not asserted:
+* desktop-e2e      passed by the workflow when the desktop E2E step of this run succeeded;
+* release-pipeline passed only in the release channel (the build runs inside windows-release.yml);
+* signing-decision a decision record (docs/releases/signing-decision.json) that the repository owner
+                   approved, and that agrees with this build's actual Authenticode status;
+* migration-note   the user-visible guide from the 0.7 EXE exists.
 """
 from __future__ import annotations
 
@@ -38,6 +46,11 @@ PARITY_GATES = {
     "release-pipeline": "windows-release.yml builds, gates and publishes the desktop artifacts with API verification",
     "signing-decision": "A recorded code-signing decision the installer can state honestly",
     "migration-note": "A user-visible note on moving from the 0.7 EXE",
+}
+DECISION_SCHEMA = "horizon-studio.signing-decision/1"
+POLICIES = {
+    "unsigned-prerelease": "No signing identity: builds are published unsigned, as prereleases, and say so",
+    "signed": "Every shipped executable must carry a valid Authenticode signature",
 }
 SIGNATURE_STATES = {"Valid", "NotSigned", "HashMismatch", "NotTrusted", "UnknownError", "NotSupportedFileFormat", "Incompatible"}
 PORTABLE_NOTE = (f"Portable folder in a ZIP: extract the whole archive and run {SHELL}; it needs the core/ folder "
@@ -106,8 +119,28 @@ def signing_status(report: dict, names: list[str]) -> dict:
     return {"overall": overall, "files": files}
 
 
+def signing_decision(path: Path | None, signing: dict) -> dict | None:
+    """The owner's recorded signing decision, if there is one and this build honours it."""
+    if path is None or not Path(path).is_file():
+        return None
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(data, dict) or data.get("schema") != DECISION_SCHEMA:
+        raise ReleaseError(f"{Path(path).name} is not a {DECISION_SCHEMA} record")
+    if data.get("policy") not in POLICIES:
+        raise ReleaseError(f"Unknown signing policy {data.get('policy')!r}")
+    for field in ("approved_by", "approved_at", "evidence"):
+        if not isinstance(data.get(field), str) or not data[field].strip():
+            raise ReleaseError(f"The signing decision has no {field}")
+    expected = "signed" if data["policy"] == "signed" else "unsigned"
+    honoured = signing["overall"] == expected
+    return {"policy": data["policy"], "approved_by": data["approved_by"], "approved_at": data["approved_at"],
+            "evidence": data["evidence"], "honoured": honoured,
+            **({} if honoured else {"problem": f"policy {data['policy']} but the build is {signing['overall']}"})}
+
+
 def build_manifest(version: str, commit: str, installer: Path, portable_zip: Path, gates: dict[str, str],
-                   smoke: list[dict], signing: dict, parity: dict[str, bool]) -> dict:
+                   smoke: list[dict], signing: dict, parity: dict[str, bool], *, channel: str = "preview",
+                   decision: dict | None = None) -> dict:
     if not SEMVER.fullmatch(version):
         raise ReleaseError(f"Invalid version {version!r}")
     if not SHA1.fullmatch(commit):
@@ -121,23 +154,33 @@ def build_manifest(version: str, commit: str, installer: Path, portable_zip: Pat
     portable = _artifact(portable_zip, "portable-zip")
     portable["contents"] = portable_contents(portable_zip)
     portable["note"] = PORTABLE_NOTE
+    if channel not in ("preview", "release"):
+        raise ReleaseError(f"Unknown channel {channel!r}")
+    if parity.get("release-pipeline") and channel != "release":
+        raise ReleaseError("release-pipeline passes only for a build made by the release workflow")
+    if parity.get("signing-decision") and not (decision and decision["honoured"]):
+        raise ReleaseError("signing-decision needs an approved decision that this build honours")
     parity_state = {gate: {"passed": bool(parity.get(gate)), "requirement": text} for gate, text in PARITY_GATES.items()}
     ready = all(item["passed"] for item in parity_state.values()) and signing["overall"] in ("signed", "unsigned")
     return {
         "schema": SCHEMA,
-        "channel": "preview",
+        "channel": channel,
         "base_version": version,
-        "build": f"preview-{commit[:7]}",
+        "build": f"{channel}-{commit[:7]}",
         "git_commit": commit,
         "built_at_utc": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat(),
         "artifacts": [_artifact(installer, "nsis-installer"), portable],
         "gates": dict(sorted(gates.items())),
         "smoke": smoke,
         "signing": signing,
+        "signing_decision": decision,
+        "prerelease": signing["overall"] != "signed",
         "parity": parity_state,
         "release_ready": ready,
         "limitations": [
-            "Preview build: the released product is the verified 0.7 EXE until every parity gate passes.",
+            "Preview build: the released product is the verified 0.7 EXE until every parity gate passes."
+            if not ready else "Published as a prerelease while it is unsigned (docs/SIGNING.md)."
+            if signing["overall"] != "signed" else "Released build.",
             "Unsigned builds make Windows SmartScreen warn; compare SHA-256 with SHA256SUMS.txt."
             if signing["overall"] != "signed" else "Signed with Authenticode; verify the publisher in the file properties.",
             "Loading Studio mods in the Horizon game has not been verified (HS-002).",
@@ -185,6 +228,11 @@ def verify(dist: Path, manifest_path: Path) -> list[str]:
     if manifest.get("signing", {}).get("overall") == "signed" and any(
             status != "Valid" for status in manifest["signing"].get("files", {}).values()):
         problems.append("Signing is claimed for files without a valid signature")
+    if manifest.get("signing", {}).get("overall") != "signed" and manifest.get("prerelease") is not True:
+        problems.append("An unsigned build must be published as a prerelease")
+    if manifest.get("parity", {}).get("signing-decision", {}).get("passed") and not (
+            manifest.get("signing_decision") or {}).get("honoured"):
+        problems.append("signing-decision passed without an honoured, approved decision")
     return problems
 
 
@@ -197,7 +245,10 @@ def main(argv=None) -> int:
     for flag in ("--installer", "--portable-zip", "--smoke", "--signing", "--out"):
         p.add_argument(flag, type=Path, required=True)
     p.add_argument("--gate", action="append", default=[], help="NAME=RESULT proven in this run")
-    p.add_argument("--parity", action="append", default=[], help="a parity gate (ADR 0002) that has passed")
+    p.add_argument("--parity", action="append", default=[], help="a parity gate (ADR 0002) proven by this run")
+    p.add_argument("--channel", choices=("preview", "release"), default="preview")
+    p.add_argument("--signing-decision", type=Path, help="the owner's decision record (docs/releases/signing-decision.json)")
+    p.add_argument("--migration-note", type=Path, help="the guide from the 0.7 EXE (docs/MIGRATING_FROM_0.7.md)")
     p = sub.add_parser("checksums"); p.add_argument("--dist", type=Path, required=True); p.add_argument("files", nargs="+")
     p = sub.add_parser("verify"); p.add_argument("--dist", type=Path, required=True); p.add_argument("--manifest", type=Path, required=True)
     args = parser.parse_args(argv)
@@ -206,8 +257,17 @@ def main(argv=None) -> int:
             gates = dict(item.split("=", 1) for item in args.gate)
             report = json.loads(args.signing.read_text(encoding="utf-8"))
             signing = signing_status(report, [args.installer.name, SHELL, CORE])
+            parity = {name: True for name in args.parity}
+            if "signing-decision" in parity or "migration-note" in parity:
+                raise ReleaseError("signing-decision and migration-note are judged from their files, not passed by hand")
+            decision = signing_decision(args.signing_decision, signing)
+            if decision and decision["honoured"]:
+                parity["signing-decision"] = True
+            if args.migration_note and args.migration_note.is_file() and args.migration_note.stat().st_size > 1000:
+                parity["migration-note"] = True
             manifest = build_manifest(args.version, args.commit, args.installer, args.portable_zip, gates,
-                                      smoke_results(args.smoke), signing, {name: True for name in args.parity})
+                                      smoke_results(args.smoke), signing, parity, channel=args.channel,
+                                      decision=decision)
             args.out.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
             print(json.dumps(manifest, indent=2))
         elif args.command == "checksums":

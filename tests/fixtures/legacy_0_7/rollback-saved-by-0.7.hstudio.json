@@ -1,0 +1,295 @@
+{
+  "format": "horizon-studio",
+  "schema": "studio.project/1",
+  "project": {
+    "id": "ruby_demo",
+    "name": "Ruby Demo",
+    "version": "0.1.0",
+    "author": "Creator",
+    "description": "Example with two recipes, a block and a gem",
+    "acme_flag": true
+  },
+  "objects": [
+    {
+      "uid": "46e2add5-6199-59c8-a0e2-e099ee79df6b",
+      "kind": "block",
+      "id": "ruby_block",
+      "props": {
+        "name": "Block of Ruby",
+        "template": "minecraft:iron_block",
+        "hardness": 4,
+        "light": 3
+      }
+    },
+    {
+      "uid": "8b03ca85-7f82-5cce-8341-9e419bd69a90",
+      "kind": "item",
+      "id": "ruby",
+      "props": {
+        "name": "Ruby",
+        "template": "minecraft:diamond",
+        "rarity": "rare",
+        "max_stack_size": 64
+      }
+    },
+    {
+      "uid": "743a94d3-6aab-5005-b9e3-43d67678a736",
+      "kind": "recipe",
+      "id": "ruby_block",
+      "props": {
+        "type": "shaped",
+        "result": {
+          "ref": "46e2add5-6199-59c8-a0e2-e099ee79df6b"
+        },
+        "count": 1,
+        "grid": [
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          },
+          {
+            "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+          }
+        ]
+      }
+    },
+    {
+      "uid": "45c2b836-6fea-5822-af74-8497103b5092",
+      "kind": "recipe",
+      "id": "ruby_from_block",
+      "props": {
+        "type": "shapeless",
+        "result": {
+          "ref": "8b03ca85-7f82-5cce-8341-9e419bd69a90"
+        },
+        "count": 9,
+        "grid": [
+          {
+            "ref": "46e2add5-6199-59c8-a0e2-e099ee79df6b"
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    },
+    {
+      "uid": "11111111-1111-4111-8111-111111111111",
+      "kind": "vfx",
+      "id": "impact_spark",
+      "props": {
+        "schema": "studio.vfx/1",
+        "name": "Impact Spark",
+        "duration": 0.8,
+        "loop": false,
+        "seed": 1337,
+        "emitters": [
+          {
+            "id": "sparks",
+            "bursts": [
+              {
+                "time": 0,
+                "count": 28
+              }
+            ],
+            "shape": {
+              "type": "sphere",
+              "radius": 0.12
+            },
+            "direction": {
+              "axis": [
+                0,
+                1,
+                0
+              ],
+              "spread": 70
+            },
+            "speed": [
+              3.5,
+              7
+            ],
+            "lifetime": [
+              0.25,
+              0.6
+            ],
+            "gravity": 9.8,
+            "drag": 2.5,
+            "stretch": 0.035,
+            "blend": "additive",
+            "size": [
+              [
+                0,
+                0.1
+              ],
+              [
+                0.7,
+                0.06
+              ],
+              [
+                1,
+                0
+              ]
+            ],
+            "color": [
+              [
+                0,
+                "#fff6c8"
+              ],
+              [
+                0.35,
+                "#ffbe3d"
+              ],
+              [
+                1,
+                "#b8320f"
+              ]
+            ],
+            "alpha": [
+              [
+                0,
+                1
+              ],
+              [
+                0.8,
+                0.9
+              ],
+              [
+                1,
+                0
+              ]
+            ]
+          },
+          {
+            "id": "flash",
+            "bursts": [
+              {
+                "time": 0,
+                "count": 1
+              }
+            ],
+            "shape": {
+              "type": "point",
+              "radius": 0
+            },
+            "direction": {
+              "axis": [
+                0,
+                1,
+                0
+              ],
+              "spread": 0
+            },
+            "speed": [
+              0,
+              0
+            ],
+            "lifetime": [
+              0.09,
+              0.09
+            ],
+            "gravity": 0,
+            "drag": 0,
+            "stretch": 0,
+            "blend": "additive",
+            "size": [
+              [
+                0,
+                0.45
+              ],
+              [
+                1,
+                0.8
+              ]
+            ],
+            "color": [
+              [
+                0,
+                "#ffffff"
+              ],
+              [
+                1,
+                "#ffd36b"
+              ]
+            ],
+            "alpha": [
+              [
+                0,
+                0.95
+              ],
+              [
+                1,
+                0
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "uid": "33333333-3333-4333-8333-333333333333",
+      "kind": "acme.widget",
+      "id": "w1",
+      "props": {
+        "opaque": {
+          "asset": "item:ruby"
+        },
+        "n": [
+          1,
+          2.5
+        ]
+      },
+      "meta": {
+        "owner": "acme"
+      }
+    }
+  ],
+  "source_overrides": {},
+  "extensions": {
+    "acme.plugin": {
+      "keep": [
+        1,
+        {
+          "deep": true
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "migrations": [
+      {
+        "from": 2,
+        "to": "studio.project/1"
+      }
+    ]
+  },
+  "acme_note": "keep me",
+  "target": {
+    "engine": "horizon",
+    "revision": "3c1d4b398b1d3f5c2e6c3e0f7f1a6a1d2a9b8c7d"
+  }
+}
