@@ -37,7 +37,7 @@ This starts a **disposable** `StudioPreview` world, uses `horizon-ctl` to verify
 
 Only after the real content-load gate passes should IDE-002 pursue an actually playable child game viewport on Windows with proper native input, DPI, resize, and process ownership. Further functionality such as native Rust source-mixin mods is a different **compile + restart** workflow and requires explicit trust.
 
-Related references: [ADR 0004](adr/0004-horizon-ide-live-workspace.md) (in draft PR #37), [Preview Bridge](architecture/PREVIEW_BRIDGE.md), [Game Content Smoke](GAME_CONTENT_SMOKE.md).
+Related references: [ADR 0004, draft PR #37](https://github.com/pneqnp-iswr/horizon-studio/pull/37), [Preview Bridge](architecture/PREVIEW_BRIDGE.md), [Game Content Smoke](GAME_CONTENT_SMOKE.md).
 
 ## Test coverage
 
