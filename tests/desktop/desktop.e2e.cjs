@@ -71,7 +71,13 @@ function diskHas(root, text) {
   if (!fs.existsSync(root)) return false;
   return fs.readdirSync(root, { withFileTypes: true }).some(entry => {
     const full = path.join(root, entry.name);
-    return entry.isDirectory() ? diskHas(full, text) : fs.readFileSync(full, 'utf8').includes(text);
+    if (entry.isDirectory()) return diskHas(full, text);
+    // An atomic save's temporary file can be renamed away between the listing and the read.
+    if (entry.name.endsWith('.tmp')) return false;
+    try { return fs.readFileSync(full, 'utf8').includes(text); } catch (error) {
+      if (error.code === 'ENOENT') return false;
+      throw error;
+    }
   });
 }
 
