@@ -47,9 +47,19 @@ class VfxModelTests(unittest.TestCase):
         self.assertEqual(fixture["effect"], vfx.impact_spark())
         for time, alive in fixture["alive"].items():
             self.assertEqual(len(vfx.simulate(fixture["effect"], float(time))), alive)
+        # The fixture was generated on Linux; other platforms' math libraries may round the last bit
+        # differently (Windows CI does), so values agree to 1e-12 rather than bit for bit.
         for time, frame in fixture["frames"].items():
             now = vfx.simulate(fixture["effect"], float(time))
-            self.assertEqual([{k: p[k] for k in ("emitter", "position", "trail", "size", "alpha", "color")} for p in now], frame)
+            self.assertEqual(len(now), len(frame))
+            for p, q in zip(now, frame):
+                self.assertEqual(p["emitter"], q["emitter"])
+                for key in ("position", "trail"):
+                    for a, b in zip(p[key], q[key]):
+                        self.assertAlmostEqual(a, b, delta=1e-12)
+                self.assertAlmostEqual(p["size"], q["size"], delta=1e-12)
+                self.assertAlmostEqual(p["alpha"], q["alpha"], delta=1e-12)
+                self.assertTrue(all(abs(a - b) <= 1 for a, b in zip(p["color"], q["color"])))
 
     def test_motion_follows_gravity_and_drag_and_loops_wrap(self):
         effect = vfx.impact_spark()
