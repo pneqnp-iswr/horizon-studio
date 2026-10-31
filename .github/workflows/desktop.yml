@@ -48,7 +48,7 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   TAURI_CLI: '@tauri-apps/cli@2.12.4'
-  TAURI_DRIVER: '2.1.0'
+  TAURI_DRIVER_VERSION: '2.1.0'
 
 jobs:
   linux:
@@ -90,7 +90,7 @@ jobs:
       - name: Functional E2E on the real window (WebKitWebDriver)
         # A separate test build: the cargo feature `e2e` answers the Save dialog from the environment.
         run: |
-          cargo install tauri-driver --locked --version "$TAURI_DRIVER"
+          cargo install tauri-driver --locked --version "$TAURI_DRIVER_VERSION"
           cargo build --locked --features e2e --manifest-path desktop/Cargo.toml
           xvfb-run -a -s "-screen 0 1600x1000x24" env WEBKIT_DISABLE_DMABUF_RENDERER=1 \
             DESKTOP_APP="$PWD/desktop/target/debug/horizon-studio" \
@@ -198,7 +198,7 @@ jobs:
         # Built after the packages are assembled, so the uploaded builds can never be test builds.
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          cargo install tauri-driver --locked --version $env:TAURI_DRIVER
+          cargo install tauri-driver --locked --version $env:TAURI_DRIVER_VERSION
           cargo build --release --locked --features e2e --manifest-path desktop/Cargo.toml
           $app = Resolve-Path desktop/target/release/horizon-studio.exe
           if (-not (Test-Path desktop/target/release/core/horizon-studio-core.exe)) { throw "The bundled core is missing next to the test build" }

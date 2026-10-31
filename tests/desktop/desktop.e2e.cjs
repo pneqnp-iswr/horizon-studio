@@ -11,6 +11,7 @@ const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 const { launch, sleep } = require('./webdriver.cjs');
+const { readZip } = require('../e2e/zip.cjs');
 
 const APP = process.env.DESKTOP_APP;
 const OFFICIAL_RUBY_SHA256 = 'ee3e1c878ea41fbf710f749896bfdb92b23b18e21e67b016b57b95b96a8797e2';
@@ -188,6 +189,41 @@ scenario('saves through the native save path, reopens the project and exports th
     await win.waitFor(() => (JSON.parse(localStorage.getItem('horizonStudio_v02')) || {}).metadata?.id === 'ruby_demo', { message: 'reopened project' });
     const reopened = await state(win);
     assert.deepEqual([...reopened.blocks, ...reopened.items, ...reopened.recipes].map(o => o.uid).sort(), uids);
+  } finally {
+    await win.close();
+  }
+});
+
+scenario('edits JSON in the Source Workbench and exports it in the .hmod and the source ZIP', async () => {
+  const box = scratch();
+  const win = await open(box.env);
+  const target = 'assets/ruby_demo/models/item/ruby.json';
+  const override = { parent: 'minecraft:item/handheld', textures: { layer0: 'minecraft:item/emerald' } };
+  try {
+    await editorReady(win);
+    await fresh(win);
+    await loadDemo(win);
+    await win.click('#openWorkbench');
+    await win.waitFor(sel => Boolean(document.querySelector(sel)), { message: 'source file list' }, `#sourceFiles button[title="${target}"]`);
+    await win.click(`#sourceFiles button[title="${target}"]`);
+    await win.type('#sourceCode', '{"parent": ');
+    await win.click('#applySource');
+    await win.waitFor(() => document.querySelector('#sourceStatus').classList.contains('error'), { message: 'invalid JSON refused' });
+    assert.deepEqual((await state(win)).source_overrides, {});
+    await win.type('#sourceCode', JSON.stringify(override));
+    await win.click('#applySource');
+    await win.waitFor(p => Boolean(JSON.parse(localStorage.getItem('horizonStudio_v02')).source_overrides[p]), { message: 'override applied' }, target);
+    await win.click('#closeWorkbench');
+    await win.click('#exportHmod');
+    await waitStatus(win, 'hmodExported');
+    assert.deepEqual(JSON.parse(readZip(fs.readFileSync(path.join(box.saves, 'ruby_demo.hmod')))[target].toString('utf8')), override);
+    await win.click('#exportSource');
+    await waitStatus(win, 'zipExported');
+    const source = readZip(fs.readFileSync(path.join(box.saves, 'ruby_demo-source.zip')));
+    assert.ok(source['ruby_demo/horizon-mod.toml'].toString('utf8').includes('id = "ruby_demo"'));
+    assert.deepEqual(JSON.parse(source[`ruby_demo/${target}`].toString('utf8')), override);
+    await win.click('#undoEdit');
+    await win.waitFor(() => Object.keys(JSON.parse(localStorage.getItem('horizonStudio_v02')).source_overrides).length === 0, { message: 'undo' });
   } finally {
     await win.close();
   }

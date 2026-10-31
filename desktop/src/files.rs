@@ -7,7 +7,7 @@
 //! the previous target untouched. This is crash- and interruption-safe for the target's
 //! contents; it cannot promise more than the file system and disk do on power loss.
 
-use std::fs::{self, File, OpenOptions};
+use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -79,7 +79,7 @@ fn replace(from: &Path, to: &Path) -> io::Result<()> {
     fs::rename(from, to)?;
     if let Some(dir) = to.parent() {
         // Persist the directory entry too; ignore file systems that cannot sync a directory.
-        if let Ok(handle) = File::open(if dir.as_os_str().is_empty() { Path::new(".") } else { dir }) {
+        if let Ok(handle) = fs::File::open(if dir.as_os_str().is_empty() { Path::new(".") } else { dir }) {
             let _ = handle.sync_all();
         }
     }
