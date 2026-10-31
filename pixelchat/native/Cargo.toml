@@ -1,0 +1,11 @@
+[package]
+name = "horizon-pixelchat-hud"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+publish = false
+license = "MIT"
+description = "Standalone-tested native Horizon pixel-chat HUD logic, not the multiplayer GIF mod"
+
+[lib]
+path = "mixins/pixelchat_hud/runtime.rs"
