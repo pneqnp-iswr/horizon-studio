@@ -25,21 +25,25 @@
 ## Latest Windows release
 
 <!-- roadmap:release:start -->
-**[Horizon Studio v0.7.0 — Project Core](https://github.com/pneqnp-iswr/horizon-studio/releases/tag/v0.7.0)** · alpha prerelease · published 2026-10-30  
-⬇ **[HorizonStudio-0.7.0-Windows-x64.exe](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.7.0/HorizonStudio-0.7.0-Windows-x64.exe)** · 11.6 MB · [SHA256SUMS.txt](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.7.0/SHA256SUMS.txt)  
-SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9` · built from [`c816211`](https://github.com/pneqnp-iswr/horizon-studio/commit/c816211b01670d06411ef5a4acd336b8658cdd6a) · unsigned
+**[Horizon Studio v0.8.0 — Desktop Studio](https://github.com/pneqnp-iswr/horizon-studio/releases/tag/v0.8.0)** · alpha prerelease · published 2026-10-31  
+⬇ **[HorizonStudio-0.8.0-Windows-x64-setup.exe](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.8.0/HorizonStudio-0.8.0-Windows-x64-setup.exe)** · Desktop app installer · 8.3 MB · SHA-256 `e512b6c1248084fe7d879939e1b06c91cf7ce9d4e6a2ab1a3702d7d323d1d519`  
+⬇ **[HorizonStudio-0.8.0-Windows-x64-portable.zip](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.8.0/HorizonStudio-0.8.0-Windows-x64-portable.zip)** · Portable desktop app (a folder in a ZIP; extract it all) · 10.6 MB · SHA-256 `fbf96a7248673820449800c4708cd2baf92102975158f1be1d343392b46b5953`  
+Desktop build unsigned: Windows SmartScreen will warn; classic launcher:  
+⬇ **[HorizonStudio-0.8.0-Windows-x64.exe](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.8.0/HorizonStudio-0.8.0-Windows-x64.exe)** · 11.9 MB · [SHA256SUMS.txt](https://github.com/pneqnp-iswr/horizon-studio/releases/download/v0.8.0/SHA256SUMS.txt)  
+SHA-256 `6f4e47d2529d8633e640646abfa4c210abbb94903c202ec5c0a8a846ef5b6949` · built from [`07f74ae`](https://github.com/pneqnp-iswr/horizon-studio/commit/07f74aec8ed2d0a3c5000662f862d1404cbb9e12) · unsigned
 
-**In this build** (release gates on the tagged commit (Python, Node, browser E2E, official checker), frozen self-test twice and GUI launch on Windows; run 41136925994, verified through the GitHub API on 2026-10-31):
+**In this build** (release gates on the tagged commit (Python, Node, browser E2E, official checker; desktop E2E on the real window 10/10 on Linux and Windows, install, smoke and uninstall, the portable ZIP as shipped), frozen self-test twice and GUI launch on Windows; run 41216054418, every asset verified downloadable through the GitHub API on 2026-10-31):
 
-- Canonical studio.project/1 with stable object IDs; older projects open and migrate
-- Disk workspace with crash recovery, revision-conflict choice and Undo/Redo
-- Modular editor with drawer and phone layouts for narrow windows
-- Hardened local API (session token, Host/Origin checks)
-- .hmod export identical to the officially checked packages, also from this Windows build
-- Blocks, items, recipes, textures, structures, Source Workbench and Mod Doctor from 0.6
+- Desktop app: an installer and a portable folder; restarts reopen the last project in your language
+- One transaction history for you and the AI: revisions, undo/redo across restarts, no silent overwrite
+- AI Creator: a per-field preview, applied as one undoable step; the built-in provider is a labelled simulation
+- Claude provider with the OS credential store, consent and offline mode (not tested against the live API)
+- VFX Studio: multi-emitter effects with keyframed curves and budgets (a Studio preview, never exported)
+- Command palette (Ctrl+K) with project asset search
+- Preview Bridge (developer tool): game content counts only from real inventory slots
 <!-- roadmap:release:end -->
 
-Release rules and verification: [docs/RELEASING.md](docs/RELEASING.md). Every release carries `SHA256SUMS.txt`; releases from 0.7.0 on also carry `build-manifest.json`.
+Release rules and verification: [docs/RELEASING.md](docs/RELEASING.md). Every release carries `SHA256SUMS.txt`; releases from 0.7.0 on also carry `build-manifest.json`, and from 0.8.0 the desktop installer, the portable ZIP and `desktop-manifest.json`.
 
 ## Where we are now
 
@@ -63,7 +67,7 @@ Release rules and verification: [docs/RELEASING.md](docs/RELEASING.md). Every re
 |---|---|---|---|
 | F0 Foundation | Official validator, secure local API, release metadata, real-game smoke harness | Partially verified | 3 / 4 |
 | F1 Project Core | Canonical project document, migrations, durable workspace, undo, browser E2E | Done | 3 / 3 |
-| F2 Creative Editor | Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bridge (HS-011) | Partially verified | 0 / 6 |
+| F2 Creative Editor | Modular UI, docking, search, 3D selection, Blockbench interchange, Rust code bridge (HS-011) | Partially verified | 1 / 6 |
 | F3 Visual Scripting | Capability registry, typed graph IR, .hmod and trusted native .hnmod backends (HS-010) | **In progress** | 2 / 5 |
 | F4 Gameplay Systems | Entities, components, AI behaviour trees, events, RPG and automation | Planned | 0 / 3 |
 | F5 World & VFX | Shader graph over .hshader, particles, physics sandbox, dimensions | Partially verified | 1 / 5 |
@@ -116,9 +120,9 @@ driven like a user), and the same editor in Chromium. More sizes in [docs/screen
 
 ## Quick start
 
-**Windows (no Python needed):** download `HorizonStudio-<version>-Windows-x64.exe` from [Releases](https://github.com/pneqnp-iswr/horizon-studio/releases), optionally check it against `SHA256SUMS.txt`, and run it. The executable is portable and unsigned, so SmartScreen may warn. The latest release predates the features above that are marked as newer than 0.6.
+**Windows desktop app (no Python needed):** from [Releases](https://github.com/pneqnp-iswr/horizon-studio/releases), install `HorizonStudio-<version>-Windows-x64-setup.exe` (per user, no administrator rights) or extract the whole `…-portable.zip` and run `HorizonStudio.exe` (it needs the `core\` folder next to it). Check downloads against `SHA256SUMS.txt`. The builds are unsigned, so SmartScreen warns. The classic `HorizonStudio-<version>-Windows-x64.exe` is still included; it opens the editor in your browser. Moving from 0.7: [MIGRATING_FROM_0.7.md](docs/MIGRATING_FROM_0.7.md).
 
-**Desktop preview (Windows):** every change builds an installer and a portable folder in the
+**Desktop previews between releases:** every change builds an installer and a portable folder in the
 [Desktop shell workflow](https://github.com/pneqnp-iswr/horizon-studio/actions/workflows/desktop.yml) (artifact
 `desktop-windows-preview-build`). They are previews, unsigned and not releases — see [DESKTOP.md](docs/DESKTOP.md).
 

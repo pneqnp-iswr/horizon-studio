@@ -1,6 +1,6 @@
 # ADR 0002: The desktop shell is Tauri 2 around the existing editor and Python core
 
-- **Status:** accepted for migration slice A (preview builds); the verified 0.7 Windows EXE stays the released product until the desktop build reaches parity (gates below)
+- **Status:** accepted. The desktop build reached parity (gates below) and shipped in 0.8.0 (an unsigned prerelease, run 41216054418); the classic EXE is still included
 - **Date:** 2026-10-30
 - **Deciders:** maintainer (repository owner) on the recommendation of this ADR
 - **Supersedes:** nothing. Builds on [ADR 0001](0001-canonical-project-document.md): one canonical project model, `studio.project/1`

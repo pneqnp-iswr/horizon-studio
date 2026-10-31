@@ -6,10 +6,10 @@ Last updated: 2026-10-31. Master before this update: `2f9f1bc` (PR #22). Roadmap
 
 - **F0 — Foundation:** code complete; gate still lacks a real-game load record (HS-002 blocked on an authorized Horizon installation).
 - **F1 — Project Core:** done — HS-005, HS-006, HS-007.
-- **F2 — Creative Editor:** **HS-019 native desktop shell and workbench UI, partial** (slice A of the desktop transformation, PR #19). Missing: desktop release pipeline, an E2E run driving the shell's own window, a signing decision.
+- **F2 — Creative Editor:** **HS-019 native desktop shell and workbench UI — done** (PRs #19, #24, #25, #34; released in 0.8.0): functional E2E on the real window on Linux and Windows, the desktop app in the gated release pipeline, the owner's signing decision (unsigned prerelease) and a migration guide tested on real 0.7.0 files.
 - **F3 — Visual Scripting (current):** **HS-008 engine capability registry — done** (CI run 41152431321, PR #22): registry with Horizon's API levels, two audited profiles (`d2186eb`, `3c1d4b39`), project target selection with comparison, editor and CLI export gates; the official checker runs once per profile in CI. **HS-025 VFX asset model and Studio preview — done** (browser E2E, [VFX.md](../architecture/VFX.md)): effects are saved in the project, never exported and always labelled as a Studio preview. **Active milestone: HS-020** (AI Creator tool contract), in progress: the contract `horizon-studio.ai-tools/1` and its transactional executor exist with deterministic tests and a CLI (`ai-apply`); still missing is the editor routing its own edits through the same executor.
 - **F6 — HS-023 Preview Bridge, partial:** drives `horizon-ctl` (launch, wait, screenshot, state, content confirmation, quit) in an isolated test world with evidence levels; verified against stand-ins only, because no authorized Horizon installation has been run (same blocker as HS-002). [PREVIEW_BRIDGE.md](../architecture/PREVIEW_BRIDGE.md).
-- **Latest release: v0.7.0** (PR #15 → tag on `c816211`, run 41136925994): `HorizonStudio-0.7.0-Windows-x64.exe`, 12 170 186 bytes, SHA-256 `3f96e67154a09a6b292a3227c26369f9024d33d6158033d9a325c23b06fcf4b9`, unsigned; verified through the API. It stays the released product until the desktop build meets the gates in [ADR 0002](../adr/0002-desktop-shell.md).
+- **Latest release: v0.8.0 — Desktop Studio** (PR #35 → tag on `07f74ae`, run 41216054418), an unsigned prerelease verified through the API: `HorizonStudio-0.8.0-Windows-x64-setup.exe` (8 681 587 bytes, SHA-256 `e512b6c1248084fe7d879939e1b06c91cf7ce9d4e6a2ab1a3702d7d323d1d519`), `HorizonStudio-0.8.0-Windows-x64-portable.zip` (11 166 939 bytes, `fbf96a7248673820449800c4708cd2baf92102975158f1be1d343392b46b5953`) and the classic `HorizonStudio-0.8.0-Windows-x64.exe` (12 467 660 bytes, `6f4e47d2529d8633e640646abfa4c210abbb94903c202ec5c0a8a846ef5b6949`). v0.7.0 is unchanged.
 
 ## Roadmap v2 (engineering cycle 2)
 
@@ -46,7 +46,7 @@ Last updated: 2026-10-31. Master before this update: `2f9f1bc` (PR #22). Roadmap
 | HS-006 durable workspace + undo | **done** | PR #8 (Python fault injection, Node journal); PR #10 browser E2E: autosave, fresh-browser recovery, 409 conflicts, undo/redo |
 | HS-007 browser E2E + UI modules | **done** | PR #10: 13 Chromium scenarios in CI; PR #14: `editor_model.js` and `editor_render.js` (state logic and card markup) join `editor_api.js`/`editor_workspace.js`, 22 Node tests; the inline script only wires the DOM |
 | HS-008 engine capability registry | **done** | PR #16 (registry, CLI); PR #19 (API levels, editor card, export gate, journey; browser E2E) |
-| HS-019 desktop shell + workbench UI | **partial** | PR #19; `desktop.yml` run 41143213331; [DESKTOP.md](../DESKTOP.md) |
+| HS-019 desktop shell + workbench UI | **done** | PRs #19, #24, #25, #34; release run 41216054418 (v0.8.0); [DESKTOP.md](../DESKTOP.md) |
 
 ## Compatibility status (by level)
 
@@ -95,9 +95,10 @@ Last updated: 2026-10-31. Master before this update: `2f9f1bc` (PR #22). Roadmap
 
 ## Next recommended tasks
 
-1. HS-019 slice B: drive the shell's own window in E2E (WebDriver for WebView2 / WebKitGTK) and add the desktop artifacts to the gated release pipeline; record a code-signing decision.
-2. HS-008: let a project choose its target revision in the editor; add a profile for the next audited pin.
-3. HS-009: Blockbench `.bbmodel` cuboid import with a loss report (F2); [research note](../research/EDITOR_ECOSYSTEM_COMPARISON.md).
-4. HS-002: run the content-load harness on an authorized installation and record the result.
+1. HS-021: a live smoke test of the Claude provider with the owner's key, then OpenAI-compatible and local providers and token-level progress.
+2. HS-033: tabs, resizable and dockable panels, onboarding.
+3. HS-026: the emitter graph and quality profiles in the format (after HS-012).
+4. HS-009: Blockbench `.bbmodel` cuboid import with a loss report (F2); [research note](../research/EDITOR_ECOSYSTEM_COMPARISON.md).
+5. HS-002 / HS-023: run the content-load harness and the Preview Bridge on an authorized installation and record the result.
 
 Do not treat a CI-only pass as real Horizon game compatibility.

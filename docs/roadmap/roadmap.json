@@ -390,7 +390,7 @@
       "id": "HS-019",
       "track": "studio",
       "phase": "F2",
-      "status": "partial",
+      "status": "done",
       "depends_on": [
         "HS-007"
       ],
@@ -441,11 +441,20 @@
         },
         {
           "level": "docs",
-          "ref": "Migration from the 0.7 EXE (EN/RU) and the code-signing policy; the owner's signing decision is still to be recorded",
+          "ref": "Migration from the 0.7 EXE (EN/RU), the code-signing policy and the owner's recorded decision (unsigned prerelease, docs/releases/signing-decision.json)",
           "url": "docs/MIGRATING_FROM_0.7.md"
+        },
+        {
+          "level": "desktop-e2e",
+          "ref": "v0.8.0 published by windows-release.yml run 41216054418 on 07f74ae: the release's own desktop job ran the functional E2E on the real window (Linux 10/10, Windows 10/10, including twelve reloads), Rust tests, install, smoke and uninstall and the portable ZIP as shipped; desktop-manifest.json release_ready with all four parity gates (desktop-e2e, release-pipeline, signing-decision, migration-note); installer, portable ZIP and EXE published as an unsigned prerelease and verified downloadable through the GitHub API",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/actions/runs/41216054418"
+        },
+        {
+          "level": "desktop-smoke",
+          "ref": "Release v0.8.0: installer, portable ZIP, EXE, both manifests and SHA256SUMS.txt (Authenticode: NotSigned)",
+          "url": "https://github.com/pneqnp-iswr/horizon-studio/releases/tag/v0.8.0"
         }
-      ],
-      "missing": "Publishing desktop artifacts through windows-release.yml with API verification, a recorded code-signing decision and a migration note (ADR 0002); the verified 0.7 EXE stays the released product until then"
+      ]
     },
     {
       "id": "HS-028",

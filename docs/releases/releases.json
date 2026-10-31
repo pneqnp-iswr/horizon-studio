@@ -80,6 +80,72 @@
           "ru": "Блоки, предметы, рецепты, текстуры, структуры, Source Workbench и Mod Doctor из 0.6"
         }
       ]
+    },
+    {
+      "version": "0.8.0",
+      "name": "Desktop Studio",
+      "tag": "v0.8.0",
+      "commit": "07f74aec8ed2d0a3c5000662f862d1404cbb9e12",
+      "channel": "prerelease",
+      "published": "2026-10-31",
+      "last_pr": 35,
+      "executable": {
+        "name": "HorizonStudio-0.8.0-Windows-x64.exe",
+        "size": 12467660,
+        "sha256": "6f4e47d2529d8633e640646abfa4c210abbb94903c202ec5c0a8a846ef5b6949"
+      },
+      "desktop": {
+        "installer": {
+          "name": "HorizonStudio-0.8.0-Windows-x64-setup.exe",
+          "size": 8681587,
+          "sha256": "e512b6c1248084fe7d879939e1b06c91cf7ce9d4e6a2ab1a3702d7d323d1d519"
+        },
+        "portable": {
+          "name": "HorizonStudio-0.8.0-Windows-x64-portable.zip",
+          "size": 11166939,
+          "sha256": "fbf96a7248673820449800c4708cd2baf92102975158f1be1d343392b46b5953"
+        },
+        "signing": "unsigned"
+      },
+      "verified_by": "release gates on the tagged commit (Python, Node, browser E2E, official checker; desktop E2E on the real window 10/10 on Linux and Windows, install, smoke and uninstall, the portable ZIP as shipped), frozen self-test twice and GUI launch on Windows; run 41216054418, every asset verified downloadable through the GitHub API on 2026-10-31",
+      "verified_by_ru": "гейты релиза на теговом коммите (Python, Node, браузерные E2E, официальный checker; E2E настольного окна 10/10 на Linux и Windows, установка, запуск и удаление, переносимый ZIP в том виде, в каком он выпущен), двойной самотест EXE и GUI-запуск на Windows; прогон 41216054418, каждый файл проверен и скачан через GitHub API 2026-10-31",
+      "capabilities": [
+        {
+          "en": "Desktop app: an installer and a portable folder; restarts reopen the last project in your language",
+          "ru": "Настольное приложение: установщик и переносимая папка; после перезапуска открывается последний проект на вашем языке",
+          "milestone": "HS-019"
+        },
+        {
+          "en": "One transaction history for you and the AI: revisions, undo/redo across restarts, no silent overwrite",
+          "ru": "Одна история транзакций для вас и ИИ: ревизии, отмена и повтор после перезапуска, без тихой перезаписи",
+          "milestone": "HS-020"
+        },
+        {
+          "en": "AI Creator: a per-field preview, applied as one undoable step; the built-in provider is a labelled simulation",
+          "ru": "ИИ-конструктор: предпросмотр каждого поля, применение одним отменяемым шагом; встроенный провайдер — помеченная симуляция",
+          "milestone": "HS-020"
+        },
+        {
+          "en": "Claude provider with the OS credential store, consent and offline mode (not tested against the live API)",
+          "ru": "Провайдер Claude с системным хранилищем учётных данных, согласием и офлайн-режимом (с живым API не проверен)",
+          "milestone": "HS-021"
+        },
+        {
+          "en": "VFX Studio: multi-emitter effects with keyframed curves and budgets (a Studio preview, never exported)",
+          "ru": "VFX Studio: эффекты из нескольких эмиттеров с ключевыми кривыми и бюджетами (превью Studio, не экспортируется)",
+          "milestone": "HS-025"
+        },
+        {
+          "en": "Command palette (Ctrl+K) with project asset search",
+          "ru": "Палитра команд (Ctrl+K) с поиском по элементам проекта",
+          "milestone": "HS-033"
+        },
+        {
+          "en": "Preview Bridge (developer tool): game content counts only from real inventory slots",
+          "ru": "Preview Bridge (инструмент разработчика): контент в игре засчитывается только по реальным слотам инвентаря",
+          "milestone": "HS-023"
+        }
+      ]
     }
   ]
 }
