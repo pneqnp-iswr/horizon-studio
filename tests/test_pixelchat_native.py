@@ -77,11 +77,11 @@ class NativePixelChatContractTests(unittest.TestCase):
         browser = (ROOT / "pixelchat" / "demo.html").read_text(encoding="utf-8")
         runtime = (MIXINS / "runtime.rs").read_text(encoding="utf-8")
         names = ["heart", "star", "smile", "spark"]
-        shape_data = re.search(r"const shapes\\s*=\\s*\\{(.*?)\\};", browser, re.DOTALL)
+        shape_data = re.search(r"const shapes\s*=\s*\{(.*?)\};", browser, re.DOTALL)
         self.assertIsNotNone(shape_data)
-        rust_data = re.search(r"pub const GLYPHS[^=]*=\\s*\\[(.*?)\\];", runtime, re.DOTALL)
+        rust_data = re.search(r"pub const GLYPHS[^=]*=\s*\[(.*?)\];", runtime, re.DOTALL)
         self.assertIsNotNone(rust_data)
-        rust_rows = re.findall(r"\\[\\s*(0b[01]{5}(?:\\s*,\\s*0b[01]{5}){4})\\s*,?\\s*\\]", rust_data.group(1))
+        rust_rows = re.findall(r"\[\s*(0b[01]{5}(?:\s*,\s*0b[01]{5}){4})\s*,?\s*\]", rust_data.group(1))
         self.assertEqual(len(rust_rows), 4)
         color_line = re.search(r"pub const COLORS[^;]+;", runtime)
         self.assertIsNotNone(color_line)
@@ -90,12 +90,12 @@ class NativePixelChatContractTests(unittest.TestCase):
         self.assertEqual(len(colors), 4)
         for index, name in enumerate(names):
             with self.subTest(name=name):
-                shape = re.search(rf"\\b{name}:\\[([^]]+)\\]", shape_data.group(1))
+                shape = re.search(rf"\b{name}:\[([^]]+)\]", shape_data.group(1))
                 self.assertIsNotNone(shape)
                 js_rows = re.findall(r'"([01]{5})"', shape.group(1))
                 native_rows = [value[2:] for value in re.findall(r"0b[01]{5}", rust_rows[index])]
                 self.assertEqual(js_rows, native_rows)
-                color = re.search(rf"\\b{name}:'#([0-9a-f]{{6}})'", browser)
+                color = re.search(rf"\b{name}:'#([0-9a-f]{{6}})'", browser)
                 self.assertIsNotNone(color)
                 self.assertEqual(colors[index], int(color.group(1), 16))
 
